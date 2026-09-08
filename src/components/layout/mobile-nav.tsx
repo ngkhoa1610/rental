@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
 
 import {
   Sheet,
@@ -36,7 +36,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-dark-foreground hover:bg-dark-surface hover:text-dark-foreground"
+          className="rounded-full"
           aria-label="Open navigation menu"
         >
           <Menu className="size-5" />
@@ -45,35 +45,79 @@ export function MobileNav({ navigation }: MobileNavProps) {
 
       <SheetContent
         side="right"
-        className="w-[min(100%,_360px)] border-dark-border bg-dark text-dark-foreground"
+        className="w-[min(100%,_380px)] bg-background"
       >
         <SheetHeader>
-          <SheetTitle className="text-left text-sm font-bold uppercase tracking-[-0.02em] text-dark-foreground">
+          <SheetTitle className="text-left text-sm font-semibold tracking-[-0.03em]">
             Rental Store
           </SheetTitle>
         </SheetHeader>
 
-        <nav
-          className="mt-8 flex flex-col"
-          aria-label="Mobile navigation"
-        >
+        <nav className="mt-8 flex flex-col" aria-label="Mobile navigation">
           {navigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={handleNavigate}
-              className="border-b border-dark-border py-5 text-2xl font-medium tracking-tight transition-colors hover:text-accent"
+              className="border-b border-border py-5 text-2xl font-medium tracking-tight transition-colors hover:text-primary"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <Separator className="my-8 bg-dark-border" />
+        <Separator className="my-7" />
 
-        <Button variant="accent" size="lg" className="w-full" asChild>
-          <Link href="/booking" onClick={handleNavigate}>
-            Book Now
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="outline"
+            size="icon-lg"
+            className="rounded-full"
+            asChild
+          >
+            <Link
+              href="/search"
+              onClick={handleNavigate}
+              aria-label="Search"
+            >
+              <Search />
+            </Link>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon-lg"
+            className="rounded-full"
+            asChild
+          >
+            <Link
+              href="/wishlist"
+              onClick={handleNavigate}
+              aria-label="Wishlist"
+            >
+              <Heart />
+            </Link>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon-lg"
+            className="rounded-full"
+            asChild
+          >
+            <Link
+              href="/cart"
+              onClick={handleNavigate}
+              aria-label="Rental bag"
+            >
+              <ShoppingBag />
+            </Link>
+          </Button>
+        </div>
+
+        <Button size="lg" className="mt-3 w-full rounded-full" asChild>
+          <Link href="#featured-looks" onClick={handleNavigate}>
+            Rent a look
           </Link>
         </Button>
       </SheetContent>

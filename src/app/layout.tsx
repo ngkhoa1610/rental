@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rental Store — Camera & Production Equipment Rental",
+  title: "Rental Store — Fashion Rental",
   description:
-    "Browse camera, lens and production equipment with clear rental pricing and availability.",
+    "Discover curated fashion looks for dates, weddings, weekends and every moment worth dressing up for.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
