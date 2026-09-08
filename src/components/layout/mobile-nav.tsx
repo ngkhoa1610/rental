@@ -36,6 +36,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
         <Button
           variant="ghost"
           size="icon"
+          className="text-dark-foreground hover:bg-dark-surface hover:text-dark-foreground"
           aria-label="Open navigation menu"
         >
           <Menu className="size-5" />
@@ -44,10 +45,10 @@ export function MobileNav({ navigation }: MobileNavProps) {
 
       <SheetContent
         side="right"
-        className="w-[min(100%,_360px)] bg-dark text-dark-foreground"
+        className="w-[min(100%,_360px)] border-dark-border bg-dark text-dark-foreground"
       >
         <SheetHeader>
-          <SheetTitle className="text-left text-sm font-bold uppercase tracking-tight">
+          <SheetTitle className="text-left text-sm font-bold uppercase tracking-[-0.02em] text-dark-foreground">
             Rental Store
           </SheetTitle>
         </SheetHeader>
@@ -61,7 +62,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
               key={item.href}
               href={item.href}
               onClick={handleNavigate}
-              className="border-b border-dark-border py-5 text-2xl font-medium tracking-tight transition-opacity hover:opacity-70"
+              className="border-b border-dark-border py-5 text-2xl font-medium tracking-tight transition-colors hover:text-accent"
             >
               {item.label}
             </Link>
@@ -70,12 +71,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
 
         <Separator className="my-8 bg-dark-border" />
 
-        <Button
-          variant="accent"
-          size="lg"
-          className="w-full"
-          asChild
-        >
+        <Button variant="accent" size="lg" className="w-full" asChild>
           <Link href="/booking" onClick={handleNavigate}>
             Book Now
           </Link>

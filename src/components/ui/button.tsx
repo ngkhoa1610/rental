@@ -18,7 +18,8 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        accent:"bg-accent text-accent-foreground hover:bg-accent/80",
+        accent:
+          "bg-accent text-accent-foreground hover:bg-accent/85",
       },
       size: {
         default:
@@ -29,8 +30,7 @@ const buttonVariants = cva(
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+        "icon-sm": "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
       },
     },

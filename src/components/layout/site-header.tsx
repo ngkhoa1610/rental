@@ -7,7 +7,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 
 const navigation = [
   {
-    label: "Products",
+    label: "Equipment",
     href: "/products",
   },
   {
@@ -22,18 +22,16 @@ const navigation = [
 
 export function SiteHeader() {
   return (
-    <header className="bg-dark text-dark-foreground">
+    <header className="sticky top-0 z-40 bg-dark text-dark-foreground">
       <div className="mx-auto flex min-h-20 w-full max-w-[1280px] items-center px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link
           href="/"
-          className="shrink-0 text-sm font-bold uppercase tracking-tight"
+          className="shrink-0 text-sm font-bold uppercase tracking-[-0.02em]"
           aria-label="Rental Store home"
         >
           Rental Store
         </Link>
 
-        {/* Desktop navigation */}
         <nav
           className="ml-12 hidden items-center gap-8 lg:flex"
           aria-label="Main navigation"
@@ -42,19 +40,19 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium transition-opacity hover:opacity-70"
+              className="text-sm font-medium text-dark-foreground/75 transition-colors hover:text-dark-foreground"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        {/* Desktop actions */}
         <div className="ml-auto hidden items-center gap-3 lg:flex">
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Search"
+            className="text-dark-foreground hover:bg-dark-surface hover:text-dark-foreground"
+            aria-label="Search equipment"
             asChild
           >
             <Link href="/search">
@@ -72,7 +70,6 @@ export function SiteHeader() {
           </Button>
         </div>
 
-        {/* Mobile */}
         <div className="ml-auto lg:hidden">
           <MobileNav navigation={navigation} />
         </div>
