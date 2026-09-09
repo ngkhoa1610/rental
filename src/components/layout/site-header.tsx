@@ -25,11 +25,11 @@ const navigation = [
 
 export function SiteHeader() {
   return (
-    <header className="">
-      <div className="mx-auto flex min-h-16 w-full items-center border-b border-border/80 bg-surface/92 px-4 shadow-[0_8px_30px_rgba(91,67,57,0.06)] backdrop-blur-xl sm:min-h-[72px] sm:px-6 lg:px-7">
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-5 lg:px-6">
+      <div className="mx-auto flex min-h-16 w-full max-w-[1440px] items-center rounded-[20px] border border-[#eadbd2]/90 bg-[#fffdfa]/88 px-4 shadow-[0_10px_35px_rgba(91,67,57,0.06)] backdrop-blur-xl sm:min-h-[72px] sm:px-6 lg:px-7">
         <Link
           href="/"
-          className="shrink-0 text-sm font-semibold tracking-[-0.035em]"
+          className="shrink-0 text-[13px] font-semibold tracking-[-0.04em] text-[#3f302b]"
           aria-label="Rental Store home"
         >
           Rental Store
@@ -43,7 +43,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-foreground/68 transition-colors hover:text-foreground"
+              className="text-[12px] font-medium text-[#806f66] transition-colors hover:text-[#9f6254]"
             >
               {item.label}
             </Link>
@@ -53,23 +53,27 @@ export function SiteHeader() {
         <div className="ml-auto hidden items-center gap-1 lg:flex">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/search" aria-label="Search looks">
-              <Search className="size-[18px]" />
+              <Search className="size-[17px]" />
             </Link>
           </Button>
 
           <Button variant="ghost" size="icon" asChild>
             <Link href="/wishlist" aria-label="Wishlist">
-              <Heart className="size-[18px]" />
+              <Heart className="size-[17px]" />
             </Link>
           </Button>
 
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" aria-label="Rental bag">
-              <ShoppingBag className="size-[18px]" />
+              <ShoppingBag className="size-[17px]" />
             </Link>
           </Button>
 
-          <Button className="ml-2 rounded-full px-5" size="sm" asChild>
+          <Button
+            size="sm"
+            className="ml-2 rounded-full bg-[#9f6254] px-5 text-[12px] shadow-[0_10px_22px_-15px_rgba(159,98,84,0.75)] hover:bg-[#8e574b]"
+            asChild
+          >
             <Link href="#featured-looks">Rent a look</Link>
           </Button>
         </div>

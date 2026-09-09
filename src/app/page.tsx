@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowDownRight,
   ArrowRight,
   Check,
   ChevronRight,
@@ -17,27 +18,27 @@ const occasions = [
   {
     label: "Date night",
     image:
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1800&q=95",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1600&q=90",
   },
   {
     label: "Wedding guest",
     image:
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1800&q=95",
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1600&q=90",
   },
   {
     label: "Party",
     image:
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1800&q=95",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=90",
   },
   {
     label: "Vacation",
     image:
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1800&q=95",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=90",
   },
   {
     label: "Weekend",
     image:
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1800&q=95",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=90",
   },
 ];
 
@@ -45,224 +46,334 @@ const categories = [
   {
     label: "Dresses",
     count: "32 looks",
-    href: "/products?category=dresses",
     image:
-      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1500&q=95",
-  },
-  {
-    label: "Tops",
-    count: "24 looks",
-    href: "/products?category=tops",
-    image:
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=95",
+      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1400&q=90",
   },
   {
     label: "Sets",
     count: "18 looks",
-    href: "/products?category=sets",
     image:
-      "https://images.unsplash.com/photo-1506629905607-d9d0a8f0a1e8?auto=format&fit=crop&w=1200&q=95",
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=90",
+  },
+  {
+    label: "Tops",
+    count: "24 looks",
+    image:
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=90",
   },
   {
     label: "Outerwear",
-    count: "16 looks",
-    href: "/products?category=outerwear",
+    count: "12 looks",
     image:
-      "https://images.unsplash.com/photo-1548624313-0396c75ce9b1?auto=format&fit=crop&w=1500&q=95",
+      "https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=crop&w=1200&q=90",
   },
 ];
 
 const featuredLooks = [
   {
     name: "Muse Dress",
-    collection: "Linen Collection",
-    price: "350.000đ",
-    period: "/ 3 days",
-    status: "Available",
+    collection: "The Occasion Edit",
+    price: "₫280.000",
+    duration: "3 days",
     image:
-      "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=1800&q=95",
-    imageAlt: "Woman wearing a soft neutral linen dress",
-    slug: "muse-dress",
+      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1800&q=90",
   },
   {
     name: "Luna Set",
-    collection: "Soft Tailoring",
-    price: "320.000đ",
-    period: "/ 3 days",
-    status: "Almost booked",
+    collection: "Weekend Edit",
+    price: "₫220.000",
+    duration: "3 days",
     image:
-      "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1400&q=95",
-    imageAlt: "Woman wearing an elegant tailored fashion look",
-    slug: "luna-set",
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=90",
   },
   {
     name: "Soleil Top",
     collection: "Everyday Edit",
-    price: "180.000đ",
-    period: "/ 3 days",
-    status: "Available this weekend",
+    price: "₫160.000",
+    duration: "3 days",
     image:
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1400&q=95",
-    imageAlt: "Fashion look styled for a relaxed weekend",
-    slug: "soleil-top",
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=90",
   },
 ];
 
 const rentalSteps = [
   {
     number: "01",
-    title: "Choose a look",
+    title: "Choose your look",
     description:
-      "Browse by occasion, collection or the pieces you already love.",
+      "Browse pieces curated around occasions, moods and moments worth dressing for.",
   },
   {
     number: "02",
     title: "Choose your dates",
     description:
-      "Check the rental calendar and pick the days you need the look.",
+      "Tell us when you need it. We make sure your look is ready when you are.",
   },
   {
     number: "03",
     title: "Confirm your rental",
     description:
-      "Review the look, dates and rental details before confirming.",
+      "Select your size, review the rental details and confirm your order in minutes.",
   },
   {
     number: "04",
     title: "Wear & return",
     description:
-      "Receive your outfit, wear it your way, then return it on time.",
+      "Wear it your way, then return it when your rental window is over.",
   },
 ];
 
-export default function Home() {
+const faqs = [
+  {
+    question: "How long can I rent an item?",
+    answer:
+      "Our standard rental window is 3 days. Selected pieces and occasions may have different rental durations.",
+  },
+  {
+    question: "What if I am between sizes?",
+    answer:
+      "Each product includes a detailed size guide. Selected styles can also be arranged with size alternatives.",
+  },
+  {
+    question: "How does delivery work?",
+    answer:
+      "Your order is prepared ahead of your selected rental date and delivered according to the available delivery option for your area.",
+  },
+  {
+    question: "What happens after I wear it?",
+    answer:
+      "Simply return the piece using the provided return process. We take care of cleaning and preparing it for the next rental.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="landing-page min-h-screen bg-background text-foreground">
       <SiteHeader />
 
       <main>
-        <section className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5 sm:pt-5 lg:px-6">
-          <ScrollReveal>
-            <div className="relative mx-auto min-h-[680px] max-w-[1440px] overflow-hidden rounded-[28px] bg-peach shadow-[0_18px_60px_rgba(91,67,57,0.08)] sm:min-h-[720px] lg:min-h-[calc(100svh-8rem)]">
-              <Image
-                src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=2400&q=95"
-                alt="Editorial fashion look for a clothes rental collection"
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-[center_28%]"
-              />
+        <section className="home-hero">
+          <div className="home-hero-wash">
+            <div className="mx-auto grid w-full max-w-[1440px] gap-10 px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-14 lg:px-8 lg:pb-24 lg:pt-20">
+              <ScrollReveal className="home-hero-copy">
+                <div className="home-hero-brands">
+                  <span>Rental Store</span>
+                  <span className="home-hero-dot" />
+                  <span>Fashion Rental</span>
+                </div>
 
-              <div className="absolute inset-0 bg-gradient-to-r from-black/48 via-black/12 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-
-              <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10 lg:max-w-4xl lg:p-16">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
-                  New collection · Rent, wear, return
-                </p>
-
-                <h1 className="mt-4 max-w-3xl text-5xl font-medium leading-[0.92] tracking-[-0.055em] sm:text-7xl lg:text-[6.5rem]">
-                  Your next look,
-                  <br />
-                  ready to rent.
+                <h1 className="home-hero-title">
+                  <span className="home-hero-title-main">
+                    Find something
+                  </span>
+                  <span className="home-hero-title-sub">
+                    worth wearing.
+                  </span>
                 </h1>
 
-                <p className="mt-6 max-w-xl text-sm leading-6 text-white/82 sm:text-base">
-                  Curated pieces for dates, weddings, weekends and every moment
-                  worth dressing up for.
+                <p className="home-hero-lead">
+                  Curated fashion for the moments you want to remember —
+                  without keeping a wardrobe full of one-time outfits.
                 </p>
 
-                <div className="mt-8 flex flex-wrap gap-3">
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button
                     size="lg"
-                    className="rounded-full bg-white px-6 text-foreground hover:bg-white/90"
+                    className="home-primary-cta rounded-full px-6"
                     asChild
                   >
                     <Link href="#featured-looks">
-                      Start with a look
-                      <ArrowRight data-icon="inline-end" />
+                      Explore the collection
+                      <ArrowRight />
                     </Link>
                   </Button>
 
                   <Button
                     variant="outline"
                     size="lg"
-                    className="rounded-full border-white/65 bg-white/8 px-6 text-white backdrop-blur-md hover:bg-white/15 hover:text-white"
+                    className="home-secondary-cta rounded-full px-6"
                     asChild
                   >
-                    <Link href="#rental-flow">How renting works</Link>
+                    <Link href="#rental-process">
+                      How renting works
+                    </Link>
                   </Button>
                 </div>
 
-                <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs text-white/75">
-                  <span className="flex items-center gap-2">
-                    <Check className="size-3.5" />
-                    Clear rental pricing
+                <div className="home-hero-note">
+                  <Sparkles className="size-4" />
+                  <span>
+                    Thoughtfully selected. Professionally cleaned. Ready to
+                    wear.
                   </span>
+                </div>
+              </ScrollReveal>
 
-                  <span className="flex items-center gap-2">
-                    <Check className="size-3.5" />
-                    Check dates before booking
-                  </span>
+              <ScrollReveal
+                className="home-hero-media"
+                delay={120}
+                distance={32}
+              >
+                <div className="home-hero-photo-wrap">
+                  <div className="home-hero-frame" />
+
+                  <div className="home-hero-photo">
+                    <Image
+                      src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2200&q=95"
+                      alt="Fashion rental editorial"
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 58vw"
+                      className="object-cover"
+                    />
+                  </div>
+
+                  <div className="home-hero-caption">
+                    <span>New collection</span>
+                    <ArrowDownRight className="size-4" />
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal distance={18}>
+              <div className="mx-auto w-full max-w-[1440px] px-4 pb-5 sm:px-6 lg:px-8">
+                <div className="home-perks">
+                  <div className="home-perk">
+                    <Check />
+                    <div>
+                      <strong>Curated looks</strong>
+                      <span>Pieces selected for real occasions</span>
+                    </div>
+                  </div>
+
+                  <div className="home-perk">
+                    <Check />
+                    <div>
+                      <strong>Easy rental</strong>
+                      <span>Choose your dates and we handle the rest</span>
+                    </div>
+                  </div>
+
+                  <div className="home-perk">
+                    <Check />
+                    <div>
+                      <strong>Ready to wear</strong>
+                      <span>Cleaned, prepared and checked before delivery</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </ScrollReveal>
+            </ScrollReveal>
+          </div>
         </section>
 
-        <section
-          id="find-your-look"
-          className="px-4 py-20 sm:px-6 sm:py-28 lg:px-8"
-        >
-          <div className="mx-auto max-w-[1280px]">
+        <section id="occasions" className="home-section home-botanical">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
             <ScrollReveal>
-              <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="home-section-heading">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Find your moment
-                  </p>
-
-                  <h2 className="mt-3 max-w-2xl text-4xl font-medium leading-tight tracking-[-0.045em] sm:text-5xl">
-                    What are you wearing it for?
-                  </h2>
+                  <span className="home-eyebrow">Start with the moment</span>
+                  <h2>What are you dressing for?</h2>
                 </div>
 
-                <p className="max-w-sm text-sm leading-6 text-muted-foreground sm:text-right">
-                  Start with the occasion, then discover a look that feels like
-                  you.
+                <Link
+                  href="/collections"
+                  className="home-text-link hidden sm:inline-flex"
+                >
+                  Explore all occasions
+                  <ArrowRight />
+                </Link>
+              </div>
+            </ScrollReveal>
+
+            <div className="home-occasion-grid">
+              {occasions.map((occasion, index) => (
+                <ScrollReveal key={occasion.label} delay={index * 70}>
+                  <Link
+                    href={`/products?occasion=${encodeURIComponent(
+                      occasion.label
+                    )}`}
+                    className={`home-occasion ${
+                      index === 0 ? "home-occasion-featured" : ""
+                    }`}
+                  >
+                    <div className="home-occasion-image">
+                      <Image
+                        src={occasion.image}
+                        alt={occasion.label}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 20vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      />
+                    </div>
+
+                    <div className="home-occasion-overlay" />
+
+                    <div className="home-occasion-label">
+                      <span>{occasion.label}</span>
+                      <ChevronRight />
+                    </div>
+                  </Link>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            <Link
+              href="/collections"
+              className="home-text-link mt-6 inline-flex sm:hidden"
+            >
+              Explore all occasions
+              <ArrowRight />
+            </Link>
+          </div>
+        </section>
+
+        <section className="home-section home-categories">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <ScrollReveal>
+              <div className="mb-12 max-w-2xl">
+                <span className="home-eyebrow">Browse the wardrobe</span>
+                <h2>Pieces made for more than one plan.</h2>
+                <p>
+                  From effortless sets to occasion-ready dresses, discover
+                  pieces that make renting feel as natural as getting dressed.
                 </p>
               </div>
             </ScrollReveal>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              {occasions.map((occasion, index) => (
-                <ScrollReveal key={occasion.label} delay={index * 55}>
-                  <Link
-                    href={`/products?occasion=${encodeURIComponent(occasion.label)}`}
-                    className="group relative block aspect-[4/5] overflow-hidden rounded-[22px] bg-peach"
-                  >
-                    <Image
-                      src={occasion.image}
-                      alt={`${occasion.label} fashion inspiration`}
-                      fill
-                      sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 20vw"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"
-                    />
+            <div className="home-category-grid">
+              {categories.map((category, index) => (
+                <ScrollReveal
+                  key={category.label}
+                  delay={index * 80}
+                  className={
+                    index === 0
+                      ? "home-category home-category-large"
+                      : "home-category"
+                  }
+                >
+                  <Link href="/products" className="group block">
+                    <div className="home-category-image">
+                      <Image
+                        src={category.image}
+                        alt={category.label}
+                        fill
+                        sizes={
+                          index === 0
+                            ? "(max-width: 768px) 100vw, 50vw"
+                            : "(max-width: 768px) 50vw, 25vw"
+                        }
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                      />
+                    </div>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-
-                    <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                      <p className="text-xs uppercase tracking-[0.16em] text-white/65">
-                        0{index + 1}
-                      </p>
-
-                      <div className="mt-2 flex items-end justify-between gap-3">
-                        <h3 className="text-xl font-medium tracking-tight">
-                          {occasion.label}
-                        </h3>
-
-                        <ArrowRight className="size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
+                    <div className="home-category-meta">
+                      <div>
+                        <h3>{category.label}</h3>
+                        <span>{category.count}</span>
                       </div>
+                      <ArrowRight />
                     </div>
                   </Link>
                 </ScrollReveal>
@@ -271,70 +382,92 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="px-3 sm:px-5 lg:px-6">
-          <ScrollReveal>
-            <div className="mx-auto max-w-[1440px] rounded-[28px] bg-peach-soft px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24">
-              <div className="flex flex-col gap-10 sm:flex-row sm:items-end sm:justify-between">
+        <section id="featured-looks" className="home-section home-featured">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <ScrollReveal>
+              <div className="home-section-heading mb-12">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Browse the edit
-                  </p>
-
-                  <h2 className="mt-3 text-4xl font-medium tracking-[-0.045em] sm:text-5xl">
-                    Shop by category
-                  </h2>
+                  <span className="home-eyebrow">The latest edit</span>
+                  <h2>Looks worth making plans for.</h2>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="w-fit rounded-full bg-background/65"
-                  asChild
+                <Link
+                  href="/products?sort=new"
+                  className="home-text-link hidden sm:inline-flex"
                 >
-                  <Link href="/products">
-                    Explore all looks
-                    <ArrowRight data-icon="inline-end" />
-                  </Link>
-                </Button>
+                  View new arrivals
+                  <ArrowRight />
+                </Link>
               </div>
+            </ScrollReveal>
 
-              <div className="mt-10 grid gap-3 md:grid-cols-12 md:grid-rows-[260px_260px]">
-                {categories.map((category, index) => (
-                  <ScrollReveal
-                    key={category.href}
-                    delay={index * 70}
-                    className={
-                      index === 0
-                        ? "md:col-span-5 md:row-span-2"
-                        : index === 3
-                          ? "md:col-span-7"
-                          : "md:col-span-3"
-                    }
-                  >
-                    <Link
-                      href={category.href}
-                      className="group relative block h-full min-h-[240px] overflow-hidden rounded-[22px] bg-white"
+            <div className="home-featured-grid">
+              <ScrollReveal className="home-featured-main">
+                <Link href="/products/muse-dress" className="group block">
+                  <div className="home-featured-image">
+                    <Image
+                      src={featuredLooks[0].image}
+                      alt={featuredLooks[0].name}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 58vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
+                    />
+
+                    <span
+                      className="home-image-action"
+                      aria-hidden="true"
                     >
-                      <Image
-                        src={category.image}
-                        alt={`${category.label} clothing collection`}
-                        fill
-                        sizes="(max-width: 767px) 100vw, 50vw"
-                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                      />
+                      <Heart />
+                    </span>
 
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                    <span className="home-image-badge">New</span>
+                  </div>
 
-                      <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-6">
-                        <p className="text-[10px] uppercase tracking-[0.16em] text-white/65">
-                          {category.count}
-                        </p>
+                  <div className="home-product-meta">
+                    <div>
+                      <span className="home-product-collection">
+                        {featuredLooks[0].collection}
+                      </span>
+                      <h3>{featuredLooks[0].name}</h3>
+                    </div>
 
-                        <div className="mt-1 flex items-end justify-between gap-3">
-                          <h3 className="text-2xl font-medium tracking-tight">
-                            {category.label}
+                    <div className="text-right">
+                      <strong>{featuredLooks[0].price}</strong>
+                      <span>/ {featuredLooks[0].duration}</span>
+                    </div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+
+              <div className="home-featured-support">
+                {featuredLooks.slice(1).map((look, index) => (
+                  <ScrollReveal key={look.name} delay={120 + index * 100}>
+                    <Link href="/products" className="group block">
+                      <div className="home-support-image">
+                        <Image
+                          src={look.image}
+                          alt={look.name}
+                          fill
+                          sizes="(max-width: 1024px) 50vw, 25vw"
+                          className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                        />
+                      </div>
+
+                      <div className="mt-4 flex items-start justify-between gap-4">
+                        <div>
+                          <span className="home-product-collection">
+                            {look.collection}
+                          </span>
+                          <h3 className="mt-1 text-lg font-medium tracking-[-0.025em]">
+                            {look.name}
                           </h3>
+                        </div>
 
-                          <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
+                        <div className="text-right text-sm">
+                          <strong>{look.price}</strong>
+                          <span className="block text-muted-foreground">
+                            / {look.duration}
+                          </span>
                         </div>
                       </div>
                     </Link>
@@ -342,274 +475,292 @@ export default function Home() {
                 ))}
               </div>
             </div>
-          </ScrollReveal>
+
+            <Link
+              href="/products?sort=new"
+              className="home-text-link mt-8 inline-flex sm:hidden"
+            >
+              View new arrivals
+              <ArrowRight />
+            </Link>
+          </div>
+        </section>
+
+        <section className="home-section home-rental-edit">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <div className="home-offer">
+              <ScrollReveal className="home-offer-media">
+                <Image
+                  src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1800&q=90"
+                  alt="Fashion rental collection"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  className="object-cover"
+                />
+
+                <div className="home-offer-tag">The rental edit</div>
+              </ScrollReveal>
+
+              <ScrollReveal
+                className="home-offer-content"
+                delay={100}
+                distance={28}
+              >
+                <span className="home-eyebrow">Wear more. Keep less.</span>
+
+                <h2>
+                  Your wardrobe
+                  <br />
+                  doesn&apos;t need
+                  <br />
+                  to own everything.
+                </h2>
+
+                <p>
+                  Renting gives you room to experiment. Try the silhouette,
+                  color or occasion piece you&apos;ve been thinking about —
+                  then send it back when the moment is over.
+                </p>
+
+                <ul className="home-offer-list">
+                  <li>
+                    <Check />
+                    <span>Curated styles for real occasions</span>
+                  </li>
+                  <li>
+                    <Check />
+                    <span>Professional cleaning between rentals</span>
+                  </li>
+                  <li>
+                    <Check />
+                    <span>Simple delivery and return process</span>
+                  </li>
+                </ul>
+
+                <div className="home-offer-price">
+                  <span>Starting from</span>
+                  <strong>₫160.000</strong>
+                  <span>/ rental</span>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="home-primary-cta mt-7 rounded-full px-6"
+                  asChild
+                >
+                  <Link href="/products">
+                    Explore rental pieces
+                    <ArrowRight />
+                  </Link>
+                </Button>
+
+                <span className="home-offer-fine">
+                  Prices vary by item, size and rental duration.
+                </span>
+              </ScrollReveal>
+            </div>
+          </div>
         </section>
 
         <section
-          id="featured-looks"
-          className="bg-background px-4 py-20 sm:px-6 sm:py-28 lg:px-8"
+          id="rental-process"
+          className="home-section home-process"
         >
-          <div className="mx-auto max-w-[1280px]">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
             <ScrollReveal>
-              <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="home-process-heading">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Just in
-                  </p>
+                  <span className="home-eyebrow">
+                    No complicated wardrobe math
+                  </span>
+                  <h2>Renting made simple.</h2>
+                </div>
 
-                  <h2 className="mt-3 text-4xl font-medium tracking-[-0.045em] sm:text-5xl">
-                    Looks worth wearing.
-                  </h2>
+                <p>
+                  Pick a look, tell us when you need it, then enjoy the outfit.
+                  We take care of everything around it.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="home-steps">
+              {rentalSteps.map((step, index) => (
+                <ScrollReveal
+                  key={step.number}
+                  delay={index * 90}
+                  className="home-step"
+                >
+                  <div className="home-step-number">{step.number}</div>
+
+                  <div className="home-step-body">
+                    <h3>{step.title}</h3>
+                    <p>{step.description}</p>
+                  </div>
+
+                  {index < rentalSteps.length - 1 && (
+                    <div className="home-step-connector" aria-hidden="true">
+                      <ArrowRight />
+                    </div>
+                  )}
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-section home-lookbook">
+          <div className="mx-auto max-w-[1440px] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <ScrollReveal>
+              <div className="home-section-heading mb-12">
+                <div>
+                  <span className="home-eyebrow">From the lookbook</span>
+                  <h2>Dress for the memory.</h2>
                 </div>
 
                 <Link
-                  href="/products"
-                  className="inline-flex items-center gap-2 text-sm font-medium"
+                  href="/lookbook"
+                  className="home-text-link hidden sm:inline-flex"
                 >
-                  View the collection
-                  <ArrowRight className="size-4" />
+                  See the lookbook
+                  <ArrowRight />
                 </Link>
               </div>
             </ScrollReveal>
 
-            <div className="grid gap-x-5 gap-y-12 lg:grid-cols-[1.45fr_0.775fr_0.775fr]">
-              {featuredLooks.map((look, index) => (
-                <ScrollReveal
-                  key={look.slug}
-                  delay={index * 90}
-                  className={index === 0 ? "lg:row-span-2" : ""}
-                >
-                  <article>
-                    <div className="group relative">
-                      <Link href={`/products/${look.slug}`} className="block">
-                        <div
-                          className={`relative overflow-hidden rounded-[24px] bg-peach ${
-                            index === 0 ? "aspect-[4/5]" : "aspect-[4/4.8]"
-                          }`}
-                        >
-                          <Image
-                            src={look.image}
-                            alt={look.imageAlt}
-                            fill
-                            sizes={
-                              index === 0
-                                ? "(max-width: 1023px) 100vw, 55vw"
-                                : "(max-width: 1023px) 100vw, 25vw"
-                            }
-                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
-                          />
+            <div className="home-lookbook-grid">
+              <ScrollReveal className="home-lookbook-item home-lookbook-tall">
+                <Image
+                  src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1400&q=90"
+                  alt="Fashion lookbook"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 35vw"
+                  className="object-cover"
+                />
+              </ScrollReveal>
 
-                          <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground backdrop-blur-md">
-                            {look.status}
-                          </span>
-                        </div>
-                      </Link>
+              <ScrollReveal
+                className="home-lookbook-item"
+                delay={90}
+              >
+                <Image
+                  src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=1200&q=90"
+                  alt="Fashion lookbook"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 30vw"
+                  className="object-cover"
+                />
+              </ScrollReveal>
 
-                      <button
-                        type="button"
-                        aria-label={`Save ${look.name} to favorites`}
-                        className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md transition-transform duration-300 hover:scale-105"
-                      >
-                        <Heart className="size-4" />
-                      </button>
-                    </div>
-
-                    <div className="pt-5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                        {look.collection}
-                      </p>
-
-                      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                        <h3 className="text-xl font-medium">{look.name}</h3>
-
-                        <p className="text-sm font-semibold sm:text-right">
-                          {look.price}
-                          <span className="ml-1 font-normal text-muted-foreground">
-                            {look.period}
-                          </span>
-                        </p>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full bg-transparent"
-                          asChild
-                        >
-                          <Link href={`/products/${look.slug}`}>
-                            View look
-                          </Link>
-                        </Button>
-
-                        <Button size="sm" className="rounded-full" asChild>
-                          <Link href={`/booking?item=${look.slug}`}>
-                            Check dates
-                            <ArrowRight data-icon="inline-end" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </article>
-                </ScrollReveal>
-              ))}
+              <ScrollReveal
+                className="home-lookbook-item home-lookbook-wide"
+                delay={180}
+              >
+                <Image
+                  src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1400&q=90"
+                  alt="Fashion lookbook"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 35vw"
+                  className="object-cover"
+                />
+              </ScrollReveal>
             </div>
+
+            <Link
+              href="/lookbook"
+              className="home-text-link mt-8 inline-flex sm:hidden"
+            >
+              See the lookbook
+              <ArrowRight />
+            </Link>
           </div>
         </section>
 
-        <section id="rental-flow" className="px-3 sm:px-5 lg:px-6">
-          <ScrollReveal>
-            <div className="mx-auto max-w-[1440px] rounded-[28px] bg-surface px-5 py-16 sm:px-8 sm:py-20 lg:px-14 lg:py-24">
-              <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+        <section className="home-section home-faq">
+          <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6 lg:py-28">
+            <ScrollReveal>
+              <div className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Your rental flow
+                  <span className="home-eyebrow">Before you rent</span>
+                  <h2>Good to know.</h2>
+                  <p className="mt-5 max-w-sm text-sm leading-7 text-muted-foreground">
+                    A few answers before your first rental. If you still have
+                    questions, we&apos;re happy to help.
                   </p>
 
-                  <h2 className="mt-3 max-w-lg text-4xl font-medium leading-[1.02] tracking-[-0.045em] sm:text-5xl">
-                    From “I love this” to “it&apos;s on the way.”
-                  </h2>
-
-                  <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
-                    A simple four-step flow keeps the important part clear:
-                    what you&apos;re wearing, when you need it and how to get it.
-                  </p>
-
-                  <Button className="mt-8 rounded-full px-6" size="lg" asChild>
-                    <Link href="#featured-looks">
-                      Choose a look
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
+                  <Link
+                    href="/faq"
+                    className="home-text-link mt-7 inline-flex"
+                  >
+                    Read all FAQs
+                    <ArrowRight />
+                  </Link>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {rentalSteps.map((step, index) => (
-                    <ScrollReveal key={step.number} delay={index * 80}>
-                      <div className="h-full rounded-[20px] bg-peach-soft p-5 sm:p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <span className="text-xs font-semibold tracking-[0.16em] text-primary">
-                            {step.number}
-                          </span>
+                <div className="home-faq-list">
+                  {faqs.map((faq) => (
+                    <details
+                      key={faq.question}
+                      className="home-faq-row"
+                    >
+                      <summary>
+                        <span>{faq.question}</span>
+                        <ChevronRight />
+                      </summary>
 
-                          {index < rentalSteps.length - 1 ? (
-                            <ChevronRight className="size-4 text-primary/55" />
-                          ) : (
-                            <Sparkles className="size-4 text-primary/55" />
-                          )}
-                        </div>
-
-                        <h3 className="mt-12 text-xl font-medium tracking-tight">
-                          {step.title}
-                        </h3>
-
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          {step.description}
-                        </p>
-                      </div>
-                    </ScrollReveal>
+                      <p>{faq.answer}</p>
+                    </details>
                   ))}
                 </div>
               </div>
-            </div>
-          </ScrollReveal>
-        </section>
-
-        <section className="px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
-          <div className="mx-auto max-w-[1280px]">
-            <ScrollReveal>
-              <div className="mb-10 flex items-end justify-between gap-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    From the lookbook
-                  </p>
-
-                  <h2 className="mt-3 text-4xl font-medium tracking-[-0.045em] sm:text-5xl">
-                    Worn by our community.
-                  </h2>
-                </div>
-
-                <span className="hidden text-sm text-muted-foreground sm:block">
-                  Looks worth repeating
-                </span>
-              </div>
             </ScrollReveal>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[
-                "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=95",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=95",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=95",
-                "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1200&q=95",
-              ].map((image, index) => (
-                <ScrollReveal key={image} delay={index * 70}>
-                  <div
-                    className={`relative aspect-[4/5] overflow-hidden rounded-[22px] bg-peach ${
-                      index === 1 ? "sm:mt-12" : ""
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`Lookbook fashion look ${index + 1}`}
-                      fill
-                      sizes="(max-width: 639px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-700 hover:scale-[1.025]"
-                    />
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
           </div>
         </section>
 
-        <section className="px-3 pb-3 sm:px-5 sm:pb-5 lg:px-6">
-          <ScrollReveal>
-            <div className="relative mx-auto min-h-[500px] max-w-[1440px] overflow-hidden rounded-[28px] bg-peach">
-              <Image
-                src="https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?auto=format&fit=crop&w=2400&q=95"
-                alt="Fashion editorial look for a special occasion"
-                fill
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+        <section className="home-final-cta">
+          <div className="home-final-image">
+            <Image
+              src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=2200&q=95"
+              alt="Fashion rental editorial"
+              fill
+              sizes="100vw"
+              className="object-cover"
+            />
+          </div>
 
-              <div className="absolute inset-0 bg-black/28" />
+          <div className="home-final-overlay" />
 
-              <div className="relative flex min-h-[500px] flex-col items-center justify-center px-6 py-20 text-center text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
-                  Ready when you are
-                </p>
+          <ScrollReveal className="home-final-content" distance={20}>
+            <span className="home-eyebrow">Your next look is waiting</span>
 
-                <h2 className="mt-5 max-w-3xl text-5xl font-medium leading-[0.96] tracking-[-0.055em] sm:text-7xl">
-                  What are you wearing this weekend?
-                </h2>
+            <h2>What are you wearing next?</h2>
 
-                <p className="mt-5 max-w-md text-sm leading-6 text-white/80">
-                  Find a look, check the dates and make it yours for a few days.
-                </p>
+            <p>
+              Find something you love. Rent it for the moment. Send it back
+              when you&apos;re ready.
+            </p>
 
-                <div className="mt-8 flex flex-wrap justify-center gap-3">
-                  <Button
-                    size="lg"
-                    className="rounded-full bg-white px-6 text-foreground hover:bg-white/90"
-                    asChild
-                  >
-                    <Link href="#featured-looks">
-                      Explore looks
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button
+                size="lg"
+                className="home-primary-cta rounded-full bg-white px-7 text-foreground hover:bg-white/90"
+                asChild
+              >
+                <Link href="/products">
+                  Explore looks
+                  <ArrowRight />
+                </Link>
+              </Button>
 
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full border-white/65 bg-white/8 px-6 text-white backdrop-blur-md hover:bg-white/15 hover:text-white"
-                    asChild
-                  >
-                    <Link href="#rental-flow">See how it works</Link>
-                  </Button>
-                </div>
-              </div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full border-white/60 bg-white/10 px-7 text-white backdrop-blur-sm hover:bg-white hover:text-foreground"
+                asChild
+              >
+                <Link href="#rental-process">
+                  See how it works
+                </Link>
+              </Button>
             </div>
           </ScrollReveal>
         </section>
