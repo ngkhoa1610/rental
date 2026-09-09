@@ -2,123 +2,55 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
+import { House, Menu, MessageCircle, Shirt, X } from "lucide-react";
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-
-interface NavigationItem {
-  label: string;
-  href: string;
-}
 
 interface MobileNavProps {
-  navigation: NavigationItem[];
+  navigation: { label: string; href: string }[];
 }
 
 export function MobileNav({ navigation }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
-  const handleNavigate = () => {
-    setOpen(false);
-  };
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          aria-label="Open navigation menu"
-        >
-          <Menu className="size-5" />
-        </Button>
-      </SheetTrigger>
-
-      <SheetContent
-        side="right"
-        className="w-[min(100%,_380px)] bg-background"
-      >
-        <SheetHeader>
-          <SheetTitle className="text-left text-sm font-semibold tracking-[-0.03em]">
-            Rental Store
-          </SheetTitle>
+      <nav className="home-mobile-nav" aria-label="Mobile navigation">
+        <div className="home-mobile-bar">
+          <Link href="#home"><House aria-hidden="true" /><span>Home</span></Link>
+          <Link href="#featured-looks"><Shirt aria-hidden="true" /><span>Looks</span></Link>
+          <Link href="#faq"><MessageCircle aria-hidden="true" /><span>FAQ</span></Link>
+          <SheetTrigger asChild>
+            <Button variant="ghost" className="home-mobile-menu" aria-label="Open navigation menu">
+              <Menu aria-hidden="true" /><span>Menu</span>
+            </Button>
+          </SheetTrigger>
+        </div>
+      </nav>
+      <SheetContent side="bottom" className="home-mobile-sheet" showCloseButton={false}>
+        <SheetHeader className="p-0 pr-12">
+          <SheetTitle className="font-bold">Rental Store</SheetTitle>
+          <SheetDescription>Find your next look.</SheetDescription>
         </SheetHeader>
-
-        <nav className="mt-8 flex flex-col" aria-label="Mobile navigation">
+        <SheetClose asChild>
+          <Button variant="ghost" size="icon" className="absolute right-3 top-3 size-11" aria-label="Close navigation menu"><X aria-hidden="true" /></Button>
+        </SheetClose>
+        <nav className="home-sheet-links" aria-label="More navigation">
           {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={handleNavigate}
-              className="border-b border-border py-5 text-2xl font-medium tracking-tight transition-colors hover:text-primary"
-            >
-              {item.label}
-            </Link>
+            <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>
           ))}
         </nav>
-
-        <Separator className="my-7" />
-
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            variant="outline"
-            size="icon-lg"
-            className="rounded-full"
-            asChild
-          >
-            <Link
-              href="/search"
-              onClick={handleNavigate}
-              aria-label="Search"
-            >
-              <Search />
-            </Link>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon-lg"
-            className="rounded-full"
-            asChild
-          >
-            <Link
-              href="/wishlist"
-              onClick={handleNavigate}
-              aria-label="Wishlist"
-            >
-              <Heart />
-            </Link>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon-lg"
-            className="rounded-full"
-            asChild
-          >
-            <Link
-              href="/cart"
-              onClick={handleNavigate}
-              aria-label="Rental bag"
-            >
-              <ShoppingBag />
-            </Link>
-          </Button>
-        </div>
-
-        <Button size="lg" className="mt-3 w-full rounded-full" asChild>
-          <Link href="#featured-looks" onClick={handleNavigate}>
-            Rent a look
-          </Link>
+        <Button asChild size="lg" className="home-sheet-cta">
+          <Link href="#featured-looks" onClick={() => setOpen(false)}>Explore looks</Link>
         </Button>
       </SheetContent>
     </Sheet>
