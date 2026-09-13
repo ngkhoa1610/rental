@@ -1,5 +1,7 @@
 # Rental Store — Landing-page implementation review
 
+> Historical checkpoint: 2026-09-09. For the current customer UI phase, read `docs/PROJECT_STATE.md` and `docs/WORKFLOW.md`.
+
 Date: 2026-09-09
 Scope: Landing-page UI replication, fashion-domain adaptation, responsive refinement.
 

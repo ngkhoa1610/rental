@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rental Store
 
-## Getting Started
+Next.js fashion-rental UI with a warm landing page and customer discovery/selection pages.
 
-First, run the development server:
+Start with [project state](docs/PROJECT_STATE.md), [working process](docs/WORKFLOW.md) and [frontend rules](AGENTS.md).
+
+## Run locally
+
+Use Node.js **22.18 or later** for the TypeScript unit-test runner. The verified environment uses Node.js **24.19.0**.
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. Wishlist and rental-bag selections are saved on this device and restored after refresh. Browser storage must be available. These are local preferences, not reservations or orders.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verify
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run check
+```
 
-## Learn More
+This runs ESLint, unit tests, a production build and production HTTP smoke tests. Smoke tests start and stop their own temporary server. They are not browser/E2E tests.
 
-To learn more about Next.js, take a look at the following resources:
+Individual commands:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm test
+npm run build
+npm run test:smoke
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pages
 
-## Deploy on Vercel
+`/`, `/products`, `/products/[slug]`, `/search`, `/collections`, `/lookbook`, `/wishlist`, `/cart`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Preview boundary
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All products, prices and photos are sample presentation content. Bag/wishlist preferences use versioned localStorage, with an in-memory fallback if storage is blocked. No item is reserved and no order is placed. Checkout, payment, accounts, availability and backend are not implemented.
+
+Keep sample data in `src/lib/catalog.ts`, selection logic in `src/lib/rental-selection.ts`, shared UI in `src/components/store`, and route composition in `src/app/(store)`.
+
+The repository retains Next.js 16.3.4, React 19.2.8, TypeScript strict mode, Tailwind 4, shadcn/Radix and Lucide. No additional runtime libraries were introduced for this UI phase.
