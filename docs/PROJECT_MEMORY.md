@@ -1,11 +1,14 @@
 # Bộ nhớ dự án — đọc trước khi tiếp tục
 
-Checkpoint docs: **2026-09-13 — rules, feature catalog & QA contract**.
-Source hiện hành: **`rental-main.zip` đi cùng bộ docs này**. Baseline trước lượt này là ZIP version 3, khớp 57/57 file local khi rà. Lượt này không sửa code ứng dụng, dependency hoặc test script.
+Checkpoint docs: **2026-09-14 — changed-files delivery & naming rules**.
+Source đầy đủ nội bộ: **`rental-main.zip`**. Baseline lượt này là checkpoint version 4, khớp 60/60 file local trước sửa. Gói bàn giao chỉ chứa file thay đổi, không phải full source. Lượt này không sửa code ứng dụng, dependency hoặc test script.
 
 Đây là bộ nhớ bền của dự án đi cùng source. Code đầy đủ nằm trong ZIP/repository, không nằm trong đoạn tóm tắt hội thoại. Khi tiếp tục phải mở source mới nhất và đọc docs; không giả định lịch sử chat/bộ nhớ mô hình giữ toàn bộ code.
 
 ## Quyết định phải giữ
+
+- Chỉ output file mới/thay đổi so với baseline, giữ path và nội dung file đầy đủ; liệt kê delete/rename. Không gửi lại full source trừ khi được yêu cầu.
+- Tên file phải có nghĩa và theo quy ước ở `WORKFLOW.md` mục 7; gói dùng project/scope/changes/ngày/rNN. Checkpoint nội bộ vẫn giữ code đầy đủ.
 
 - Landing tạm được chấp nhận; tiếp tục UI khách hàng theo phong cách hiện có, FE/Next.js dễ đọc và maintain.
 - Scroll animation nhẹ đã có; giữ reduced motion, keyboard và no-JS visibility.
@@ -31,3 +34,5 @@ Source hiện hành: **`rental-main.zip` đi cùng bộ docs này**. Baseline tr
 - Lượt 2026-09-13: rà source, cập nhật rule/docs và kiểm tính nhất quán tài liệu/source; không tuyên bố chạy lại app tests.
 - Task code tiếp theo cần xử lý gap format/security tooling và môi trường browser phù hợp, rồi review UI thực tế gồm Explore/reset filter trùng. Đây là backlog, chưa triển khai.
 - Nhận source mới phải cập nhật checkpoint này ngay; giữ lịch sử ở `PROJECT_STATE.md`, không chuyển pass cũ sang source chưa test.
+
+- Lượt 2026-09-14 chỉ cập nhật rule/docs về output và naming; kiểm gói chỉ chứa file thay đổi, code ứng dụng không đổi, không chạy lại app suite.

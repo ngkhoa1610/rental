@@ -1,6 +1,6 @@
 # Quy trình làm việc — Rental Store
 
-Cập nhật: 2026-09-13. Áp dụng thường trực theo yêu cầu người dùng, không chờ nhắc lại.
+Cập nhật: 2026-09-14. Áp dụng thường trực theo yêu cầu người dùng, không chờ nhắc lại.
 
 ## 1. Nhận source / tiếp tục công việc
 
@@ -62,7 +62,29 @@ Mỗi feature thêm/sửa phải cập nhật cùng lượt: mục đích; URL/q
 
 - Sau mỗi lượt code và mỗi lần nhận source hiện tại: cập nhật checkpoint, docs, quyết định, evidence test và việc còn lại trước khi bàn giao.
 - Bộ nhớ dự án là docs đi cùng source có phiên bản. Toàn bộ code nằm trong archive/repository; không chỉ tóm tắt vào chat rồi coi là đã lưu code.
-- Lưu toàn bộ source + lockfile + tests + docs + rule vào `rental-main.zip`, cập nhật cùng artifact để giữ lịch sử. Không kèm dependency đã cài, build/cache/log, secret, `.env` chứa giá trị thật hoặc Git internals; giữ config cần tái tạo app.
+- Checkpoint nội bộ: lưu toàn bộ source + lockfile + tests + docs + rule vào `rental-main.zip`, cập nhật cùng artifact để giữ lịch sử. Không kèm dependency đã cài, build/cache/log, secret, `.env` chứa giá trị thật hoặc Git internals; giữ config cần tái tạo app.
 - Nếu dự án chuyển sang Git repository bên ngoài: dùng commit/checkpoint Git và docs trong repo, không duy trì thêm bản source song song gây lệch phiên bản.
 - Xác nhận lưu thành công trước khi nói đã lưu; nếu lỗi phải báo rõ và giữ bản local để khôi phục. Không tự deploy/publish khi chỉ được yêu cầu code và lưu.
 - Bàn giao ngắn: thay đổi, test thực sự chạy, giới hạn/blocker, link source. Có FAIL/BLOCKED thì ghi là checkpoint chưa đủ kiểm chứng.
+
+
+## 7. Output chỉ file thay đổi và quy tắc đặt tên
+
+Rule bổ sung 2026-09-14 có ưu tiên hơn yêu cầu bàn giao toàn bộ ZIP trước đây.
+
+- Output mặc định chỉ gồm file mới hoặc nội dung đã thay đổi so với source người dùng gửi hiện tại hoặc bản bàn giao gần nhất đã xác định. So sánh nội dung/hash hoặc Git diff, không dựa riêng vào timestamp. Không gửi lại file không đổi.
+- Gửi nội dung đầy đủ của từng file thay đổi, không chỉ đoạn code rời; giữ nguyên đường dẫn tương đối từ root dự án để copy đè đúng chỗ. File phụ thuộc/lockfile chỉ kèm nếu thực sự đổi.
+- Có file xóa hoặc đổi tên: liệt kê rõ đường dẫn cũ → mới hoặc cần xóa; không để người dùng giữ nhầm file cũ. Không tự xóa thay đổi riêng của người dùng.
+- Ghi baseline, danh sách added/modified/deleted/renamed, hướng dẫn áp dụng và kết quả kiểm tra trong phần bàn giao hoặc tài liệu thay đổi. Không có thay đổi thì không tạo ZIP rỗng.
+- Bộ nhớ nội bộ vẫn lưu checkpoint đầy đủ để tiếp tục chính xác; chỉ đính kèm gói thay đổi cho người dùng. Full source chỉ output khi người dùng yêu cầu. Gói thay đổi không phải project độc lập để chạy ngay.
+
+| Loại tên | Quy ước | Ví dụ |
+| --- | --- | --- |
+| Gói bàn giao thay đổi | `<project>-<scope>-changes-YYYY-MM-DD-rNN.zip`; scope ngắn, có nghĩa; ngày UTC; rNN tăng nếu cùng scope/ngày | `rental-store-delivery-rules-changes-2026-09-14-r01.zip` |
+| File source thông thường | Tiếng Anh, kebab-case, theo feature/vai trò; không gắn ngày/version vào tên import | `product-gallery.tsx`, `rental-selection.ts` |
+| Component / hook / hàm | Component PascalCase; hook useCamelCase; hàm/biến camelCase | `ProductGallery`, `useSelection`, `parseCatalogFilters` |
+| Test | Theo module/flow và convention test runner hiện có | `selection-storage.test.mjs` |
+| Docs mới | Tên mô tả nội dung, kebab-case; giữ nguyên tên docs/convention đang dùng | `wishlist-behavior.md`; giữ `PROJECT_MEMORY.md`, `AGENTS.md` |
+| File framework/config | Giữ đúng tên bắt buộc hoặc convention công cụ | `page.tsx`, `layout.tsx`, `not-found.tsx`, `package.json` |
+
+Không dùng tên mơ hồ như `final`, `new`, `latest-v2`, `fix2`, `test123`; tránh dấu tiếng Việt/khoảng trắng trong tên mới. Không đổi tên hàng loạt file hiện có chỉ để hợp rule; rename phải có lý do và cập nhật import/docs liên quan. Tên checkpoint canonical đang dùng được giữ ổn định, phiên bản quản lý bằng lịch sử thay vì rename liên tục.

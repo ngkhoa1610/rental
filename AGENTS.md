@@ -71,7 +71,11 @@ for documentation, persistence or browser QA. Follow `docs/WORKFLOW.md` and
 7. Save complete source/tests/docs to the existing versioned source artifact,
    excluding dependencies, generated output and secrets; preserve history.
    For a future externally Git-backed project, persist through Git instead.
-8. Report behavior, checks actually run and limitations. Saving blocked work as a
+8. Deliver only added/modified files relative to the last delivered or user-supplied
+   baseline, retaining project-relative paths and complete file contents. List deleted
+   and renamed paths explicitly. Keep the full checkpoint internally; do not attach
+   the whole project unless requested. Follow naming rules in WORKFLOW section 7.
+9. Report behavior, checks actually run and limitations. Saving blocked work as a
    checkpoint is allowed; declaring it fully verified is not.
 
 Docs-only work may validate documentation and unchanged application fingerprints

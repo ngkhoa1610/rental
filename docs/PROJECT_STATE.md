@@ -1,6 +1,6 @@
 # Rental Store — current project state
 
-Latest docs checkpoint: **2026-09-13 / Project memory and QA rules**.
+Latest docs checkpoint: **2026-09-14 / Changed-files delivery and naming rules**.
 Application code checkpoint: **2026-09-10 / Local selections, product details & gentle scroll motion**
 Source artifact: **rental-main.zip** in the project's rental folder.
 Previous checkpoint: 2026-09-09 landing-page refactor, documented in `IMPLEMENTATION-REVIEW.md`.
@@ -137,3 +137,10 @@ Reviewed saved ZIP version 3 against working source: all 57 files matched before
 Missing automated format/security/browser gates and potentially redundant Explore links/reset controls are follow-up work, not silently fixed or marked verified. The previous preview blocker describes the historical environment; future QA should use the compatible browser workflow available then.
 
 Docs validation passed: seven changed/new documentation files, all eight route patterns documented, referenced local paths and README links resolve, documented npm scripts exist, Markdown fences/whitespace are consistent, and the generated Next.js agent block is preserved. Byte comparison confirmed no application/config/dependency/test changes.
+
+
+## Documentation checkpoint — 2026-09-14
+
+User requires changed-files-only output and meaningful, consistent naming. Updated AGENTS, WORKFLOW, PROJECT_MEMORY and this state log. Internal full source remains the resume checkpoint; user delivery contains only changed files, preserving project-relative paths. Naming and deletion/rename handoff rules are in WORKFLOW section 7.
+
+Baseline: full source version 4, 60/60 files matched before edits. This is docs-only; application files/config/tests/dependencies remain byte-identical. No new application test run is claimed.
