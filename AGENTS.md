@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Rental Store — project working agreement
 
-Read `docs/PROJECT_STATE.md` and `docs/WORKFLOW.md` before making changes.
+Read `docs/PROJECT_MEMORY.md`, `docs/PROJECT_STATE.md` and `docs/WORKFLOW.md` before making changes.
 They record the current source checkpoint, accepted scope and verification history.
 The FAO handoffs describe the earlier landing phase; the user's 2026-09-10 request
 extends the scope to customer-facing discovery and selection UI.
@@ -50,18 +50,43 @@ extends the scope to customer-facing discovery and selection UI.
 
 ## Required workflow
 
-1. Read current source, project state and relevant framework docs.
-2. State the current problem, bounded scope, affected files and material unknowns.
-   Continue already authorized UI work without redundant approval questions.
-3. Implement the smallest cohesive change and format touched files readably.
-4. Add meaningful tests for changed logic or flows. Do not merely mirror code.
-5. Run `npm run check`: lint, unit tests, production build and HTTP smoke tests.
-   The test runner requires Node.js 22.18+ (Node.js 24 LTS is the verified runtime).
-6. If the user asks for browser testing, test desktop/mobile interactions separately.
-   Never call a build or HTTP test visual/E2E verification.
-7. Fix defects and rerun affected tests plus any required final gates.
-8. Update `docs/PROJECT_STATE.md` and `docs/WORKFLOW.md` when decisions change.
-9. Save the complete source archive with full files, excluding dependencies, build
-   output and secrets. Update the existing source artifact's version; preserve history.
-10. Report changed behavior, checks actually run and remaining limitations. Do not
-    claim future backend/checkout/account scope is complete.
+The user's 2026-09-13 rules apply to every implementation without another request
+for documentation, persistence or browser QA. Follow `docs/WORKFLOW.md` and
+`docs/QA.md`; maintain feature/URL coverage in `docs/FEATURES.md`.
+
+1. Resolve the latest source and compare incoming files before replacing local work.
+   On every source upload and completed implementation update project memory,
+   provenance, decisions, feature docs, verification status and remaining work.
+2. State bounded scope and meaningful acceptance criteria. Continue authorized work
+   without redundant permission questions; never invent business policies.
+3. Implement a cohesive change, meaningful regression coverage for changed logic or
+   flows, and explicit formatting checks on touched files.
+4. Run `npm run check`: lint, unit, build and production HTTP. Separately perform
+   relevant security review/tests and desktop/mobile browser interaction/UI QA.
+   This command alone does not satisfy all gates. Use Node.js 22.18+.
+5. Fix failures and rerun affected checks and final gates on final code. Record
+   PASS / FAIL / BLOCKED / N/A with evidence; never label blocked QA passed.
+6. Update feature URLs, interactions, data boundaries and tests in FEATURES;
+   implementation state in PROJECT_STATE and the resume index PROJECT_MEMORY.
+7. Save complete source/tests/docs to the existing versioned source artifact,
+   excluding dependencies, generated output and secrets; preserve history.
+   For a future externally Git-backed project, persist through Git instead.
+8. Report behavior, checks actually run and limitations. Saving blocked work as a
+   checkpoint is allowed; declaring it fully verified is not.
+
+Docs-only work may validate documentation and unchanged application fingerprints
+without rerunning app gates; label old app test results as historical.
+
+## Interaction and navigation contract
+
+- Buttons perform actions; links intentionally change destinations. Save/remove,
+  add-to-bag, gallery, FAQ and same-page details remain in context with feedback.
+- Never auto-navigate to wishlist/cart after a mutation; an optional explicit link
+  is fine. Closing a Sheet restores focus to its trigger.
+- Filter/search/sort can update query on the current route for sharing and
+  Back/Forward. Do not route via another page to use a feature already available.
+- Avoid duplicate primary actions/reset controls in the same visible region.
+  Global navigation may repeat when serving different contexts.
+- Never nest interactive controls, use placeholder `href="#"`, reload for local
+  actions, or create routes solely for popup/expanded content.
+- Preserve meaningful scroll, focus and selection state; test them in a browser.

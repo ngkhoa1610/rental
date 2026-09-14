@@ -1,73 +1,68 @@
 # Quy trình làm việc — Rental Store
 
-Cập nhật: 2026-09-10. Đây là quy trình người dùng yêu cầu ghi nhớ và áp dụng cho các lần phát triển tiếp theo.
+Cập nhật: 2026-09-13. Áp dụng thường trực theo yêu cầu người dùng, không chờ nhắc lại.
 
-## Mỗi lần tiếp tục dự án
+## 1. Nhận source / tiếp tục công việc
 
-1. Đọc `AGENTS.md`, `docs/PROJECT_STATE.md` và source hiện hành.
-2. Kiểm tra bản source mới nhất trước khi sửa. Không dùng lại ZIP upload ban đầu nếu đã có phiên bản mới hơn.
-3. Đối chiếu yêu cầu hiện tại với scope đã chốt. Yêu cầu mới của người dùng có ưu tiên hơn giới hạn của phase cũ.
-4. Nêu ngắn gọn hiện trạng, vấn đề, mục tiêu, file cần sửa và những quyết định chưa biết.
-5. Làm phần đã được yêu cầu; chỉ hỏi khi quyết định thiếu thông tin có thể thay đổi nghiệp vụ. Không tự bịa policy/API/data thật.
+- Đọc `AGENTS.md`, `PROJECT_MEMORY.md`, `PROJECT_STATE.md`, docs feature và source liên quan.
+- Xác định source mới nhất bằng phiên bản/commit và đối chiếu nội dung. Không quay lại ZIP upload ban đầu khi đã có bản mới.
+- Mỗi lần người dùng gửi source hiện tại: ghi nguồn, ngày nhận, phiên bản/hash nếu có, khác biệt và trạng thái test. Giữ checkpoint trước, không ghi đè thay đổi đang làm một cách mù quáng.
+- Source được người dùng xác nhận là hiện tại trở thành baseline mới. Nếu các bản mâu thuẫn chưa xác định được, hoàn thành so sánh rồi mới hỏi.
+- Cập nhật memory ngay cả khi chỉ nhận source, chưa code. Test của bản cũ không tự động là kết quả của source mới.
+- Nêu phạm vi và acceptance criteria có thể kiểm chứng; tiếp tục phần đã được yêu cầu. Không tự bịa policy, dữ liệu thật hoặc API. Yêu cầu mới của người dùng ưu tiên hơn giới hạn phase cũ.
 
-## Khi code FE / Next.js
+## 2. Code FE / Next.js
 
-- Giữ stack hiện có. Đọc tài liệu tại `node_modules/next/dist/docs/` cho API sắp dùng.
-- Page/layout mặc định là Server Component. Chỉ dùng Client Component cho tương tác cần state hoặc browser API.
-- Tách dữ liệu mẫu, kiểu dữ liệu và hàm thuần khỏi giao diện. Dùng cùng một nguồn dữ liệu cho landing, catalog, detail và giỏ.
-- Tách component khi có vai trò rõ hoặc được dùng lại; tránh vừa gom tất cả vào page vừa tránh chia thành quá nhiều file nhỏ không cần thiết.
-- Dùng TypeScript strict, tên rõ nghĩa, không `any`, không mutate dữ liệu nguồn.
-- Reuse Button, Sheet, ScrollReveal và component sẵn có. Chưa cần state/form/query library mới.
-- `params` / `searchParams` là Promise; dùng `await`. Unknown slug trả 404 qua `notFound` / `dynamicParams`.
-- Filter/search lưu trong URL và submit bằng `next/form`. Nhờ vậy Back/Forward và client navigation giữ đúng trạng thái.
-- Dùng `next/image` với `alt`, tỷ lệ và `sizes` rõ; metadata theo route; Link cho navigation.
-- CSS khách hàng dùng namespace `store-*`; token màu và navigation chung đi theo landing đã chấp nhận.
-- Có label, focus, keyboard, empty/not-found/loading state phù hợp; xét responsive và reduced motion.
-- Format file đã sửa để dễ đọc. Không cài thêm dependency runtime chỉ để trang trí code.
+- Tuân thủ `AGENTS.md`; giữ stack hiện có, TypeScript strict, đọc tài liệu Next.js cài tại `node_modules/next/dist/docs/` cho API liên quan.
+- Mặc định Server Component; Client Component chỉ tại biên cần state/browser API. Page phụ trách composition, logic thuần trong `src/lib`, UI dùng lại trong `src/components`.
+- Catalog và selection dùng một nguồn dữ liệu/logic. Reuse primitive có sẵn; không thêm dependency hoặc abstraction chưa có nhu cầu cụ thể.
+- Giữ thiết kế landing đã chấp nhận; có responsive, accessibility, loading/empty/error/not-found phù hợp. Không nuốt lỗi để hiển thị thành công giả.
+- ScrollReveal chuyển động nhỏ, không chặn nội dung đầu trang; hỗ trợ reduced motion, keyboard và nội dung hiện khi tắt JavaScript.
 
-## Cổng kiểm tra bắt buộc
+## 3. Không điều hướng thừa
 
-```bash
-npm run check
-```
+| Ý định | Cách xử lý |
+| --- | --- |
+| Save/unsave, add/remove/clear bag | Button cập nhật tại chỗ và feedback rõ; không tự chuyển trang |
+| Xem toàn ảnh, FAQ, thông tin bổ sung | Sheet/disclosure trong trang; đóng trả focus phù hợp |
+| Search/filter/sort trên catalog | Next Form cập nhật query trên route hiện tại; giữ Back/Forward và selection |
+| Xem sản phẩm khác hoặc chủ động mở giỏ | Link tới URL thật vì người dùng đổi đích đến |
+| Đi tới section có sẵn | Anchor đúng ID; không tạo route chỉ để lặp section |
 
-Lệnh chạy tuần tự:
+Trong cùng vùng nhìn thấy, mỗi mục đích có một CTA chính. Tránh nav và CTA trùng vai trò cạnh nhau hoặc hai nút reset cùng bộ lọc. Global navigation có thể lặp ở header/footer khi phục vụ ngữ cảnh khác; không xóa route hiện có chỉ vì dùng chung component.
 
-```bash
-npm run lint
-npm test
-npm run build
-npm run test:smoke
-```
+Không lồng button trong link, dùng `href="#"` giả, reload sau thao tác local, tự redirect khi mở popup, hoặc tạo history entry không có trạng thái hữu ích. Giữ scroll/focus/filter/selection khi hợp lý. Optional “View bag” sau add là hợp lệ nếu người dùng chủ động click.
 
-- Lint: ESLint và quy tắc Next.js/React hiện có.
-- Unit test: Node test runner chạy logic TypeScript trực tiếp; cần Node.js >= 22.18. Bản này dùng Node.js 24.19.0.
-- Build: compile, TypeScript và prerender của Next.js.
-- Smoke test: tự mở một production server trên cổng trống được hệ điều hành cấp, kiểm tra route/filter/404/escape input rồi tắt đúng process nó tạo.
-- Không dùng smoke test thay cho kiểm tra browser/E2E. Khi có yêu cầu browser QA, kiểm tra riêng desktop/mobile, focus, menu, form và các nút chọn/xóa.
-- Nếu có lỗi: sửa nguyên nhân, chạy lại test liên quan và gate cuối. Báo rõ Verified / Not verified.
+## 4. Kiểm tra sau code
 
-## Lưu và bàn giao
+1. Format rồi check format; chạy lint, meaningful unit/regression tests, build và production HTTP smoke.
+2. Security: review bề mặt thay đổi, dependency và negative tests cho dữ liệu không tin cậy liên quan.
+3. Browser UI/interaction desktop và mobile: responsive, keyboard, state, navigation, console/hydration/network lỗi.
+4. Sửa lỗi, chạy lại test bị ảnh hưởng và gate cuối trên code cuối.
+5. Ghi PASS / FAIL / BLOCKED / N/A cùng lệnh/steps, kết quả và bằng chứng theo `QA.md`. Thiếu môi trường là BLOCKED; N/A cần lý do không áp dụng.
 
-- Cập nhật `docs/PROJECT_STATE.md`: scope hoàn thành, route, quyết định, file chính, kết quả kiểm tra và việc còn lại.
-- Cập nhật quy trình này nếu người dùng thay đổi cách làm việc.
-- Đóng gói toàn bộ source thành `rental-main.zip`; file đầy đủ để thay trực tiếp, không yêu cầu ghép patch.
-- Không kèm `node_modules`, `.next`, Git internals, cache, log hoặc secret.
-- Lưu phiên bản mới vào cùng artifact source để giữ lịch sử. Không tự deploy khi yêu cầu chỉ là phát triển và lưu source.
-- Phản hồi ngắn gọn: đã làm gì, test nào pass, giới hạn nào chưa xác minh, link source.
+`npm run check` chỉ gồm lint/unit/build/HTTP; không thay format/security/browser. Browser QA là yêu cầu thường trực, không cần người dùng nhắc. Có thể lưu checkpoint bị chặn, nhưng không tuyên bố implementation đã đủ kiểm chứng.
 
-## Quy tắc scope hiện tại
+Nếu chỉ sửa docs và đối chiếu byte/hash xác nhận code/config/dependency không đổi: kiểm nội dung, link, URL, command và archive; không cần chạy lại app suite. Phải ghi rõ app test cũ là lịch sử, không phải kết quả lượt mới.
 
-Landing page đã được người dùng chấp nhận tạm ổn. Phase tiếp theo là UI khám phá và lựa chọn trang phục: catalog, search, collections, lookbook, detail, wishlist, rental bag.
+## 5. Docs đi cùng feature
 
-Dữ liệu vẫn là sample. Giỏ/yêu thích lưu trên thiết bị bằng localStorage có version, khôi phục sau refresh, loại bỏ ID cũ/trùng và fallback trong bộ nhớ nếu storage không dùng được. Không có giữ hàng, đặt thuê, thanh toán hoặc lưu đơn thật.
+| Tài liệu | Vai trò |
+| --- | --- |
+| `../AGENTS.md` | Rule bắt buộc cho người/agent tiếp tục code |
+| `PROJECT_MEMORY.md` | Điểm bắt đầu: source mới nhất, quyết định, checkpoint, bước tiếp |
+| `PROJECT_STATE.md` | Kiến trúc, dữ liệu, trạng thái triển khai và lịch sử kiểm chứng |
+| `FEATURES.md` | Catalog feature, URL/query, thao tác, state, file sở hữu và giới hạn |
+| `QA.md` | Gate, tình huống kiểm thử, bằng chứng, khoảng trống kiểm chứng |
+| `WORKFLOW.md` | Quy trình hiện tại; tránh sao chép nhiều bản rule độc lập |
 
-Checkout, auth/account, lịch sử đơn, admin và backend cần bước riêng cùng thông tin nghiệp vụ thích hợp. Không chuyển các quy tắc thuê máy ảnh của FAO thành quy tắc thuê thời trang.
+Mỗi feature thêm/sửa phải cập nhật cùng lượt: mục đích; URL/query; thao tác tại trang/navigation; loading/empty/error phù hợp; data/API/storage; file chính; test; giới hạn/chưa làm. Viết ngắn, dùng bảng để tra cứu. Feature lớn có thể tách `features/<name>.md` và link từ catalog. Chưa có backend thì ghi rõ, không viết endpoint giả.
 
-## Cập nhật: scroll và kiểm tra browser
+## 6. Memory và lưu source
 
-- Dùng ScrollReveal sẵn có: fade và dịch chuyển nhỏ, chỉ một lần cho nội dung ngoài viewport.
-- Không animation nội dung đầu trang theo cách chặn hiển thị. Giữ nội dung hiện khi không có JavaScript, khi giảm chuyển động hoặc khi keyboard focus đi vào.
-- Ảnh sản phẩm chỉ dùng asset đã có. Hiện một ảnh mẫu mỗi sản phẩm: hỗ trợ xem toàn ảnh bằng Sheet, không tự tạo các góc chụp hay số đo/chất liệu.
-- Preview hiện bị chặn vì môi trường giám sát truyền `--host`/`--strictPort` mà `next dev` không hỗ trợ. Đã dừng sau các thử nghiệm giới hạn. Không đổi framework hoặc bỏ qua môi trường preview được hỗ trợ để khắc phục.
-- Browser QA vẫn là việc cần thực hiện ở môi trường tương thích; không đánh dấu pass dựa trên unit/HTTP tests.
+- Sau mỗi lượt code và mỗi lần nhận source hiện tại: cập nhật checkpoint, docs, quyết định, evidence test và việc còn lại trước khi bàn giao.
+- Bộ nhớ dự án là docs đi cùng source có phiên bản. Toàn bộ code nằm trong archive/repository; không chỉ tóm tắt vào chat rồi coi là đã lưu code.
+- Lưu toàn bộ source + lockfile + tests + docs + rule vào `rental-main.zip`, cập nhật cùng artifact để giữ lịch sử. Không kèm dependency đã cài, build/cache/log, secret, `.env` chứa giá trị thật hoặc Git internals; giữ config cần tái tạo app.
+- Nếu dự án chuyển sang Git repository bên ngoài: dùng commit/checkpoint Git và docs trong repo, không duy trì thêm bản source song song gây lệch phiên bản.
+- Xác nhận lưu thành công trước khi nói đã lưu; nếu lỗi phải báo rõ và giữ bản local để khôi phục. Không tự deploy/publish khi chỉ được yêu cầu code và lưu.
+- Bàn giao ngắn: thay đổi, test thực sự chạy, giới hạn/blocker, link source. Có FAIL/BLOCKED thì ghi là checkpoint chưa đủ kiểm chứng.

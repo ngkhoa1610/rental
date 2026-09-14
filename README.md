@@ -2,7 +2,7 @@
 
 Next.js fashion-rental UI with a warm landing page and customer discovery/selection pages.
 
-Start with [project state](docs/PROJECT_STATE.md), [working process](docs/WORKFLOW.md) and [frontend rules](AGENTS.md).
+Start with [project memory](docs/PROJECT_MEMORY.md), [features and URLs](docs/FEATURES.md), [quality gates](docs/QA.md), [project state](docs/PROJECT_STATE.md), [working process](docs/WORKFLOW.md) and [frontend rules](AGENTS.md).
 
 ## Run locally
 
@@ -21,7 +21,7 @@ Open `http://localhost:3000`. Wishlist and rental-bag selections are saved on th
 npm run check
 ```
 
-This runs ESLint, unit tests, a production build and production HTTP smoke tests. Smoke tests start and stop their own temporary server. They are not browser/E2E tests.
+This runs ESLint, unit tests, a production build and production HTTP smoke tests. Smoke tests start and stop their own temporary server. Format checks, security review/tests and desktop/mobile browser QA are also required after code changes and currently run separately; see the quality gates document.
 
 Individual commands:
 

@@ -1,6 +1,7 @@
 # Rental Store — current project state
 
-Checkpoint: **2026-09-10 / Local selections, product details & gentle scroll motion**
+Latest docs checkpoint: **2026-09-13 / Project memory and QA rules**.
+Application code checkpoint: **2026-09-10 / Local selections, product details & gentle scroll motion**
 Source artifact: **rental-main.zip** in the project's rental folder.
 Previous checkpoint: 2026-09-09 landing-page refactor, documented in `IMPLEMENTATION-REVIEW.md`.
 
@@ -11,6 +12,10 @@ Previous checkpoint: 2026-09-09 landing-page refactor, documented in `IMPLEMENTA
 - Frontend/Next.js code must be clean, readable and maintainable.
 - Run build, lint and code tests after implementation.
 - Persist the latest source and workflow for subsequent work.
+- On every source receipt and completed implementation update project memory, source and concise feature/URL docs.
+- Formatting, security and browser UI testing are standing requirements after code changes. Avoid redundant same-page navigation and duplicate actions.
+
+Start with `PROJECT_MEMORY.md`; see `WORKFLOW.md`, `FEATURES.md` and `QA.md` for the current contract.
 
 The earlier handoffs restricted their own phase to the landing page. This request authorizes the next UI phase. It does not define new business policies or authorize inventing live backend behavior.
 
@@ -79,7 +84,7 @@ Not verified: browser visual comparison, desktop/mobile DOM interactions, keyboa
 
 ## Next steps / boundaries
 
-1. Review desktop/mobile UI and navigation in a browser; run interaction tests when requested.
+1. Complete mandatory desktop/mobile browser interaction QA in a compatible environment; establish reproducible format/security checks.
 2. Confirm actual product records, sizing and image assets before inventory integration.
 3. Define rental dates/duration, availability, delivery/return, deposit/payment rules before checkout or booking work.
 4. Define auth/account, order history and admin scope separately.
@@ -123,3 +128,12 @@ At the next compatible browser session, check:
 5. Image loading/crops and browser console/hydration errors.
 
 The latest `npm run check` passed all four gates (lint, 30 unit tests, build, 14 production HTTP checks). Unit storage tests cover a recreated store instance to model refresh, not a live browser reload. Do not claim browser acceptance until it is actually tested.
+
+
+## Documentation checkpoint — 2026-09-13
+
+Reviewed saved ZIP version 3 against working source: all 57 files matched before edits. Updated AGENTS/WORKFLOW/README and added PROJECT_MEMORY, FEATURES and QA. Application source, dependencies and executable tests are unchanged; the app results above are historical, not rerun for this docs-only checkpoint.
+
+Missing automated format/security/browser gates and potentially redundant Explore links/reset controls are follow-up work, not silently fixed or marked verified. The previous preview blocker describes the historical environment; future QA should use the compatible browser workflow available then.
+
+Docs validation passed: seven changed/new documentation files, all eight route patterns documented, referenced local paths and README links resolve, documented npm scripts exist, Markdown fences/whitespace are consistent, and the generated Next.js agent block is preserved. Byte comparison confirmed no application/config/dependency/test changes.
