@@ -64,7 +64,7 @@ Mỗi feature thêm/sửa phải cập nhật cùng lượt: mục đích; URL/q
 ## 6. Memory và lưu source
 
 - Sau mỗi lượt code và mỗi lần nhận source hiện tại: cập nhật checkpoint, docs, quyết định, evidence test và việc còn lại trước khi bàn giao.
-- Theo yêu cầu 2026-09-20: plan BE phải trình use case/feature để người dùng duyệt trước khi ghi nội dung plan vào memory hoặc triển khai. Có thể lưu riêng FE đã hoàn thành theo quy trình; không coi đề xuất BE là scope đã chốt.
+- Plan BE đã được người dùng duyệt ngày 2026-09-20 cùng các sửa đổi tại `backend-feature-plan.md`: những phần không nhắc sửa trong plan đã trình được duyệt. Không hỏi duyệt lại phần đó. Quy tắc này không biến ý tưởng mới ngoài plan thành scope được chấp thuận; các chính sách chưa có giá trị cụ thể vẫn cần làm rõ đúng lúc. Giữ phân biệt plan đã duyệt và tính năng đã triển khai.
 - Bộ nhớ dự án là docs đi cùng source có phiên bản. Toàn bộ code nằm trong archive/repository; không chỉ tóm tắt vào chat rồi coi là đã lưu code.
 - Checkpoint nội bộ: lưu toàn bộ source + lockfile + tests + docs + rule vào `rental-main.zip`, cập nhật cùng artifact để giữ lịch sử. Không kèm dependency đã cài, build/cache/log, secret, `.env` chứa giá trị thật hoặc Git internals; giữ config cần tái tạo app.
 - Nếu dự án chuyển sang Git repository bên ngoài: dùng commit/checkpoint Git và docs trong repo, không duy trì thêm bản source song song gây lệch phiên bản.

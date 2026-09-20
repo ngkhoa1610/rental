@@ -1,6 +1,6 @@
 # Rental Store — current project state
 
-Checkpoint: **2026-09-20 / Lookbook role and compact feedback layout**. Baseline: full-source version 8, 84 files matched before edits. Internal checkpoint: `rental-main.zip`; deliver only changed files as listed in `lookbook-feedback-handoff.md`.
+Checkpoint: **2026-09-20 / Approved backend feature plan, docs only**. Baseline: full-source version 9, 88 files matched before edits. Application code remains the verified FE version 9. Internal checkpoint: `rental-main.zip`; changed docs are listed in `backend-plan-handoff.md`.
 
 ## Scope and design
 
@@ -47,13 +47,19 @@ Lookbook now owns three practical styling guides with local occasion shortcuts, 
 
 Feedback uses ordinary equal-width two-column rows, stretched cards, a flex content/footer region and side-by-side photo/quote at 1100px+. At narrower widths images sit above quotes; below 768px cards stack without tilt. Removed row spans, forced final-card placement and negative offsets that caused gaps. Tighter hero/section spacing and smaller tilt keep the expressive treatment within the gutters. Existing composer/share and motion behavior are retained.
 
-Only completed FE changes are recorded here. Backend use cases/features await user approval before being recorded as project scope; no architecture or backend code has been introduced.
+## Approved next scope — not implemented
+
+The user approved the preceding backend plan with four changes: no product variants; product-level availability; customer login with a short profile-backed rental form and optional customer notes; offline payments updated by an authorized admin after actual collection/refund. The remaining plan is accepted, including staff approval, store pickup/return, content management, permissions, order-linked moderated reviews and status notifications. Account wishlist sync, delivery and online payment remain outside MVP.
+
+Canonical approved use cases, form fields, phases, acceptance criteria and unresolved policy values: `backend-feature-plan.md`. Login replaces the earlier guest-order proposal. Payment state remains separate from rental state. Approval records scope, not implementation: current FE is still a preview, no backend or authentication was added, and architecture/database/endpoints are not selected.
 
 ## Verification
 
-Commands and actual outcomes: `lookbook-feedback-review.md`. Prior motion results are historical in `feedback-motion-review.md`. Required gates: `QA.md`. Next.js 16.3.4, React 19.2.8, TypeScript strict and dependencies/lockfile are unchanged. UI layout acceptance is a user decision; automated browser regression of changed behavior is tracked separately. No-JS content remains rendered, but local interactive controls require JavaScript.
+This docs-only revision checks documentation formatting/links and unchanged application bytes. Historical FE commands and outcomes: `lookbook-feedback-review.md`; no new app test run is claimed. Prior motion results are historical in `feedback-motion-review.md`. Required gates: `QA.md`. Next.js 16.3.4, React 19.2.8, TypeScript strict and dependencies/lockfile are unchanged. UI layout acceptance is a user decision; automated browser regression of changed behavior is tracked separately. No-JS content remains rendered, but local interactive controls require JavaScript.
 
 ## History
+
+- 2026-09-20: backend use cases approved with no variants, customer login/short form/customer notes and admin-updated offline payment. Recorded plan/memory only; FE unchanged.
 
 - 2026-09-20: user accepted prior update; requested smoother scroll and a bold, youthful feedback page. Added local preview/share and labelled sample wall, with no BE/database.
 

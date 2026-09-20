@@ -2,6 +2,10 @@
 
 Updated **2026-09-20**. Customer preview only; no backend or real booking. Local origin: `http://localhost:3000`.
 
+## Approved backend scope — not implemented
+
+See [backend feature plan](backend-feature-plan.md) for the approved use cases: product-level stock/availability without variants, customer login, profile-backed rental requests with optional notes, staff order handling, admin-updated offline payment, CMS and moderated order-linked feedback. Current routes and behavior below still describe the FE preview. Account/order/admin URLs are not designed yet; no backend feature is available merely because its plan is approved.
+
 ## Business routes
 
 | Feature     | URL                | Behavior / state                                                                                           | Main owner                                 |

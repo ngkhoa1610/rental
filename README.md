@@ -45,6 +45,10 @@ The [lookbook](docs/lookbook-guide.md) explains how to style each featured piece
 
 The [feedback wall](docs/feedback-wall.md) uses a playful collage layout and local story preview/share. Examples are labelled; private previews disappear on leaving/reloading and are never posted publicly. Scroll entrances now start earlier with less travel; keyboard and reduced-motion paths appear immediately.
 
+## Approved next phase
+
+The [backend feature plan](docs/backend-feature-plan.md) records approved use cases and the revised login/form/offline-payment scope. It is a plan, not implemented functionality. This docs-only checkpoint leaves application code unchanged.
+
 ## Preview boundary
 
 All products, prices and photos are sample presentation content. Bag/wishlist preferences use versioned localStorage, with an in-memory fallback if storage is blocked. No item is reserved and no order is placed. Checkout, payment, accounts, availability and backend are not implemented.

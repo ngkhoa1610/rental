@@ -1,7 +1,7 @@
 # Bộ nhớ dự án — đọc trước khi tiếp tục
 
-Checkpoint: **2026-09-20 — Lookbook role & compact feedback layout**.
-Baseline: full-source **version 8**, đã đối chiếu 84 file khớp source trước sửa. Source đầy đủ tiếp tục lưu theo phiên bản ở `rental-main.zip`. Gói bàn giao: `rental-store-lookbook-feedback-changes-2026-09-20-r01.zip`; xem `lookbook-feedback-handoff.md`; không xóa/rename file.
+Checkpoint: **2026-09-20 — Approved backend feature plan (docs only)**.
+Baseline: full-source **version 9**, đối chiếu 88 file khớp trước sửa. Chỉ sửa docs/memory; application code vẫn là FE version 9. Checkpoint đầy đủ: `rental-main.zip`. Gói docs thay đổi: `rental-store-backend-plan-changes-2026-09-20-r01.zip`; xem `backend-plan-handoff.md`; không xóa/rename file.
 
 ## Quyết định phải giữ
 
@@ -28,8 +28,17 @@ Baseline: full-source **version 8**, đã đối chiếu 84 file khớp source t
 
 - Lookbook là hướng dẫn phối đồ theo dịp: cách phối, phụ kiện gợi ý, biến tấu và món chính. Giá/tên/số ngày lấy từ catalog; phụ kiện không được hiểu là món thuê kèm. Shortcut scroll/focus tại trang, không thay URL/history. Giữ grid, khung ảnh và lề cũ.
 - Feedback bỏ span hàng, chỉ định cột/offset thủ công và negative margin làm trống grid. Hai cột, card cùng hàng giãn đầy; ảnh ngang cạnh quote từ 1100px, ảnh phía trên ở màn hình nhỏ hơn; một cột dưới 768px. Giữ sample/private labels, share và reduced motion.
-- Full gate hiện tại: 37 pure + 27 DOM tests, 24 HTTP checks, format/lint/build PASS; audit 0 vulnerabilities. Browser QA vẫn BLOCKED khi mở localhost (`ERR_BLOCKED_BY_CLIENT`); xem `lookbook-feedback-review.md`.
-- Chỉ cập nhật memory/source cho FE đã làm. Plan BE chờ người dùng duyệt; chưa ghi nội dung plan, chưa chọn kiến trúc hay triển khai BE.
+- Kết quả FE lịch sử của version 9 (không chạy lại trong lượt docs): 37 pure + 27 DOM tests, 24 HTTP checks, format/lint/build PASS; audit 0 vulnerabilities. Browser QA vẫn BLOCKED khi mở localhost (`ERR_BLOCKED_BY_CLIENT`); xem `lookbook-feedback-review.md`.
+- Plan BE đã được duyệt theo phản hồi tiếp theo; chi tiết hiện hành ở `backend-feature-plan.md`. Chưa chọn kiến trúc hay triển khai BE.
+
+## Plan BE đã duyệt
+
+- Người dùng duyệt những phần không nhắc sửa của plan vừa trình; đây không phải quyền mở rộng scope tự động cho ý tưởng mới. Không hỏi duyệt lại plan này.
+- Sản phẩm và lịch khả dụng không có biến thể; số lượng/lịch quản lý theo sản phẩm.
+- Có đăng nhập trong MVP; form thuê kế thừa sản phẩm, ngày và liên hệ từ hồ sơ, chỉ bổ sung trường thiếu/sai; có ghi chú tùy chọn của khách. Đơn thuộc tài khoản đăng nhập, khách xem đơn của mình.
+- Thanh toán offline; admin cập nhật khoản thu/hoàn sau thực tế, trạng thái tiền tách trạng thái đơn; không tự đánh dấu đã thanh toán khi gửi/duyệt/trả đồ.
+- Giữ cửa hàng duyệt đơn, nhận/trả tại cửa hàng, CMS, quyền nhân viên, feedback gắn đơn có kiểm duyệt và thông báo. Giao hàng, payment online và đồng bộ wishlist theo tài khoản ngoài MVP.
+- Cọc/phí/cách tính ngày/hủy/vệ sinh/giữ chỗ chưa có giá trị cụ thể; không tự bịa. Lượt hiện tại chỉ cập nhật docs. Plan chuẩn: `backend-feature-plan.md`.
 
 ## Đọc tiếp
 
@@ -39,7 +48,8 @@ Baseline: full-source **version 8**, đã đối chiếu 84 file khớp source t
 | Feature/route/state     | `FEATURES.md`                          |
 | Kiến trúc/data boundary | `PROJECT_STATE.md`                     |
 | QA hiện tại             | `lookbook-feedback-review.md`, `QA.md` |
-| Áp dụng delta           | `lookbook-feedback-handoff.md`         |
+| Áp dụng delta docs      | `backend-plan-handoff.md`              |
+| Plan BE đã duyệt        | `backend-feature-plan.md`              |
 | Ảnh và prompt           | `image-sources.md`                     |
 
 Rule ngày 2026-09-15 ưu tiên hơn handoff cũ cho phép query filter và ghi layout chưa được nghiệm thu. Kết quả cũ chỉ là lịch sử; không chuyển pass sang source chưa test. Browser regression của theme mới và các giới hạn hiện tại được ghi trong review, độc lập với việc người dùng đã duyệt layout.
