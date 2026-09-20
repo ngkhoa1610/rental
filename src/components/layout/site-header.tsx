@@ -16,11 +16,11 @@ import Link from "next/link";
 import { Heart, Menu, Shirt, ShoppingBag, X } from "lucide-react";
 import { BagCount } from "@/components/store/selection-actions";
 
-const navigation = [  
-  { label: "Home", href: "/" },
+const navigation = [
   { label: "Explore looks", href: "/products" },
   { label: "Collections", href: "/collections" },
   { label: "Lookbook", href: "/lookbook" },
+  { label: "Feedback", href: "/feedback" },
 ];
 
 export function SiteHeader() {

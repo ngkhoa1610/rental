@@ -1,0 +1,484 @@
+/* The playful feedback layout is isolated from the accepted store pages. */
+.feedback-page {
+  --feedback-ink: #422338;
+  --feedback-pink: #f7c4dc;
+  --feedback-lilac: #e9e0ff;
+  --feedback-lime: #e9f1bd;
+  color: var(--feedback-ink);
+  padding-inline: clamp(0.25rem, 1.8vw, 1.25rem);
+}
+.feedback-hero {
+  position: relative;
+  padding-block: 0.5rem 2rem;
+  border-bottom: 2px solid var(--feedback-ink);
+}
+.feedback-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+}
+.feedback-kicker > span {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.feedback-hero h1 {
+  position: relative;
+  width: fit-content;
+  margin-block: 1.25rem 1.5rem;
+  font-size: clamp(3rem, 7.6vw, 6.25rem);
+  font-weight: 850;
+  letter-spacing: -0.075em;
+  line-height: 0.98;
+}
+.feedback-hero h1 > span {
+  color: var(--primary);
+  font-style: italic;
+}
+.feedback-hero h1 > svg {
+  position: absolute;
+  top: 0;
+  right: -1.1em;
+  width: 0.65em;
+  height: 0.65em;
+  transform: rotate(12deg);
+}
+.feedback-hero-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.feedback-hero-bottom > p {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.6;
+}
+.feedback-write {
+  height: auto;
+  min-height: 3.25rem;
+  padding: 1rem 1.35rem;
+  border: 2px solid var(--feedback-ink);
+  border-radius: 3rem;
+  box-shadow: 4px 4px 0 var(--feedback-ink);
+  color: var(--feedback-ink);
+  background: var(--feedback-lime);
+  font-weight: 750;
+  white-space: normal;
+  transition:
+    transform 220ms ease-out,
+    box-shadow 220ms ease-out;
+}
+.feedback-write:hover {
+  background: var(--feedback-lime);
+}
+.feedback-sticker {
+  position: absolute;
+  top: 3.5rem;
+  right: 0.75rem;
+  display: grid;
+  place-content: center;
+  width: 7.5rem;
+  height: 7.5rem;
+  padding: 1rem;
+  border: 2px solid var(--feedback-ink);
+  border-radius: 50%;
+  background: var(--feedback-lilac);
+  text-align: center;
+  line-height: 1.1;
+  font-weight: 800;
+  transform: rotate(13deg);
+}
+.feedback-wall-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  padding-block: 1.5rem;
+}
+.feedback-wall-heading h2 {
+  max-width: 24rem;
+  font-size: 1.3rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+.feedback-wall-heading svg {
+  display: inline;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.feedback-wall-heading > p {
+  max-width: 23rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 1.75rem;
+  padding-block: 0.5rem 1.5rem;
+}
+.feedback-item {
+  position: relative;
+  min-width: 0;
+}
+.feedback-item:nth-child(3n + 1) .feedback-card {
+  --card-tilt: -0.7deg;
+}
+.feedback-item:nth-child(3n + 2) .feedback-card {
+  --card-tilt: 0.8deg;
+}
+.feedback-item:nth-child(3n) .feedback-card {
+  --card-tilt: -0.5deg;
+}
+.feedback-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: clamp(1.2rem, 2.2vw, 1.75rem);
+  border: 2px solid var(--feedback-ink);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  box-shadow: 6px 7px 0 var(--feedback-ink);
+  transform: rotate(var(--card-tilt, 0deg));
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms ease;
+  overflow-wrap: anywhere;
+}
+.feedback-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.feedback-card-pink {
+  background: var(--feedback-pink);
+}
+.feedback-card-lilac {
+  background: var(--feedback-lilac);
+}
+.feedback-card-lime {
+  background: var(--feedback-lime);
+}
+.feedback-card-ink {
+  background: var(--feedback-ink);
+  color: #fff8fb;
+  box-shadow: 6px 7px 0 #d394b1;
+}
+.feedback-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.feedback-stars {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+.feedback-stars svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+.feedback-card blockquote {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin-block: 1.25rem;
+}
+.feedback-card blockquote p {
+  font-size: clamp(1.35rem, 2.6vw, 2.15rem);
+  font-weight: 760;
+  line-height: 1.17;
+  letter-spacing: -0.045em;
+  white-space: pre-wrap;
+}
+.feedback-card-content > footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid currentColor;
+}
+.feedback-author {
+  display: block;
+  font-weight: 750;
+  font-size: 1rem;
+}
+.feedback-occasion {
+  font-size: 0.75rem;
+}
+.feedback-photo {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 13rem;
+  margin-bottom: 1rem;
+  border-radius: 0.2rem;
+  overflow: hidden;
+}
+.feedback-photo img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+.feedback-share {
+  max-width: 100%;
+  min-width: 0;
+}
+.feedback-share > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.feedback-share > button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.feedback-share svg {
+  width: 1rem;
+  height: 1rem;
+}
+.feedback-share > p:not(:empty) {
+  max-width: 28ch;
+  padding-top: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.feedback-card-ink :focus-visible {
+  outline-color: #fff8fb;
+}
+.feedback-preview {
+  padding: 2rem 0;
+}
+.feedback-preview h2 {
+  font-size: 1.5rem;
+  font-weight: 750;
+}
+.feedback-preview > p {
+  max-width: 55ch;
+  margin-block: 0.75rem 1.5rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.feedback-outro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-block: 1.5rem;
+  border-block: 2px solid var(--feedback-ink);
+}
+.feedback-outro > svg {
+  width: 3rem;
+  height: 3rem;
+  transform: rotate(-12deg);
+}
+.feedback-outro p {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.feedback-outro > span {
+  max-width: 14rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  line-height: 1.7;
+}
+/* Portalled composer uses root tokens, not page-scoped custom properties. */
+.feedback-composer {
+  max-width: 40rem;
+  max-height: 90dvh;
+  margin-inline: auto;
+  padding: 1.5rem 1.25rem max(1.5rem, env(safe-area-inset-bottom));
+  border-radius: 1.5rem 1.5rem 0 0;
+  overflow-y: auto;
+}
+.feedback-form {
+  display: grid;
+  gap: 1rem;
+}
+.feedback-form label,
+.feedback-manual-copy {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+.feedback-form input:not([type="radio"]),
+.feedback-form textarea,
+.feedback-manual-copy textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--ring);
+  border-radius: 0.65rem;
+  color: var(--foreground);
+  background: var(--surface);
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.feedback-form legend {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.feedback-rating-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.feedback-rating-input label {
+  position: relative;
+}
+.feedback-rating-input input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.feedback-rating-input label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--ring);
+  border-radius: 0.6rem;
+}
+.feedback-rating-input svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.feedback-rating-input input:checked + span {
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.feedback-rating-input input:focus-visible + span {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.feedback-form-hint {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.feedback-form-error {
+  color: #992742;
+  font-size: 0.875rem;
+}
+.feedback-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.feedback-manual-copy {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+}
+@media (hover: hover) and (pointer: fine) {
+  .feedback-item:hover {
+    z-index: 2;
+  }
+  .feedback-card:hover {
+    transform: translateY(-8px) rotate(0deg);
+    box-shadow: 10px 13px 0 var(--feedback-ink);
+  }
+  .feedback-write:hover {
+    transform: translate(-2px, -3px);
+    box-shadow: 6px 7px 0 var(--feedback-ink);
+  }
+  .feedback-share > button:hover {
+    background: var(--feedback-ink);
+    color: #fff8fb;
+  }
+  .feedback-card-ink .feedback-share > button:hover {
+    background: #fff8fb;
+    color: var(--feedback-ink);
+  }
+}
+.feedback-card:focus-within {
+  transform: translateY(-4px) rotate(0deg);
+}
+@media (min-width: 1100px) {
+  .feedback-card-with-photo {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+  .feedback-card-with-photo .feedback-photo {
+    aspect-ratio: auto;
+    min-height: 15rem;
+    max-height: none;
+    margin: 0;
+  }
+  .feedback-card-with-photo blockquote p {
+    font-size: 1.5rem;
+  }
+}
+@media (max-width: 1023px) {
+  .feedback-sticker {
+    display: none;
+  }
+  .feedback-hero h1 > svg {
+    right: -0.7em;
+    width: 0.5em;
+    height: 0.5em;
+  }
+}
+@media (max-width: 767px) {
+  .feedback-hero {
+    padding-bottom: 2rem;
+  }
+  .feedback-hero h1 > svg {
+    display: none;
+  }
+  .feedback-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+  .feedback-item:nth-child(n) .feedback-card {
+    --card-tilt: 0deg;
+  }
+  .feedback-card:focus-within {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feedback-card,
+  .feedback-card:hover,
+  .feedback-card:focus-within,
+  .feedback-write,
+  .feedback-write:hover,
+  .feedback-sticker,
+  .feedback-outro > svg {
+    transform: none;
+    transition: none;
+  }
+  .feedback-composer {
+    animation: none;
+    transition: none;
+  }
+}

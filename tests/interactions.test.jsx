@@ -302,7 +302,7 @@ test("header marks the product business route active and exposes no feature URLs
   );
   assert.equal(
     within(mainNav)
-      .getByRole("link", { name: "Home" })
+      .getByRole("link", { name: "Feedback" })
       .getAttribute("aria-current"),
     null,
   );

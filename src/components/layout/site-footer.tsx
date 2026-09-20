@@ -39,7 +39,7 @@ export function SiteFooter() {
               <Link href="/lookbook">Styling inspiration</Link>
             </li>
             <li>
-              <Link href="/products">Sample looks & prices</Link>
+              <Link href="/feedback">The feedback wall</Link>
             </li>
           </ul>
         </nav>

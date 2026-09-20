@@ -1,6 +1,6 @@
 # Quy trình làm việc — Rental Store
 
-Cập nhật: 2026-09-15. Áp dụng thường trực theo yêu cầu người dùng, không chờ nhắc lại.
+Cập nhật: 2026-09-20. Áp dụng thường trực theo yêu cầu người dùng, không chờ nhắc lại.
 
 ## 1. Nhận source / tiếp tục công việc
 
@@ -30,9 +30,11 @@ Cập nhật: 2026-09-15. Áp dụng thường trực theo yêu cầu người d
 | Xem sản phẩm khác hoặc chủ động mở giỏ | Link tới URL thật vì người dùng đổi đích đến                                   |
 | Đi tới section có sẵn                  | Button scroll/focus tại chỗ; reduced motion; skip link a11y được dùng fragment |
 
-Trong cùng vùng nhìn thấy, mỗi mục đích có một CTA chính. Tránh nav và CTA trùng vai trò cạnh nhau hoặc hai nút reset cùng bộ lọc. Global navigation có thể lặp ở header/footer khi phục vụ ngữ cảnh khác. Chỉ tạo route cho business: `/`, `/products`, `/products/[slug]`, `/collections`, `/lookbook`, `/wishlist`, `/cart`. `/search` đã bỏ theo yêu cầu 2026-09-15; không khôi phục rule query filter trong tài liệu cũ.
+Trong cùng vùng nhìn thấy, mỗi mục đích có một CTA chính. Tránh nav và CTA trùng vai trò cạnh nhau hoặc hai nút reset cùng bộ lọc. Global navigation có thể lặp ở header/footer khi phục vụ ngữ cảnh khác. Chỉ tạo route cho business: `/`, `/products`, `/products/[slug]`, `/collections`, `/lookbook`, `/feedback`, `/wishlist`, `/cart`. `/search` đã bỏ theo yêu cầu 2026-09-15; không khôi phục rule query filter trong tài liệu cũ.
 
 Không lồng button trong link, dùng `href="#"` giả, reload sau thao tác local, tự redirect khi mở popup, hoặc tạo history entry không có trạng thái hữu ích. Giữ scroll/focus/filter/selection khi hợp lý. Optional “View bag” sau add là hợp lệ nếu người dùng chủ động click.
+
+Trang `/feedback` được cho phép bố cục collage riêng theo yêu cầu 2026-09-20. Nội dung mẫu phải ghi rõ, kể cả khi share. Form preview, share/copy và feedback trạng thái ở tại trang; không tạo URL/query cho các thao tác đó. Chưa có BE thì không báo đã đăng công khai. Share bị hủy không được tự copy; clipboard lỗi phải có fallback và thông báo đúng.
 
 ## 4. Kiểm tra sau code
 
@@ -62,6 +64,7 @@ Mỗi feature thêm/sửa phải cập nhật cùng lượt: mục đích; URL/q
 ## 6. Memory và lưu source
 
 - Sau mỗi lượt code và mỗi lần nhận source hiện tại: cập nhật checkpoint, docs, quyết định, evidence test và việc còn lại trước khi bàn giao.
+- Theo yêu cầu 2026-09-20: plan BE phải trình use case/feature để người dùng duyệt trước khi ghi nội dung plan vào memory hoặc triển khai. Có thể lưu riêng FE đã hoàn thành theo quy trình; không coi đề xuất BE là scope đã chốt.
 - Bộ nhớ dự án là docs đi cùng source có phiên bản. Toàn bộ code nằm trong archive/repository; không chỉ tóm tắt vào chat rồi coi là đã lưu code.
 - Checkpoint nội bộ: lưu toàn bộ source + lockfile + tests + docs + rule vào `rental-main.zip`, cập nhật cùng artifact để giữ lịch sử. Không kèm dependency đã cài, build/cache/log, secret, `.env` chứa giá trị thật hoặc Git internals; giữ config cần tái tạo app.
 - Nếu dự án chuyển sang Git repository bên ngoài: dùng commit/checkpoint Git và docs trong repo, không duy trì thêm bản source song song gây lệch phiên bản.

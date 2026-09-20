@@ -380,6 +380,47 @@
   gap: 3rem;
   align-items: start;
 }
+.store-lookbook-intro {
+  display: grid;
+  gap: 1rem;
+  margin-block: -0.5rem 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--home-line);
+}
+.store-lookbook-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+.store-lookbook-shortcuts button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--home-line);
+  border-radius: 2rem;
+  background: var(--home-paper);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.store-lookbook-shortcuts button:hover {
+  background: var(--home-blush);
+}
+.store-lookbook-shortcuts svg {
+  width: 1rem;
+  height: 1rem;
+}
+.store-lookbook-intro > p,
+.store-story-price {
+  color: var(--home-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.store-story {
+  min-width: 0;
+}
 .store-story-photo {
   position: relative;
   aspect-ratio: 4 / 5;
@@ -397,6 +438,40 @@
   font-weight: 650;
   letter-spacing: -0.025em;
   margin-top: 0.5rem;
+  scroll-margin-top: 7rem;
+}
+.store-story-description {
+  margin-block: 0.75rem 1.25rem;
+  color: var(--home-muted);
+  line-height: 1.7;
+}
+.store-story-notes {
+  display: grid;
+  gap: 1rem;
+}
+.store-story-notes dt {
+  margin-bottom: 0.25rem;
+  color: var(--home-accent-hover);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.store-story-notes dd {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+.store-story-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--home-line);
+}
+.store-story-product-name {
+  margin-block: 0.35rem;
+  font-weight: 700;
 }
 .store-selection-count {
   margin-bottom: 1.5rem;

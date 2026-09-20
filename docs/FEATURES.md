@@ -1,20 +1,33 @@
 # Feature & URL catalog
 
-Updated **2026-09-15**. Customer preview only; no backend or real booking. Local origin: `http://localhost:3000`.
+Updated **2026-09-20**. Customer preview only; no backend or real booking. Local origin: `http://localhost:3000`.
 
 ## Business routes
 
-| Feature     | URL                | Behavior / state                                                                                    | Main owner                                 |
-| ----------- | ------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Landing     | `/`                | Hero, benefits, rental process, FAQ, sample looks; section actions scroll/focus locally             | `src/app/page.tsx`                         |
-| Catalog     | `/products`        | Local search/filter/sort, Apply, chips, one Clear, grid or empty state                              | `src/components/store/catalog.tsx`         |
-| Collections | `/collections`     | Three editorial collections; View product opens the illustrated product                             | `src/app/(store)/collections/page.tsx`     |
-| Lookbook    | `/lookbook`        | Three styling stories linked to the illustrated product                                             | `src/app/(store)/lookbook/page.tsx`        |
-| Product     | `/products/[slug]` | Gallery Sheet, sample price, facts, occasion tags, fit/care disclosures, save/add, related products | `src/app/(store)/products/[slug]/page.tsx` |
-| Wishlist    | `/wishlist`        | Restore/loading, saved list or empty; unsave and focus recovery locally                             | `src/components/store/saved-looks.tsx`     |
-| Rental bag  | `/cart`            | Restore/loading, selected looks, sample subtotal, remove/save, clear-confirm/cancel and help        | `src/components/store/rental-bag.tsx`      |
+| Feature     | URL                | Behavior / state                                                                                           | Main owner                                 |
+| ----------- | ------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Landing     | `/`                | Hero, benefits, rental process, FAQ, sample looks; section actions scroll/focus locally                    | `src/app/page.tsx`                         |
+| Catalog     | `/products`        | Local search/filter/sort, Apply, chips, one Clear, grid or empty state                                     | `src/components/store/catalog.tsx`         |
+| Collections | `/collections`     | Three editorial collections; View product opens the illustrated product                                    | `src/app/(store)/collections/page.tsx`     |
+| Lookbook    | `/lookbook`        | Three occasion guides, styling notes, local scroll/focus shortcuts and one featured-product link per guide | `src/app/(store)/lookbook/page.tsx`        |
+| Product     | `/products/[slug]` | Gallery Sheet, sample price, facts, occasion tags, fit/care disclosures, save/add, related products        | `src/app/(store)/products/[slug]/page.tsx` |
+| Wishlist    | `/wishlist`        | Restore/loading, saved list or empty; unsave and focus recovery locally                                    | `src/components/store/saved-looks.tsx`     |
+| Rental bag  | `/cart`            | Restore/loading, selected looks, sample subtotal, remove/save, clear-confirm/cancel and help               | `src/components/store/rental-bag.tsx`      |
 
 Slugs: `muse-dress`, `luna-set`, `soleil-top`. Unknown product/page returns branded 404. `/search` was removed and returns 404. Loading/error/retry boundaries are UI states, not new business destinations.
+
+## Feedback wall — `/feedback`
+
+Business page for outfit stories, accessible through the desktop/mobile navigation and footer. Compact two-column grid with large typography, alternating pastel/dark cards and existing styling photos; mobile uses one column. No row spans, forced empty cells or visual reordering. Six stories are explicitly illustrative.
+
+- Write name, 1–5 rating and a 10–500 character story in a Sheet. Validation and a private preview stay in the page. Nothing is published or sent automatically.
+- Share an individual sample or private preview using the native device menu; otherwise copy text. A manual selectable field handles unavailable/denied clipboard. Cancellation does not copy or report delivery. Labels remain in shared content.
+- Draft/preview are transient component state and clear on unmount/reload. No localStorage or API. No verified-review badges, aggregate ratings or public review IDs/URLs.
+- Full ownership, states, tests and limitations: `feedback-wall.md`.
+
+## Lookbook — `/lookbook`
+
+A styling guide rather than another product listing: Date night, Vacation and Weekend stories explain pairings, finishing touches and ways to adapt an outfit. Occasion buttons scroll/focus the corresponding heading without changing URL/history. Each story links to its exact featured product, derives sample name/price/duration from catalog, and explains that suggested accessories are not included. All guides render without JavaScript; shortcuts require JavaScript. No filters, account state or API. See `lookbook-guide.md`.
 
 ## Catalog interaction contract
 
@@ -44,6 +57,6 @@ These fields never become URLs, query parameters, routes or history entries. The
 
 ## Verification and limits
 
-Current results: `sakura-refactor-review.md`; mandatory matrix: `QA.md`. Layout is accepted by the user. DOM assertions do not prove responsive rendering, hydration, image crops or browser console behavior.
+Current results: `feedback-motion-review.md`; mandatory matrix: `QA.md`. Layout is accepted by the user. DOM assertions do not prove responsive rendering, hydration, image crops or browser console behavior.
 
 Sample photos/prices are not confirmed inventory. No availability, rental schedule, order, account, checkout/payment, admin or backend/database. Local selection is a preference, not a reservation. Existing components preserve sample/indicative labels; no fake business form or policy is added.

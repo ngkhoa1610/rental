@@ -96,3 +96,71 @@ test("changing reduced-motion preference makes pending content visible", (contex
   });
   assert.equal(view.container.firstElementChild.dataset.revealState, "visible");
 });
+
+test("near-viewport content is never hidden during hydration", (context) => {
+  class Observer {
+    constructor() {
+      throw new Error("Near content should not be observed");
+    }
+  }
+  installObserver(context, Observer);
+  context.mock.method(HTMLElement.prototype, "getBoundingClientRect", () => ({
+    top: window.innerHeight + 20,
+  }));
+  const view = render(<ScrollReveal>Near viewport</ScrollReveal>);
+  assert.equal(view.container.firstElementChild.dataset.revealState, "visible");
+  assert.equal(
+    view.container.firstElementChild.dataset.revealImmediate,
+    "true",
+  );
+});
+
+test("intersection reveals once, fast-scroll skips reveal immediately, and unmount cleans up", (context) => {
+  const observers = [];
+  class Observer {
+    constructor(callback) {
+      this.callback = callback;
+      this.disconnections = 0;
+      observers.push(this);
+    }
+    observe() {}
+    disconnect() {
+      this.disconnections += 1;
+    }
+  }
+  installObserver(context, Observer);
+  context.mock.method(HTMLElement.prototype, "getBoundingClientRect", () => ({
+    top: 5000,
+  }));
+  const view = render(
+    <>
+      <ScrollReveal>First</ScrollReveal>
+      <ScrollReveal>Second</ScrollReveal>
+    </>,
+  );
+  const elements = view.container.children;
+  act(() => observers[0].callback([{ isIntersecting: true }]));
+  assert.equal(elements[0].dataset.revealState, "visible");
+  assert.equal(observers[0].disconnections, 1);
+  act(() =>
+    observers[1].callback([
+      { isIntersecting: false, boundingClientRect: { bottom: -20 } },
+    ]),
+  );
+  assert.equal(elements[1].dataset.revealImmediate, "true");
+  view.unmount();
+  assert.ok(observers.every(({ disconnections }) => disconnections === 2));
+});
+
+test("initial reduced-motion preference bypasses pending state", (context) => {
+  context.mock.method(window, "matchMedia", () => ({ matches: true }));
+  context.mock.method(HTMLElement.prototype, "getBoundingClientRect", () => ({
+    top: 5000,
+  }));
+  const view = render(<ScrollReveal>Always visible</ScrollReveal>);
+  assert.equal(view.container.firstElementChild.dataset.revealState, "visible");
+  assert.equal(
+    view.container.firstElementChild.dataset.revealImmediate,
+    "true",
+  );
+});

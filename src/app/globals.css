@@ -761,25 +761,28 @@ html {
   min-height: 3rem;
   border-radius: 2rem;
 }
-/* Content is visible without JavaScript; reveal only adds a small entrance. */
 /* Progressive enhancement: visible by default, animate only offscreen content. */
 .scroll-reveal {
   min-width: 0;
 }
 .scroll-reveal[data-reveal-state] {
   transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.42s ease-out,
+    transform 0.68s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .scroll-reveal[data-reveal-state="pending"] {
   opacity: 0;
-  transform: translateY(var(--reveal-distance, 12px));
+  transform: translateY(var(--reveal-distance, 10px));
 }
 .scroll-reveal[data-reveal-state="visible"],
 .scroll-reveal:focus-within {
   opacity: 1;
   transform: none;
+}
+.scroll-reveal[data-reveal-immediate],
+.scroll-reveal:focus-within {
+  transition: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal[data-reveal-state] {

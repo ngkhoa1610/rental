@@ -41,8 +41,9 @@ extends the scope to customer-facing discovery and selection UI.
   when there is no installed matching primitive. Do not duplicate UI systems.
 - The user accepted the layout on 2026-09-15. Preserve container width, symmetric
   gutters, grids, breakpoints and image frames. Use the sakura/pastel pink theme.
-  Scope customer-page CSS to `store-*`
-  classes; put only genuinely shared navigation styles in `globals.css`.
+  The new /feedback page (authorized 2026-09-20) may use its own playful collage
+  layout and scoped `feedback-*` CSS. Other layouts remain accepted.
+  Scope other customer-page CSS to `store-*` classes; put only genuinely shared navigation styles in `globals.css`.
 - Keep labels, focus states, keyboard access, meaningful alt text and touch targets.
   Include empty/not-found/loading states where relevant. Honour reduced motion.
 - Sample images and prices are not confirmed inventory. Do not invent availability,
@@ -51,8 +52,14 @@ extends the scope to customer-facing discovery and selection UI.
   Restore before enabling mutations, sanitize stale IDs, and preserve in-memory
   actions if storage is unavailable. Never represent this as account sync, a
   reservation or an order.
-- Reuse ScrollReveal for subtle one-time entrances. Do not hide above-the-fold
-  content; respect reduced motion, no-JavaScript visibility and keyboard focus.
+- Reuse ScrollReveal for subtle one-time entrances. Start just before viewport
+  entry, keep initial/near-viewport content visible, reveal fast-scroll skips and
+  keyboard focus immediately, and respect reduced motion. Avoid scroll listeners,
+  scroll hijacking, blur, infinite motion and permanent will-change layers.
+- Feedback examples must remain visibly illustrative, including shared text.
+  Private previews are not public reviews. Never fabricate verification, review
+  counts or persistence. Share/copy only after a click; cancellation is not success.
+  Provide a selectable manual fallback when browser sharing/clipboard is blocked.
 
 ## Required workflow
 
@@ -95,7 +102,7 @@ without rerunning app gates; label old app test results as historical.
 - Never auto-navigate to wishlist/cart after a mutation; an optional explicit link
   is fine. Closing a Sheet restores focus to its trigger.
 - Only business destinations receive routes: /, /products, /products/[slug],
-  /collections, /lookbook, /wishlist and /cart. Search/filter/sort/chip removal,
+  /collections, /lookbook, /feedback, /wishlist and /cart. Search/filter/sort/chip removal,
   reset, dialogs and section actions stay local without URL/history changes.
   Accessibility skip links may use a fragment. Do not restore /search or query
   shortcuts from older handoffs; the 2026-09-15 user instruction supersedes them.

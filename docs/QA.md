@@ -1,6 +1,6 @@
 # Quality gates — Rental Store
 
-Cập nhật: 2026-09-15. Đây là yêu cầu kiểm tra, không phải báo cáo mọi gate đã pass.
+Cập nhật: 2026-09-20. Đây là yêu cầu kiểm tra, không phải báo cáo mọi gate đã pass.
 
 ## Gate sau mỗi lượt code
 
@@ -15,7 +15,7 @@ Cập nhật: 2026-09-15. Đây là yêu cầu kiểm tra, không phải báo c�
 | Browser UI/interaction | Browser thật trên build tương ứng, desktop/mobile và flow ảnh hưởng | Viewport, steps, expected/actual; screenshot cho review layout                                                              |
 | Docs/checkpoint        | Kiểm path/URL/script/status, source version và đóng gói             | Docs khớp code cuối; lưu source thành công                                                                                  |
 
-`npm run check` gộp **format → lint → pure/DOM tests → build → HTTP → dependency audit**. Unit cần Node.js >= 22.18; runtime kiểm chứng: 24.19.0. DOM tests dùng jsdom/Testing Library và tsx loader; không đổi module semantics của package. `npm run test:security` chạy dependency audit, còn security source review và browser QA phải làm riêng. Báo cáo hiện tại: `sakura-refactor-review.md`.
+`npm run check` gộp **format → lint → pure/DOM tests → build → HTTP → dependency audit**. Unit cần Node.js >= 22.18; runtime kiểm chứng: 24.19.0. DOM tests dùng jsdom/Testing Library và tsx loader; không đổi module semantics của package. `npm run test:security` chạy dependency audit, còn security source review và browser QA phải làm riêng. Báo cáo hiện tại: `feedback-motion-review.md`.
 
 ## Security theo bề mặt FE hiện tại
 
@@ -42,6 +42,19 @@ Tối thiểu **390px mobile và 1440px desktop**. Thêm **320px, 768px** khi la
 | Runtime         | Không console/hydration errors, request thất bại bất ngờ hoặc asset hỏng trong flow thử                             |
 
 Dùng automation regression phù hợp cho flow quan trọng; thay đổi visual nhỏ có thể browser review có bằng chứng. Không cần E2E cho mỗi dòng CSS. Test reducer không phải đã click thử UI; HTTP không phải browser QA.
+
+## Feedback và motion — regression bắt buộc
+
+- Feedback: sample label trong page và shared text; không fake aggregate/verified schema. Composer empty/whitespace/long/rating, escaped markup, cancel/close/preview focus, remount clear.
+- Share: native resolve/cancel/reject, clipboard absent/denied, manual-copy focus/selection, busy state; không gửi tự động, không đưa nội dung lên URL/storage.
+- Scroll: initial/near viewport visible, one-time IO reveal, skipped viewport khi scroll nhanh, keyboard instant, initial/changed reduced motion, cleanup/unmount và no-JS.
+- Visual: collage ở 1440/768/390/320px, không tràn ngang/thẻ che nhau; thứ tự bàn phím theo DOM. Hover fine-pointer, reduced motion và crop ảnh cần browser thật; không suy ra pass từ jsdom.
+
+## Lookbook / feedback layout revision
+
+- Current evidence: `lookbook-feedback-review.md`; older reports remain historical.
+- Lookbook: each occasion shortcut focuses its matching heading without URL/history change, including keyboard/reduced motion; product CTA matches illustrated product. Guides and sample/accessory notices exist in prerendered HTML.
+- Feedback visual acceptance: no empty grid cells, cards follow DOM order, photos/text fit at 320/390/768/1024/1100/1440px, no overlap at hover or 200% zoom; long private preview/manual-copy text stays readable. CSS review alone does not pass this gate.
 
 ## Mẫu kết quả checkpoint
 

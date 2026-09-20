@@ -72,6 +72,7 @@ try {
     ["/products", "A look for every plan."],
     ["/collections", "Start with a feeling."],
     ["/lookbook", "Wear it your way."],
+    ["/feedback", "The Feedback Wall — Rental Store"],
     ["/wishlist", "Your favourites, together."],
     ["/cart", "Your next plans start here."],
     ["/products/muse-dress", "Muse Dress — Rental Store"],
@@ -94,6 +95,30 @@ try {
     );
     pass(path);
   }
+
+  const lookbook = await readPage("/lookbook");
+  assert.match(lookbook.html, /Your outfit guide/);
+  assert.match(lookbook.html, /Suggested accessories are not included/);
+  for (const slug of ["muse-dress", "luna-set", "soleil-top"]) {
+    assert.ok(lookbook.html.includes(`id="look-${slug}"`));
+    assert.ok(lookbook.html.includes(`href="/products/${slug}"`));
+  }
+  assert.equal(
+    (lookbook.html.match(/<dt>Pair it with<\/dt>/g) ?? []).length,
+    3,
+  );
+  pass(
+    "lookbook prerenders three styling guides and their featured product destinations",
+  );
+
+  const feedback = await readPage("/feedback");
+  assert.match(feedback.html, /not verified customer reviews/);
+  assert.equal((feedback.html.match(/SAMPLE STORY/g) ?? []).length >= 6, true);
+  assert.doesNotMatch(feedback.html, /AggregateRating|ratingCount|reviewCount/);
+  assert.match(feedback.html, /href="\/feedback"/);
+  pass(
+    "feedback wall has labelled samples and business navigation, no fake rating schema",
+  );
 
   const filtered = await readPage("/products?category=Sets&occasion=Vacation");
   assert.match(filtered.html, /href="\/products\/luna-set"/);
