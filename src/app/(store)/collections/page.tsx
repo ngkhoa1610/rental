@@ -1,6 +1,6 @@
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import type { Metadata } from "next";
-import Image from "next/image";
+import { FashionImage } from "@/components/ui/fashion-image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PageHeading } from "@/components/store/page-heading";
@@ -23,7 +23,7 @@ export default function CollectionsPage() {
           return (
             <article className="store-collection" key={collection.name}>
               <div className="store-collection-photo">
-                <Image
+                <FashionImage
                   src={product.image}
                   alt={product.imageAlt}
                   fill
@@ -37,10 +37,10 @@ export default function CollectionsPage() {
                 <h2>{collection.title}</h2>
                 <p>{collection.description}</p>
                 <Link
-                  href={`/products?collection=${encodeURIComponent(collection.name)}`}
+                  href={`/products/${product.slug}`}
                   className="store-text-link"
                 >
-                  Explore the edit <ArrowUpRight aria-hidden="true" />
+                  View {product.name} <ArrowUpRight aria-hidden="true" />
                 </Link>
               </ScrollReveal>
             </article>

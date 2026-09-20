@@ -58,11 +58,7 @@ export default async function ProductPage({
           <ul className="store-tags" aria-label="Occasions">
             {product.occasions.map((occasion) => (
               <li key={occasion}>
-                <Link
-                  href={`/products?occasion=${encodeURIComponent(occasion)}`}
-                >
-                  {occasion}
-                </Link>
+                <span>{occasion}</span>
               </li>
             ))}
           </ul>
@@ -81,7 +77,7 @@ export default async function ProductPage({
             </div>
             <div>
               <dt>Availability</dt>
-              <dd>Not connected to live inventory</dd>
+              <dd>To be confirmed before renting</dd>
             </div>
           </dl>
           <details className="store-info-details">

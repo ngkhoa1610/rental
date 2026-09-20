@@ -1,14 +1,26 @@
-import Link from "next/link";
-import { Heart, Search, Shirt, ShoppingBag } from "lucide-react";
+"use client";
+
+import { useState, type ComponentProps } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { MobileNav } from "@/components/layout/mobile-nav";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import Link from "next/link";
+import { Heart, Menu, Shirt, ShoppingBag, X } from "lucide-react";
 import { BagCount } from "@/components/store/selection-actions";
 
-const navigation = [
+const navigation = [  
+  { label: "Home", href: "/" },
   { label: "Explore looks", href: "/products" },
   { label: "Collections", href: "/collections" },
   { label: "Lookbook", href: "/lookbook" },
-  { label: "How it works", href: "/#rental-process" },
 ];
 
 export function SiteHeader() {
@@ -24,44 +36,109 @@ export function SiteHeader() {
           </Link>
           <nav className="home-desktop-nav" aria-label="Main navigation">
             {navigation.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <NavLink key={item.href} href={item.href}>
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
           <div className="home-header-actions">
-            <Link
-              href="/search"
-              className="home-icon-link"
-              aria-label="Search looks"
-            >
-              <Search aria-hidden="true" />
-            </Link>
-            <Link
+            <NavLink
               href="/wishlist"
               className="home-icon-link home-wishlist-link"
               aria-label="Wishlist"
             >
               <Heart aria-hidden="true" />
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               href="/cart"
               className="home-icon-link home-bag-link"
               aria-label="Rental bag"
             >
               <ShoppingBag aria-hidden="true" />
               <BagCount />
-            </Link>
-            <Button
-              asChild
-              className="home-cta home-header-cta home-browse-cta"
-            >
-              <Link href="/products">Explore looks</Link>
-            </Button>
+            </NavLink>
           </div>
         </div>
       </header>
-      <MobileNav navigation={navigation} />
+      <MobileNav />
     </>
+  );
+}
+
+function NavLink({
+  href,
+  ...props
+}: ComponentProps<typeof Link> & { href: string }) {
+  const pathname = usePathname();
+  const active =
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  return (
+    <Link {...props} href={href} aria-current={active ? "page" : undefined} />
+  );
+}
+
+const mobileLinks = [
+  { label: "Looks", href: "/products", icon: Shirt },
+  { label: "Saved", href: "/wishlist", icon: Heart },
+  { label: "Bag", href: "/cart", icon: ShoppingBag },
+];
+
+function MobileNav() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <nav className="home-mobile-nav" aria-label="Mobile navigation">
+        <div className="home-mobile-bar">
+          {mobileLinks.map(({ label, href, icon: Icon }) => (
+            <NavLink key={href} href={href}>
+              <Icon aria-hidden="true" />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              className="home-mobile-menu"
+              aria-label="Open navigation menu"
+            >
+              <Menu aria-hidden="true" />
+              <span>Menu</span>
+            </Button>
+          </SheetTrigger>
+        </div>
+      </nav>
+      <SheetContent
+        side="bottom"
+        className="home-mobile-sheet"
+        showCloseButton={false}
+      >
+        <SheetHeader className="p-0 pr-12">
+          <SheetTitle className="font-bold">Rental Store</SheetTitle>
+          <SheetDescription>Find your next look.</SheetDescription>
+        </SheetHeader>
+        <SheetClose asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 top-3 size-11"
+            aria-label="Close navigation menu"
+          >
+            <X aria-hidden="true" />
+          </Button>
+        </SheetClose>
+        <nav className="home-sheet-links" aria-label="More navigation">
+          {navigation.map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }

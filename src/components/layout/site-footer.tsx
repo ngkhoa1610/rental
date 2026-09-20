@@ -28,7 +28,7 @@ export function SiteFooter() {
               <Link href="/products">Explore looks</Link>
             </li>
             <li>
-              <Link href="/#rental-process">How it works</Link>
+              <Link href="/collections">Collections</Link>
             </li>
           </ul>
         </nav>
@@ -36,7 +36,7 @@ export function SiteFooter() {
           <h2>Before you rent</h2>
           <ul>
             <li>
-              <Link href="/#faq">Rental questions</Link>
+              <Link href="/lookbook">Styling inspiration</Link>
             </li>
             <li>
               <Link href="/products">Sample looks & prices</Link>

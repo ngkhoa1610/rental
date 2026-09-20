@@ -1,6 +1,6 @@
 # Rental Store
 
-Next.js fashion-rental UI with a warm landing page and customer discovery/selection pages.
+Next.js fashion-rental UI with a sakura/pastel pink landing page and customer discovery/selection pages.
 
 Start with [project memory](docs/PROJECT_MEMORY.md), [features and URLs](docs/FEATURES.md), [quality gates](docs/QA.md), [project state](docs/PROJECT_STATE.md), [working process](docs/WORKFLOW.md) and [frontend rules](AGENTS.md).
 
@@ -21,20 +21,25 @@ Open `http://localhost:3000`. Wishlist and rental-bag selections are saved on th
 npm run check
 ```
 
-This runs ESLint, unit tests, a production build and production HTTP smoke tests. Smoke tests start and stop their own temporary server. Format checks, security review/tests and desktop/mobile browser QA are also required after code changes and currently run separately; see the quality gates document.
-
-Individual commands:
+This runs pinned Prettier checks, ESLint, pure logic and jsdom interaction tests, a production build, production HTTP smoke checks and a dependency audit. Security source review and desktop/mobile browser QA remain separate requirements. jsdom tests do not verify layout, image cropping or browser hydration. See [current review](docs/sakura-refactor-review.md) for evidence and the blocked browser gate.
 
 ```bash
+npm run format
+npm run format:check
 npm run lint
 npm test
 npm run build
 npm run test:smoke
+npm run test:security
 ```
+
+Three generated sakura outfit photos are included locally. [Image sources](docs/image-sources.md) records their provenance and prompts. [Changed-file handoff](docs/sakura-refactor-handoff.md) lists added/modified/deleted files and apply steps.
 
 ## Pages
 
-`/`, `/products`, `/products/[slug]`, `/search`, `/collections`, `/lookbook`, `/wishlist`, `/cart`.
+`/`, `/products`, `/products/[slug]`, `/collections`, `/lookbook`, `/wishlist`, `/cart`.
+
+Search, filtering and sorting stay within `/products` using local state; no URL/history updates. `/search` is removed. Catalog state resets on remount; wishlist/bag preferences remain independently persisted.
 
 ## Preview boundary
 
@@ -42,4 +47,4 @@ All products, prices and photos are sample presentation content. Bag/wishlist pr
 
 Keep sample data in `src/lib/catalog.ts`, selection logic in `src/lib/rental-selection.ts`, shared UI in `src/components/store`, and route composition in `src/app/(store)`.
 
-The repository retains Next.js 16.3.4, React 19.2.8, TypeScript strict mode, Tailwind 4, shadcn/Radix and Lucide. No additional runtime libraries were introduced for this UI phase.
+The repository retains Next.js 16.3.4, React 19.2.8, TypeScript strict mode, Tailwind 4, shadcn/Radix and Lucide. Dependencies and lockfile are unchanged in this update. Private catalog/menu/clear-confirmation helpers now live with their owning features.

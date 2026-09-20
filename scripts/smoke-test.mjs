@@ -45,6 +45,12 @@ async function readPage(path) {
   return { response, html: await response.text() };
 }
 
+let checks = 0;
+function pass(message) {
+  checks += 1;
+  console.log(`PASS ${message}`);
+}
+
 try {
   let ready = false;
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -64,7 +70,6 @@ try {
   const pages = [
     ["/", "Rental Store"],
     ["/products", "A look for every plan."],
-    ["/search", "Find your next look."],
     ["/collections", "Start with a feeling."],
     ["/lookbook", "Wear it your way."],
     ["/wishlist", "Your favourites, together."],
@@ -83,31 +88,87 @@ try {
       `One h1 required on ${path}`,
     );
     assert.ok(
-      !html.includes('href="#rental-process"') || path === "/",
-      `Wrong homepage anchor on ${path}`,
+      !html.includes('href="/search"') &&
+        !/<a\b[^>]*href="[^"#]*[?]/.test(html),
+      `Feature navigation found on ${path}`,
     );
-    console.log(`PASS ${path}`);
+    pass(path);
   }
 
   const filtered = await readPage("/products?category=Sets&occasion=Vacation");
-  assert.match(filtered.html, /Luna Set/);
-  assert.doesNotMatch(filtered.html, /href="\/products\/muse-dress"/);
-  console.log("PASS combined server filters");
+  assert.match(filtered.html, /href="\/products\/luna-set"/);
+  assert.match(filtered.html, /href="\/products\/muse-dress"/);
+  pass("legacy query does not control local catalog state");
 
-  const empty = await readPage("/search?q=does-not-exist");
-  assert.match(empty.html, /No looks match just yet/);
-  console.log("PASS empty search");
+  const removed = await readPage("/search");
+  assert.equal(removed.response.status, 404);
+  pass("removed search feature route returns 404");
 
   const escaped = await readPage(
-    "/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+    "/products?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
   );
   assert.doesNotMatch(escaped.html, /<script>alert\(1\)<\/script>/);
-  console.log("PASS escaped search input");
+  pass("ignored hostile legacy query");
 
   const unknown = await readPage("/products/unknown-look");
   assert.equal(unknown.response.status, 404);
-  console.log("PASS unknown product returns 404");
-  console.log("14 production HTTP smoke checks passed.");
+  pass("unknown product returns 404");
+  const missing = await readPage("/page-that-does-not-exist");
+  assert.equal(missing.response.status, 404);
+  assert.match(missing.html, /This page is out of the wardrobe/);
+  pass("branded page 404");
+
+  const secured = await readPage("/products");
+  assert.equal(
+    secured.response.headers.get("x-content-type-options"),
+    "nosniff",
+  );
+  assert.equal(
+    secured.response.headers.get("referrer-policy"),
+    "strict-origin-when-cross-origin",
+  );
+  assert.match(
+    secured.response.headers.get("content-security-policy"),
+    /object-src 'none'/,
+  );
+  assert.match(
+    secured.response.headers.get("permissions-policy"),
+    /camera=\(\)/,
+  );
+  assert.equal(secured.response.headers.get("x-powered-by"), null);
+  pass("security response headers");
+
+  const rejected = await readPage(
+    "/_next/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg&w=640&q=75",
+  );
+  assert.equal(rejected.response.status, 400);
+  pass("image optimizer rejects external origins");
+
+  for (const name of [
+    "sakura-muse-dress",
+    "sakura-luna-set",
+    "sakura-soleil-top",
+  ]) {
+    const response = await fetch(`${origin}/images/${name}.png`);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type"), /image\/png/);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    assert.ok(bytes.length > 1000 && bytes[0] === 137 && bytes[1] === 80);
+    pass(`local image ${name}`);
+  }
+  const optimized = await fetch(
+    `${origin}/_next/image?url=%2Fimages%2Fsakura-muse-dress.png&w=640&q=75`,
+  );
+  assert.equal(optimized.status, 200);
+  assert.match(optimized.headers.get("content-type"), /image\//);
+  pass("local product image optimization");
+  assert.equal(
+    (secured.html.match(/>Clear filters<\/button>/g) ?? []).length,
+    0,
+    "No reset when no filters are active",
+  );
+  pass("no duplicate or unnecessary reset control");
+  console.log(`${checks} production HTTP smoke checks passed.`);
 } finally {
   if (server.exitCode === null) server.kill("SIGTERM");
   await stopped;

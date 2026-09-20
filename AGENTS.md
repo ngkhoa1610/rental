@@ -23,8 +23,12 @@ extends the scope to customer-facing discovery and selection UI.
   boundary that needs state, event handlers or browser APIs.
 - Await route `params` and `searchParams`. Use `notFound()` for unknown records,
   per-route metadata, `next/image` with appropriate `sizes`, and `next/link`.
-- Use `next/form` for navigational GET forms so URL filters support sharing,
-  back/forward navigation and preservation of the preview selection provider.
+- Search/filter/sort are local React state in Catalog. Use a native form with
+  prevented submission. Do not use next/form, router navigation, query strings or
+  history mutations for feature interactions; /search is removed.
+- Keep private, one-owner helpers in their feature module; extract only for real
+  reuse, separate data boundaries or a clear readability benefit. Avoid wrappers
+  that merely pass props and duplicate URL/state adapters.
 - Keep route files focused on composition; place reusable UI in
   `src/components/store` and pure domain helpers in `src/lib`.
 - Use `src/lib/catalog.ts` as the single source for sample product names, prices,
@@ -35,7 +39,9 @@ extends the scope to customer-facing discovery and selection UI.
   components. Avoid `any`, non-null assertions, nested ternaries and premature abstractions.
 - Reuse existing Button/Sheet/etc. Native inputs/selects/details are appropriate
   when there is no installed matching primitive. Do not duplicate UI systems.
-- Preserve the accepted warm landing style. Scope customer-page CSS to `store-*`
+- The user accepted the layout on 2026-09-15. Preserve container width, symmetric
+  gutters, grids, breakpoints and image frames. Use the sakura/pastel pink theme.
+  Scope customer-page CSS to `store-*`
   classes; put only genuinely shared navigation styles in `globals.css`.
 - Keep labels, focus states, keyboard access, meaningful alt text and touch targets.
   Include empty/not-found/loading states where relevant. Honour reduced motion.
@@ -61,8 +67,9 @@ for documentation, persistence or browser QA. Follow `docs/WORKFLOW.md` and
    without redundant permission questions; never invent business policies.
 3. Implement a cohesive change, meaningful regression coverage for changed logic or
    flows, and explicit formatting checks on touched files.
-4. Run `npm run check`: lint, unit, build and production HTTP. Separately perform
-   relevant security review/tests and desktop/mobile browser interaction/UI QA.
+4. Run `npm run check`: format, lint, pure/DOM tests, build, production HTTP
+   and dependency audit. Separately perform relevant security source review and
+   desktop/mobile browser interaction/UI QA.
    This command alone does not satisfy all gates. Use Node.js 22.18+.
 5. Fix failures and rerun affected checks and final gates on final code. Record
    PASS / FAIL / BLOCKED / N/A with evidence; never label blocked QA passed.
@@ -87,8 +94,11 @@ without rerunning app gates; label old app test results as historical.
   add-to-bag, gallery, FAQ and same-page details remain in context with feedback.
 - Never auto-navigate to wishlist/cart after a mutation; an optional explicit link
   is fine. Closing a Sheet restores focus to its trigger.
-- Filter/search/sort can update query on the current route for sharing and
-  Back/Forward. Do not route via another page to use a feature already available.
+- Only business destinations receive routes: /, /products, /products/[slug],
+  /collections, /lookbook, /wishlist and /cart. Search/filter/sort/chip removal,
+  reset, dialogs and section actions stay local without URL/history changes.
+  Accessibility skip links may use a fragment. Do not restore /search or query
+  shortcuts from older handoffs; the 2026-09-15 user instruction supersedes them.
 - Avoid duplicate primary actions/reset controls in the same visible region.
   Global navigation may repeat when serving different contexts.
 - Never nest interactive controls, use placeholder `href="#"`, reload for local

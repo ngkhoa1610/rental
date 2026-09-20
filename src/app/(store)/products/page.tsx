@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { CatalogView } from "@/components/store/catalog-view";
-import { parseCatalogFilters } from "@/lib/catalog";
+import { Catalog } from "@/components/store/catalog";
+import { PageHeading } from "@/components/store/page-heading";
 
 export const metadata: Metadata = { title: "Explore Looks — Rental Store" };
 
-export default async function ProductsPage({
-  searchParams,
-}: PageProps<"/products">) {
-  return <CatalogView filters={parseCatalogFilters(await searchParams)} />;
+export default function ProductsPage() {
+  return (
+    <>
+      <PageHeading
+        title="A look for every plan."
+        description="Explore the wardrobe. Save a favourite, or start a rental bag."
+        eyebrow="Explore looks"
+      />
+      <Catalog />
+    </>
+  );
 }

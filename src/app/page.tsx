@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { SectionButton } from "@/components/ui/section-button";
+import { FashionImage } from "@/components/ui/fashion-image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -123,14 +124,16 @@ export default function HomePage() {
                     size="lg"
                     className="home-cta-ghost"
                   >
-                    <Link href="#rental-process">How it works</Link>
+                    <SectionButton target="rental-process">
+                      How it works
+                    </SectionButton>
                   </Button>
                 </div>
               </div>
               <figure className="home-hero-media">
-                <Image
-                  src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=90"
-                  alt="Street-style fashion portrait in a mustard outfit"
+                <FashionImage
+                  src="/images/sakura-muse-dress.png"
+                  alt="Blush pink dress beneath cherry blossoms — generated styling image"
                   fill
                   preload
                   sizes="(min-width: 1200px) 540px, (min-width: 1024px) 46vw, (min-width: 432px) 400px, calc(100vw - 32px)"
@@ -156,6 +159,7 @@ export default function HomePage() {
 
         <section
           id="rental-process"
+          tabIndex={-1}
           className="home-botanical"
           aria-labelledby="process-title"
         >
@@ -219,9 +223,9 @@ export default function HomePage() {
             <ScrollReveal>
               <figure className="home-offer-poster">
                 <div className="home-offer-photo">
-                  <Image
-                    src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=90"
-                    alt="Fashion editorial with a patterned outfit and warm pink accents"
+                  <FashionImage
+                    src="/images/sakura-luna-set.png"
+                    alt="Powder pink tailored set with cherry blossoms — generated styling image"
                     fill
                     sizes="(min-width: 1200px) 450px, (min-width: 1024px) 40vw, (min-width: 432px) 400px, calc(100vw - 32px)"
                     className="object-cover"
@@ -274,9 +278,9 @@ export default function HomePage() {
                 size="lg"
                 className="home-cta-ghost"
               >
-                <Link href="#rental-process">
+                <SectionButton target="rental-process">
                   See how renting works <ArrowRight aria-hidden="true" />
-                </Link>
+                </SectionButton>
               </Button>
             </div>
           </div>

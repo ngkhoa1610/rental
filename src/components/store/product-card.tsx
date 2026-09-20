@@ -1,10 +1,16 @@
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import Image from "next/image";
+import { FashionImage } from "@/components/ui/fashion-image";
 import Link from "next/link";
 import { WishlistButton } from "@/components/store/selection-actions";
 import { formatPrice, type Product } from "@/lib/catalog";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  onUnsave,
+}: {
+  product: Product;
+  onUnsave?: () => void;
+}) {
   return (
     <ScrollReveal>
       <article className="store-product-card">
@@ -14,14 +20,18 @@ export function ProductCard({ product }: { product: Product }) {
             aria-label={`View ${product.name}`}
             tabIndex={-1}
           >
-            <Image
+            <FashionImage
               src={product.image}
               alt={product.imageAlt}
               fill
               sizes="(max-width: 639px) 100vw, (max-width: 1023px) 45vw, 350px"
             />
           </Link>
-          <WishlistButton slug={product.slug} name={product.name} />
+          <WishlistButton
+            slug={product.slug}
+            name={product.name}
+            onRemove={onUnsave}
+          />
           <span className="store-image-label">Sample look</span>
         </div>
         <div className="store-card-meta">

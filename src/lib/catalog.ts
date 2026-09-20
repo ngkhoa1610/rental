@@ -38,9 +38,9 @@ export const products: readonly Product[] = [
     occasions: ["Date night", "Wedding guest", "Party"],
     price: 280000,
     rentalDays: 3,
-    image:
-      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=1200&q=90",
-    imageAlt: "Evening dress photographed for fashion inspiration",
+    image: "/images/sakura-muse-dress.png",
+    imageAlt:
+      "Blush pink midi dress beneath cherry blossoms — generated styling image",
     description:
       "An occasion-led look for celebrations and evenings worth dressing up for. Explore the silhouette, then keep it in your rental bag while you make plans.",
   },
@@ -52,9 +52,8 @@ export const products: readonly Product[] = [
     occasions: ["Weekend", "Vacation"],
     price: 220000,
     rentalDays: 3,
-    image:
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=90",
-    imageAlt: "Coordinated fashion look used as temporary styling inspiration",
+    image: "/images/sakura-luna-set.png",
+    imageAlt: "Powder pink blazer and trouser set — generated styling image",
     description:
       "A coordinated look for slow weekends and days away. A starting point for finding an outfit that feels effortless from the first plan to the last.",
   },
@@ -66,9 +65,8 @@ export const products: readonly Product[] = [
     occasions: ["Date night", "Weekend"],
     price: 160000,
     rentalDays: 3,
-    image:
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=1200&q=90",
-    imageAlt: "Clothing on a rail used as temporary wardrobe inspiration",
+    image: "/images/sakura-soleil-top.png",
+    imageAlt: "Blush pink blouse with ivory trousers — generated styling image",
     description:
       "A fresh direction for an everyday outfit. Build your own combination around a piece you can imagine wearing beyond a single occasion.",
   },
@@ -95,7 +93,6 @@ export const collections = [
   },
 ] as const;
 
-export type SearchParams = Record<string, string | string[] | undefined>;
 export interface CatalogFilters {
   query: string;
   category: string;
@@ -104,20 +101,27 @@ export interface CatalogFilters {
   sort: SortOrder;
 }
 
-function first(value: string | string[] | undefined): string {
-  return (Array.isArray(value) ? value[0] : value)?.trim() ?? "";
-}
+export const emptyCatalogFilters: CatalogFilters = {
+  query: "",
+  category: "",
+  occasion: "",
+  collection: "",
+  sort: "featured",
+};
 
-export function parseCatalogFilters(params: SearchParams): CatalogFilters {
-  const sort = first(params.sort);
+/** Normalize local form values. Feature state is never read from the URL. */
+export function normalizeCatalogFilters(
+  values: Partial<Record<keyof CatalogFilters, string>>,
+): CatalogFilters {
+  const sort =
+    sortOptions.find((option) => option.value === values.sort)?.value ??
+    "featured";
   return {
-    query: first(params.q).slice(0, 120),
-    category: first(params.category),
-    occasion: first(params.occasion),
-    collection: first(params.collection),
-    sort: sortOptions.some((option) => option.value === sort)
-      ? (sort as SortOrder)
-      : "featured",
+    query: (values.query ?? "").trim().slice(0, 120),
+    category: (values.category ?? "").trim().slice(0, 80),
+    occasion: (values.occasion ?? "").trim().slice(0, 80),
+    collection: (values.collection ?? "").trim().slice(0, 80),
+    sort,
   };
 }
 
@@ -158,4 +162,30 @@ export function formatPrice(amount: number): string {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+const filterLabels = {
+  query: "Search",
+  category: "Category",
+  occasion: "Occasion",
+  collection: "Collection",
+  sort: "Sort",
+} as const;
+
+export function activeCatalogFilters(filters: CatalogFilters) {
+  return (Object.keys(filterLabels) as (keyof CatalogFilters)[])
+    .filter(
+      (key) =>
+        Boolean(filters[key]) &&
+        !(key === "sort" && filters.sort === "featured"),
+    )
+    .map((key) => ({
+      key,
+      label: filterLabels[key],
+      value:
+        key === "sort"
+          ? (sortOptions.find((option) => option.value === filters.sort)
+              ?.label ?? filters.sort)
+          : filters[key],
+    }));
 }

@@ -1,56 +1,49 @@
 # Feature & URL catalog
 
-Rà source: 2026-09-13. UI mẫu phía khách hàng; chưa có backend/đặt thuê thật.
-Kiến trúc: `PROJECT_STATE.md`. Kiểm chứng: `QA.md`.
+Updated **2026-09-15**. Customer preview only; no backend or real booking. Local origin: `http://localhost:3000`.
 
-## Routes
+## Business routes
 
-Path tương đối với origin app; local mặc định `http://localhost:3000`.
+| Feature     | URL                | Behavior / state                                                                                    | Main owner                                 |
+| ----------- | ------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Landing     | `/`                | Hero, benefits, rental process, FAQ, sample looks; section actions scroll/focus locally             | `src/app/page.tsx`                         |
+| Catalog     | `/products`        | Local search/filter/sort, Apply, chips, one Clear, grid or empty state                              | `src/components/store/catalog.tsx`         |
+| Collections | `/collections`     | Three editorial collections; View product opens the illustrated product                             | `src/app/(store)/collections/page.tsx`     |
+| Lookbook    | `/lookbook`        | Three styling stories linked to the illustrated product                                             | `src/app/(store)/lookbook/page.tsx`        |
+| Product     | `/products/[slug]` | Gallery Sheet, sample price, facts, occasion tags, fit/care disclosures, save/add, related products | `src/app/(store)/products/[slug]/page.tsx` |
+| Wishlist    | `/wishlist`        | Restore/loading, saved list or empty; unsave and focus recovery locally                             | `src/components/store/saved-looks.tsx`     |
+| Rental bag  | `/cart`            | Restore/loading, selected looks, sample subtotal, remove/save, clear-confirm/cancel and help        | `src/components/store/rental-bag.tsx`      |
 
-| Feature | URL | Hành vi / state | File sở hữu chính |
-| --- | --- | --- | --- |
-| Landing | `/`, `/#rental-process`, `/#faq` | Hero, lợi ích, quy trình, FAQ tại chỗ, sample looks; link catalog/detail | `src/app/page.tsx` |
-| Catalog | `/products` | Search/filter/sort qua URL; grid/empty, apply/reset | `src/app/(store)/products/page.tsx`, `src/components/store/catalog-view.tsx` |
-| Search | `/search` | CatalogView dùng chung, heading tìm kiếm, empty/reset | `src/app/(store)/search/page.tsx` |
-| Collections | `/collections` | 3 editorial collection, mở catalog lọc collection | `src/app/(store)/collections/page.tsx` |
-| Lookbook | `/lookbook` | 3 story, mở catalog lọc occasion | `src/app/(store)/lookbook/page.tsx` |
-| Detail | `/products/[slug]` | Ảnh/giá mẫu/mô tả, fit/care chưa xác nhận, related looks; gallery Sheet, save/add tại chỗ; slug lạ 404 | `src/app/(store)/products/[slug]/page.tsx`, `src/components/store/product-gallery.tsx` |
-| Wishlist | `/wishlist` | Chờ restore, danh sách/empty; unsave tại chỗ | `src/components/store/saved-looks.tsx` |
-| Rental bag | `/cart` | Chờ restore, danh sách/empty; remove/clear/save tại chỗ; subtotal giá mẫu; chưa checkout | `src/components/store/rental-bag.tsx` |
+Slugs: `muse-dress`, `luna-set`, `soleil-top`. Unknown product/page returns branded 404. `/search` was removed and returns 404. Loading/error/retry boundaries are UI states, not new business destinations.
 
-Slug hiện có: `muse-dress`, `luna-set`, `soleil-top`; ví dụ `/products/muse-dress`.
-`src/app/(store)/loading.tsx` cung cấp loading shell. Lỗi storage có feedback fallback riêng, không phải lỗi API.
+## Catalog interaction contract
 
-## Query của `/products` và `/search`
+| Local field | Values / behavior                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| Search      | Trimmed, max 120 characters; case-insensitive AND match of words in name/category/collection/occasion |
+| Category    | Dresses, Sets, Tops, Outerwear; Outerwear currently empty                                             |
+| Occasion    | Date night, Wedding guest, Party, Vacation, Weekend                                                   |
+| Collection  | The Occasion Edit, Weekend Edit, Everyday Edit                                                        |
+| Sort        | Featured, numeric price ascending/descending; unknown value defaults to featured                      |
 
-| Query | Giá trị / hành vi |
-| --- | --- |
-| `q` | Trim, tối đa 120 ký tự; không phân biệt hoa/thường; tất cả từ phải khớp name/category/collection/occasion |
-| `category` | `Dresses`, `Sets`, `Tops`, `Outerwear`; Outerwear hiện rỗng |
-| `occasion` | `Date night`, `Wedding guest`, `Party`, `Vacation`, `Weekend` |
-| `collection` | `The Occasion Edit`, `Weekend Edit`, `Everyday Edit` |
-| `sort` | `featured` mặc định, `price-asc`, `price-desc`; giá trị lạ fallback featured |
+Search stays visible. Advanced filters disclose in place. Editing updates the draft and hint; Apply updates results. Remove-chip preserves other **applied** filters and synchronizes the draft; Clear resets both and is shown only when filters are applied. Empty state does not duplicate reset. Normalization also caps category/occasion/collection strings at 80 characters.
 
-Query lặp lấy giá trị đầu; trim tham số; category/occasion/collection lạ cho empty. Các filter kết hợp AND. Ví dụ `/products?category=Sets&occasion=Vacation&sort=price-asc`, `/search?q=wedding%20guest`. Reset về cùng pathname không query. Query có thể chia sẻ; save/add không đổi URL.
+These fields never become URLs, query parameters, routes or history entries. The old URL helpers and Next Form router submission are removed. Legacy query parameters on `/products` are ignored. Catalog remount/reload starts from the default unfiltered state; Back/Forward operates on business navigation only. No filter storage/provider is added.
 
-## Feature dùng chung
+## Shared features and boundaries
 
-| Feature | Hành vi và giới hạn | Source / coverage hiện có |
-| --- | --- | --- |
-| Navigation | Header/footer, bottom tabs và mobile Sheet; active mobile tab | `src/components/layout/`; HTTP shell checks, browser chưa xác minh |
-| Selection | Toggle wishlist; add bag idempotent/remove/clear; counter/feedback tại chỗ; disabled trước restore | `src/components/store/selection-actions.tsx`, `src/components/store/selection-provider.tsx`; selection/store unit tests |
-| Persistence | `rental-store.selection.v1`; chỉ slug wishlist/bag; lọc dữ liệu sai/ID cũ/trùng; storage lỗi giữ memory; cross-tab last-write-wins | `src/lib/rental-selection.ts`; `tests/selection-storage.test.mjs` |
-| Gallery | Một ảnh mẫu; Sheet tại trang, close/Escape; focus cần kiểm browser | `src/components/store/product-gallery.tsx`; browser QA thiếu |
-| Scroll | Reveal ngoài viewport; chuyển động nhỏ; nhánh reduced motion/focus/no-JS | `src/components/ui/scroll-reveal.tsx`; browser QA thiếu |
-| Catalog data | 3 sản phẩm, giá ví dụ VND/3 ngày, Unsplash inspiration; không phải inventory | `src/lib/catalog.ts`; `tests/catalog.test.mjs` |
+| Feature         | Behavior                                                                                                                         | Source / tests                                                               |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Navigation      | Active business links; mobile Sheet with Escape/focus restoration; no search/FAQ route shortcuts                                 | `layout/site-header.tsx`; DOM and HTTP tests                                 |
+| Section actions | Button scroll/focus, respects reduced motion, no hash/history write; a11y skip-link exception                                    | `ui/section-button.tsx`; DOM test                                            |
+| Selection       | Local save/unsave/add/remove; idempotent bag add; clear Sheet; status/dismiss feedback; no automatic navigation                  | `store/selection-actions.tsx`, `store/rental-bag.tsx`; DOM tests             |
+| Storage         | Versioned sanitized slug arrays, no PII/tokens/prices; restore before actions; blocked/quota fallback; cross-tab last-write-wins | `lib/rental-selection.ts`, React adapter; pure and DOM tests                 |
+| Images          | Three local sakura outfit images, shared consistently across editorial/card/detail; fallback when load fails                     | `public/images/`, `ui/fashion-image.tsx`; HTTP/DOM tests; `image-sources.md` |
+| Motion          | Subtle one-time reveal; above-fold/no-JS visible; reduced-motion and keyboard reveal                                             | `ui/scroll-reveal.tsx`; DOM enhancement tests                                |
+| Recovery        | Loading shell, empty/no-match, unknown slug/page 404, root error retry without raw server detail                                 | `src/app/`; build/HTTP and DOM tests                                         |
 
-## Chưa làm / cần rà tiếp
+## Verification and limits
 
-- Chưa có API, auth/account, checkout/payment, booking, đơn hàng, admin, tồn kho hoặc lịch thuê thật. Không lưu token/PII trong selection. Chưa có bộ validation form/popup hoàn chỉnh.
-- Security coverage hiện có một HTTP case escape query và unit cases query/storage không hợp lệ; chưa phải security audit đầy đủ.
-- Source header có hai link “Explore looks”; catalog empty có cả Clear filters và Reset filters. Kiểm vùng hiển thị theo breakpoint rồi loại trùng có chủ đích trong task UI tiếp theo.
-- `/search` và `/products` dùng chung UI; giữ contract hiện tại, không tự xóa route trong lượt rule/docs.
+Current results: `sakura-refactor-review.md`; mandatory matrix: `QA.md`. Layout is accepted by the user. DOM assertions do not prove responsive rendering, hydration, image crops or browser console behavior.
 
-## Mẫu bổ sung feature
-
-**Mục đích · URL/query · Thao tác/navigation · States · Data/API/storage · File sở hữu · Test/evidence · Giới hạn.** Tách doc riêng nếu dài và link từ catalog này.
+Sample photos/prices are not confirmed inventory. No availability, rental schedule, order, account, checkout/payment, admin or backend/database. Local selection is a preference, not a reservation. Existing components preserve sample/indicative labels; no fake business form or policy is added.

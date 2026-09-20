@@ -8,9 +8,10 @@ import { useSelection } from "@/components/store/selection-provider";
 interface ProductActionProps {
   slug: string;
   name: string;
+  onRemove?: () => void;
 }
 
-export function WishlistButton({ slug, name }: ProductActionProps) {
+export function WishlistButton({ slug, name, onRemove }: ProductActionProps) {
   const { selection, dispatch, ready } = useSelection();
   const saved = selection.wishlist.includes(slug);
   return (
@@ -21,7 +22,10 @@ export function WishlistButton({ slug, name }: ProductActionProps) {
       aria-label={`${saved ? "Remove" : "Save"} ${name} ${saved ? "from" : "to"} wishlist`}
       aria-pressed={saved}
       disabled={!ready}
-      onClick={() => dispatch({ type: "toggle-wishlist", slug })}
+      onClick={() => {
+        dispatch({ type: "toggle-wishlist", slug });
+        if (saved) onRemove?.();
+      }}
     >
       <Heart aria-hidden="true" fill={saved ? "currentColor" : "none"} />
     </Button>

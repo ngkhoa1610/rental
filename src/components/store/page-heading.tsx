@@ -24,19 +24,23 @@ export function EmptyState({
   children,
   href = "/products",
   label = "Explore looks",
+  showAction = true,
 }: {
   title: string;
   children: ReactNode;
   href?: string;
   label?: string;
+  showAction?: boolean;
 }) {
   return (
     <div className="store-empty">
       <h2>{title}</h2>
       <p>{children}</p>
-      <Link href={href} className="home-cta">
-        {label}
-      </Link>
+      {showAction && (
+        <Link href={href} className="home-cta">
+          {label}
+        </Link>
+      )}
     </div>
   );
 }

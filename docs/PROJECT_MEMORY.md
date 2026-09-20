@@ -1,38 +1,30 @@
 # Bộ nhớ dự án — đọc trước khi tiếp tục
 
-Checkpoint docs: **2026-09-14 — changed-files delivery & naming rules**.
-Source đầy đủ nội bộ: **`rental-main.zip`**. Baseline lượt này là checkpoint version 4, khớp 60/60 file local trước sửa. Gói bàn giao chỉ chứa file thay đổi, không phải full source. Lượt này không sửa code ứng dụng, dependency hoặc test script.
-
-Đây là bộ nhớ bền của dự án đi cùng source. Code đầy đủ nằm trong ZIP/repository, không nằm trong đoạn tóm tắt hội thoại. Khi tiếp tục phải mở source mới nhất và đọc docs; không giả định lịch sử chat/bộ nhớ mô hình giữ toàn bộ code.
+Checkpoint: **2026-09-15 — Sakura theme & local feature interactions**.
+Baseline: full-source **version 6**, đã lưu tại checkpoint 2026-09-14. Source đầy đủ tiếp tục lưu theo phiên bản ở `rental-main.zip`. Gói bàn giao lượt này: `rental-store-sakura-refactor-changes-2026-09-15-r01.zip`; xem `sakura-refactor-handoff.md` để áp dụng và xóa file cũ.
 
 ## Quyết định phải giữ
 
-- Chỉ output file mới/thay đổi so với baseline, giữ path và nội dung file đầy đủ; liệt kê delete/rename. Không gửi lại full source trừ khi được yêu cầu.
-- Tên file phải có nghĩa và theo quy ước ở `WORKFLOW.md` mục 7; gói dùng project/scope/changes/ngày/rNN. Checkpoint nội bộ vẫn giữ code đầy đủ.
-
-- Landing tạm được chấp nhận; tiếp tục UI khách hàng theo phong cách hiện có, FE/Next.js dễ đọc và maintain.
-- Scroll animation nhẹ đã có; giữ reduced motion, keyboard và no-JS visibility.
-- Sau mỗi lượt code **và mỗi lần nhận source hiện tại**: đối chiếu baseline, cập nhật memory/docs/test status rồi lưu source mới có phiên bản.
-- Docs đủ feature, URL/query, hành vi, state, dữ liệu, file chính và giới hạn.
-- Sau code kiểm format, lint, tests, build, security và browser UI; báo đúng blocker, không coi HTTP/build là UI QA.
-- Tính năng tại trang xử lý tại chỗ, tránh navigate/CTA/reset thừa. Query cho filter và link đổi đích chủ động vẫn hợp lệ.
-- Catalog/giá/ảnh là sample; selection lưu thiết bị. Chưa có booking/payment/account/backend thật.
+- **Người dùng đã nghiệm thu layout UI**. Không thiết kế lại grid, container 1.200px, lề đối xứng `clamp(1rem, 3vw, 2rem)`, breakpoint và khung ảnh khi chỉ đổi theme/tính năng.
+- Theme mới: nền hồng phấn/hoa anh đào, chữ và CTA rose đậm đủ tương phản. Ba ảnh outfit được tạo mới, lưu local và dùng nhất quán trên landing/catalog/detail/editorial.
+- **Chỉ business có route**: `/`, `/products`, `/products/[slug]`, `/collections`, `/lookbook`, `/wishlist`, `/cart`. Đã bỏ `/search`. Search/filter/sort/chip/reset/Sheet/scroll section không đổi URL hoặc history. Chỉ skip link accessibility được dùng fragment.
+- Catalog dùng draft/applied state tại trang; Apply cập nhật grid; clear/chip trả focus phù hợp. Mount lại bắt đầu với catalog mặc định. Không lưu/chia sẻ filter qua URL.
+- Source gọn theo tính năng: `catalog.tsx` sở hữu form/chips/grid; `site-header.tsx` sở hữu nav/menu; clear confirmation nằm trong `rental-bag.tsx`. Giữ riêng logic selection và adapter React vì có trách nhiệm storage/SSR/test rõ ràng.
+- Sau **mỗi lượt code và mỗi lần nhận source hiện tại**: đối chiếu baseline, cập nhật memory/docs/test status rồi lưu source mới có phiên bản.
+- Output chỉ file mới/thay đổi, giữ path và nội dung đầy đủ; liệt kê file xóa/rename. Không gửi full source trừ khi yêu cầu. Naming theo `WORKFLOW.md` mục 7.
+- Format/lint/tests/build/security/browser UI là gate thường trực; báo đúng PASS/FAIL/BLOCKED. Không gọi DOM tests là browser visual QA.
+- Giữ scroll reveal nhẹ, reduced motion, keyboard và no-JS visibility. Không thêm BE/database trong lượt này.
+- Catalog/ảnh/giá là sample. Selection lưu thiết bị; chưa có booking, payment, account hoặc tồn kho thật.
 
 ## Đọc tiếp
 
-| Cần biết | Tài liệu |
-| --- | --- |
-| Rule cho agent | `../AGENTS.md` |
-| Nhận source → code → QA → lưu | `WORKFLOW.md` |
-| Feature, URL, thao tác | `FEATURES.md` |
-| Kiến trúc/dữ liệu/triển khai | `PROJECT_STATE.md` |
-| Gate và mẫu evidence | `QA.md` |
+| Cần biết                | Tài liệu                             |
+| ----------------------- | ------------------------------------ |
+| Rule FE/Next.js         | `../AGENTS.md`, `WORKFLOW.md`        |
+| Feature/route/state     | `FEATURES.md`                        |
+| Kiến trúc/data boundary | `PROJECT_STATE.md`                   |
+| QA hiện tại             | `sakura-refactor-review.md`, `QA.md` |
+| Áp dụng delta           | `sakura-refactor-handoff.md`         |
+| Ảnh và prompt           | `image-sources.md`                   |
 
-## Kiểm chứng và bước tiếp theo
-
-- Lịch sử app 2026-09-10: lint/build pass, 30 unit + 14 HTTP pass. Browser chưa kiểm chứng do runner cũ không tương thích; chưa security audit đầy đủ hoặc format gate cố định.
-- Lượt 2026-09-13: rà source, cập nhật rule/docs và kiểm tính nhất quán tài liệu/source; không tuyên bố chạy lại app tests.
-- Task code tiếp theo cần xử lý gap format/security tooling và môi trường browser phù hợp, rồi review UI thực tế gồm Explore/reset filter trùng. Đây là backlog, chưa triển khai.
-- Nhận source mới phải cập nhật checkpoint này ngay; giữ lịch sử ở `PROJECT_STATE.md`, không chuyển pass cũ sang source chưa test.
-
-- Lượt 2026-09-14 chỉ cập nhật rule/docs về output và naming; kiểm gói chỉ chứa file thay đổi, code ứng dụng không đổi, không chạy lại app suite.
+Rule ngày 2026-09-15 ưu tiên hơn handoff cũ cho phép query filter và ghi layout chưa được nghiệm thu. Kết quả cũ chỉ là lịch sử; không chuyển pass sang source chưa test. Browser regression của theme mới và các giới hạn hiện tại được ghi trong review, độc lập với việc người dùng đã duyệt layout.

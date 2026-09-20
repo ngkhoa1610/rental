@@ -2,12 +2,15 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { products } from "@/lib/catalog";
 import {
   createSelectionStore,
@@ -23,10 +26,40 @@ const SelectionContext = createContext<
 
 export function SelectionProvider({ children }: { children: ReactNode }) {
   const [store] = useState(() => createSelectionStore(validSlugs));
+  const [message, setMessage] = useState("");
   const snapshot = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     store.getServerSnapshot,
+  );
+
+  const dispatch = useCallback(
+    (action: SelectionAction) => {
+      const before = store.getSnapshot();
+      if (!before.ready) return;
+      store.dispatch(action);
+      if (store.getSnapshot().selection === before.selection) return;
+      if (action.type === "clear-bag") {
+        setMessage("Your rental bag has been cleared.");
+        return;
+      }
+      const product = products.find((item) => item.slug === action.slug);
+      if (!product) return;
+      if (action.type === "toggle-wishlist") {
+        setMessage(
+          before.selection.wishlist.includes(action.slug)
+            ? `${product.name} removed from saved looks.`
+            : `${product.name} saved to your wishlist.`,
+        );
+      } else {
+        setMessage(
+          action.type === "add-to-bag"
+            ? `${product.name} added to your rental bag.`
+            : `${product.name} removed from your rental bag.`,
+        );
+      }
+    },
+    [store],
   );
 
   useEffect(() => {
@@ -47,8 +80,27 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
   }, [store]);
 
   return (
-    <SelectionContext value={{ ...snapshot, dispatch: store.dispatch }}>
+    <SelectionContext value={{ ...snapshot, dispatch }}>
       {children}
+      <div className={message ? "selection-feedback" : undefined}>
+        <p role="status" aria-live="polite" aria-atomic="true">
+          {message}
+          {message &&
+            snapshot.persistence === "unavailable" &&
+            " Device storage is unavailable; changes last for this visit only."}
+        </p>
+        {message && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Dismiss notification"
+            onClick={() => setMessage("")}
+          >
+            <X aria-hidden="true" />
+          </Button>
+        )}
+      </div>
     </SelectionContext>
   );
 }

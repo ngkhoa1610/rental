@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { FashionImage } from "@/components/ui/fashion-image";
 import { Expand, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ export function ProductGallery({
   return (
     <Sheet>
       <figure className="store-detail-photo">
-        <Image
+        <FashionImage
           src={image}
           alt={alt}
           fill
@@ -66,7 +66,7 @@ export function ProductGallery({
           </Button>
         </SheetClose>
         <div className="store-full-image">
-          <Image
+          <FashionImage
             src={image}
             alt={alt}
             fill
