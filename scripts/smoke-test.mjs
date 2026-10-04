@@ -67,14 +67,40 @@ try {
   }
   assert.ok(ready, `Production server did not become ready:\n${logs}`);
 
+  for (const path of ["/api/auth/session", "/api/admin/auth/session"]) {
+    const response = await fetch(`${origin}${path}`);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const body = await response.json();
+    assert.equal(body.error.code, "AUTH_NOT_CONFIGURED");
+    assert.equal(response.headers.get("set-cookie"), null);
+    pass(`unconfigured auth fails closed: ${path}`);
+  }
+
   const pages = [
     ["/", "Rental Store"],
     ["/products", "A look for every plan."],
+    ["/availability", "Lịch trống — Rental Store"],
+    ["/accessories", "Thuê phụ kiện — Rental Store"],
+    ["/rental-guide", "Bảng size &amp; Quy định — Rental Store"],
     ["/collections", "Start with a feeling."],
     ["/lookbook", "Wear it your way."],
     ["/feedback", "The Feedback Wall — Rental Store"],
     ["/wishlist", "Your favourites, together."],
     ["/cart", "Your next plans start here."],
+    ["/account", "Your profile"],
+    ["/account/orders", "Rental orders"],
+    ["/account/history", "Rental history"],
+    ["/admin", "RENTAL STORE"],
+    ["/admin/login", "RENTAL STORE"],
+    ["/admin/orders", "RENTAL STORE"],
+    ["/admin/products", "RENTAL STORE"],
+    ["/admin/availability", "RENTAL STORE"],
+    ["/admin/payments", "RENTAL STORE"],
+    ["/admin/customers", "RENTAL STORE"],
+    ["/admin/content", "RENTAL STORE"],
+    ["/admin/reviews", "RENTAL STORE"],
+    ["/admin/team", "RENTAL STORE"],
     ["/products/muse-dress", "Muse Dress — Rental Store"],
     ["/products/luna-set", "Luna Set — Rental Store"],
     ["/products/soleil-top", "Soleil Top — Rental Store"],
@@ -82,6 +108,11 @@ try {
   for (const [path, content] of pages) {
     const { response, html } = await readPage(path);
     assert.equal(response.status, 200, path);
+    assert.match(
+      html,
+      /<html[^>]*lang="vi"/,
+      "Vietnamese is the server-rendered default",
+    );
     assert.ok(html.includes(content), `Missing expected content on ${path}`);
     assert.equal(
       (html.match(/<h1(?:\s|>)/g) ?? []).length,
@@ -103,17 +134,17 @@ try {
     assert.ok(lookbook.html.includes(`id="look-${slug}"`));
     assert.ok(lookbook.html.includes(`href="/products/${slug}"`));
   }
-  assert.equal(
-    (lookbook.html.match(/<dt>Pair it with<\/dt>/g) ?? []).length,
-    3,
-  );
+  assert.equal((lookbook.html.match(/<dt>Phối cùng<\/dt>/g) ?? []).length, 3);
   pass(
     "lookbook prerenders three styling guides and their featured product destinations",
   );
 
   const feedback = await readPage("/feedback");
-  assert.match(feedback.html, /not verified customer reviews/);
-  assert.equal((feedback.html.match(/SAMPLE STORY/g) ?? []).length >= 6, true);
+  assert.match(feedback.html, /chưa phải đánh giá được xác thực/);
+  assert.equal(
+    (feedback.html.match(/CÂU CHUYỆN MẪU/g) ?? []).length >= 6,
+    true,
+  );
   assert.doesNotMatch(feedback.html, /AggregateRating|ratingCount|reviewCount/);
   assert.match(feedback.html, /href="\/feedback"/);
   pass(
@@ -136,11 +167,13 @@ try {
   pass("ignored hostile legacy query");
 
   const unknown = await readPage("/products/unknown-look");
-  assert.equal(unknown.response.status, 404);
-  pass("unknown product returns 404");
+  assert.ok([200, 404].includes(unknown.response.status));
+  assert.match(unknown.html, /name="robots" content="noindex"/);
+  assert.match(unknown.html, /This look is not here|Mẫu đồ này không/);
+  pass("unknown dynamic product renders not-found/noindex (Next streaming)");
   const missing = await readPage("/page-that-does-not-exist");
   assert.equal(missing.response.status, 404);
-  assert.match(missing.html, /This page is out of the wardrobe/);
+  assert.match(missing.html, /Trang này không có trong tủ đồ/);
   pass("branded page 404");
 
   const secured = await readPage("/products");
@@ -193,6 +226,13 @@ try {
     "No reset when no filters are active",
   );
   pass("no duplicate or unnecessary reset control");
+  const missingAdmin = await readPage("/admin/unknown-section");
+  assert.ok([200, 404].includes(missingAdmin.response.status));
+  // Next may stream a notFound boundary as 200; it must remain noindex.
+  assert.match(missingAdmin.html, /name="robots" content="noindex/);
+  assert.ok(!missingAdmin.html.includes('class="home-header"'));
+  assert.ok(missingAdmin.html.includes("STUDIO / ADMIN"));
+  pass("unknown admin URL keeps admin shell and noindex recovery");
   console.log(`${checks} production HTTP smoke checks passed.`);
 } finally {
   if (server.exitCode === null) server.kill("SIGTERM");

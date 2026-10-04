@@ -1,3 +1,6 @@
+import { PublishedEditorial } from "@/components/store/published-editorial";
+import { isLiveStore } from "@/server/rental/storefront";
+import { T } from "@/components/store/language-provider";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import type { Metadata } from "next";
 import { FashionImage } from "@/components/ui/fashion-image";
@@ -9,6 +12,7 @@ import { collections, getProduct } from "@/lib/catalog";
 export const metadata: Metadata = { title: "Collections — Rental Store" };
 
 export default function CollectionsPage() {
+  if (isLiveStore()) return <PublishedEditorial kind="collection" />;
   return (
     <>
       <PageHeading
@@ -32,15 +36,20 @@ export default function CollectionsPage() {
               </div>
               <ScrollReveal className="store-collection-copy">
                 <span className="store-overline">
-                  0{index + 1} / {collection.name}
+                  0{index + 1} / <T>{collection.name}</T>
                 </span>
-                <h2>{collection.title}</h2>
-                <p>{collection.description}</p>
+                <h2>
+                  <T>{collection.title}</T>
+                </h2>
+                <p>
+                  <T>{collection.description}</T>
+                </p>
                 <Link
                   href={`/products/${product.slug}`}
                   className="store-text-link"
                 >
-                  View {product.name} <ArrowUpRight aria-hidden="true" />
+                  <T>{"View "}</T>
+                  {product.name} <ArrowUpRight aria-hidden="true" />
                 </Link>
               </ScrollReveal>
             </article>

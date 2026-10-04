@@ -1,16 +1,16 @@
-/* The playful feedback layout is isolated from the accepted store pages. */
+/* Editorial feedback composition using the shared fashion palette. */
 .feedback-page {
-  --feedback-ink: #422338;
-  --feedback-pink: #f7c4dc;
-  --feedback-lilac: #e9e0ff;
-  --feedback-lime: #e9f1bd;
+  --feedback-ink: var(--foreground);
+  --feedback-pink: #ecdde3;
+  --feedback-lilac: #ede7ed;
+  --feedback-lime: #e8eee3;
   color: var(--feedback-ink);
   padding-inline: clamp(0.25rem, 1.8vw, 1.25rem);
 }
 .feedback-hero {
   position: relative;
   padding-block: 0.5rem 2rem;
-  border-bottom: 2px solid var(--feedback-ink);
+  border-bottom: 1px solid var(--border);
 }
 .feedback-kicker {
   display: flex;
@@ -30,7 +30,7 @@
   position: relative;
   width: fit-content;
   margin-block: 1.25rem 1.5rem;
-  font-size: clamp(3rem, 7.6vw, 6.25rem);
+  font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 850;
   letter-spacing: -0.075em;
   line-height: 0.98;
@@ -64,7 +64,7 @@
   padding: 1rem 1.35rem;
   border: 2px solid var(--feedback-ink);
   border-radius: 3rem;
-  box-shadow: 4px 4px 0 var(--feedback-ink);
+  box-shadow: 0 3px 12px rgb(48 42 45 / 6%);
   color: var(--feedback-ink);
   background: var(--feedback-lime);
   font-weight: 750;
@@ -171,7 +171,7 @@
 }
 .feedback-card-ink {
   background: var(--feedback-ink);
-  color: #fff8fb;
+  color: #eee5e6;
   box-shadow: 6px 7px 0 #d394b1;
 }
 .feedback-card-top {
@@ -265,7 +265,7 @@
   line-height: 1.5;
 }
 .feedback-card-ink :focus-visible {
-  outline-color: #fff8fb;
+  outline-color: #eee5e6;
 }
 .feedback-preview {
   padding: 2rem 0;
@@ -411,10 +411,10 @@
   }
   .feedback-share > button:hover {
     background: var(--feedback-ink);
-    color: #fff8fb;
+    color: #eee5e6;
   }
   .feedback-card-ink .feedback-share > button:hover {
-    background: #fff8fb;
+    background: #eee5e6;
     color: var(--feedback-ink);
   }
 }

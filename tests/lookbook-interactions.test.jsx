@@ -4,7 +4,7 @@ import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import LookbookPage from "../src/app/(store)/lookbook/page.tsx";
+import LookbookPage from "../src/components/store/sample-lookbook.tsx";
 
 afterEach(cleanup);
 

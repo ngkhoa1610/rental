@@ -1,0 +1,424 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SessionScope {
+  customer
+  admin
+}
+
+enum StaffPermission {
+  orders_manage       @map("orders:manage")
+  payments_write      @map("payments:write")
+  catalog_manage      @map("catalog:manage")
+  availability_manage @map("availability:manage")
+  customers_read      @map("customers:read")
+  content_manage      @map("content:manage")
+  reviews_moderate    @map("reviews:moderate")
+  staff_manage        @map("staff:manage")
+}
+
+enum Visibility {
+  draft
+  published
+}
+
+enum RentalStatus {
+  pending
+  confirmed
+  renting
+  returned
+  completed
+  rejected
+  cancelled
+}
+
+enum ChangeKind {
+  dates
+  cancel
+}
+
+enum ChangeStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum PaymentKind {
+  collection
+  refund
+}
+
+enum ContentKind {
+  collection
+  lookbook
+}
+
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+}
+
+// Auth.js adapter model/field names are intentional. Never expose token fields in DTOs.
+model User {
+  id              String              @id @default(cuid())
+  name            String?
+  email           String?             @unique
+  emailVerified   DateTime?           @db.Timestamptz(3)
+  image           String?
+  phone           String              @default("") @db.VarChar(20)
+  active          Boolean             @default(true)
+  createdAt       DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime            @updatedAt @db.Timestamptz(3)
+  resolvedChanges OrderChange[]       @relation("ChangeResolver")
+  accounts        Account[]
+  sessions        Session[]
+  staff           StaffProfile?
+  quotes          RentalQuote[]
+  orders          RentalOrder[]
+  mediaAssets     MediaAsset[]
+  reviews         CustomerReview[]
+  payments        PaymentEntry[]
+  inventoryBlocks InventoryBlock[]
+  audits          AuditEvent[]
+  idempotency     IdempotencyRecord[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String       @id @default(cuid())
+  sessionToken String       @unique
+  userId       String
+  expires      DateTime     @db.Timestamptz(3)
+  scope        SessionScope
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope])
+  @@index([expires])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime @db.Timestamptz(3)
+
+  @@unique([identifier, token])
+}
+
+model StaffProfile {
+  userId      String            @id
+  active      Boolean           @default(true)
+  isOwner     Boolean           @default(false)
+  permissions StaffPermission[] @default([])
+  version     Int               @default(1)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime          @updatedAt @db.Timestamptz(3)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model Product {
+  id           String           @id @default(cuid())
+  slug         String           @unique
+  name         String           @db.VarChar(100)
+  description  String           @db.Text
+  category     String           @db.VarChar(80)
+  collection   String           @db.VarChar(100)
+  occasions    String[]         @default([])
+  price        Int
+  rentalDays   Int
+  quantity     Int
+  visibility   Visibility       @default(draft)
+  version      Int              @default(1)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  images       ProductImage[]
+  quoteLines   QuoteLine[]
+  orderLines   OrderLine[]
+  blocks       InventoryBlock[]
+  contentLinks ContentProduct[]
+
+  @@index([visibility, category])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  alt       String
+  position  Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, position])
+}
+
+model RentalQuote {
+  id            String       @id @default(cuid())
+  userId        String?
+  pickupDate    DateTime     @db.Date
+  returnDate    DateTime     @db.Date
+  total         Int
+  currency      String       @default("VND") @db.Char(3)
+  policyLabel   String       @db.Text
+  policyVersion String
+  expiresAt     DateTime     @db.Timestamptz(3)
+  createdAt     DateTime     @default(now()) @db.Timestamptz(3)
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  lines         QuoteLine[]
+  order         RentalOrder?
+
+  @@index([expiresAt])
+  @@index([userId, createdAt])
+}
+
+model QuoteLine {
+  id          String      @id @default(cuid())
+  quoteId     String
+  productId   String
+  productSlug String
+  name        String
+  quantity    Int
+  amount      Int
+  available   Int
+  quote       RentalQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([quoteId, productId])
+  @@index([productId])
+}
+
+model RentalOrder {
+  id           String           @id @default(cuid())
+  customerId   String
+  quoteId      String           @unique
+  contactName  String           @db.VarChar(100)
+  contactPhone String           @db.VarChar(20)
+  pickupDate   DateTime         @db.Date
+  returnDate   DateTime         @db.Date
+  total        Int
+  currency     String           @default("VND") @db.Char(3)
+  notes        String           @default("") @db.VarChar(1000)
+  status       RentalStatus     @default(pending)
+  version      Int              @default(1)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  customer     User             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quote        RentalQuote      @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  lines        OrderLine[]
+  changes      OrderChange[]
+  payments     PaymentEntry[]
+  mediaAssets  MediaAsset[]
+  reviews      CustomerReview[]
+  audits       AuditEvent[]
+
+  @@unique([id, customerId])
+  @@index([customerId, createdAt])
+  @@index([status, pickupDate, returnDate])
+}
+
+model OrderLine {
+  id          String      @id @default(cuid())
+  orderId     String
+  productId   String
+  productSlug String
+  name        String
+  quantity    Int
+  amount      Int
+  available   Int
+  order       RentalOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, productId])
+  @@index([productId, orderId])
+}
+
+model OrderChange {
+  id           String       @id @default(cuid())
+  orderId      String
+  kind         ChangeKind
+  pickupDate   DateTime     @db.Date
+  returnDate   DateTime     @db.Date
+  reason       String       @db.VarChar(1000)
+  status       ChangeStatus @default(pending)
+  decisionNote String?      @db.VarChar(1000)
+  resolvedBy   String?
+  resolvedAt   DateTime?    @db.Timestamptz(3)
+  createdAt    DateTime     @default(now()) @db.Timestamptz(3)
+  order        RentalOrder  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  resolver User? @relation("ChangeResolver", fields: [resolvedBy], references: [id], onDelete: Restrict)
+
+  @@index([orderId, status])
+}
+
+model InventoryBlock {
+  id          String   @id @default(cuid())
+  productId   String
+  pickupDate  DateTime @db.Date
+  returnDate  DateTime @db.Date
+  quantity    Int
+  reason      String   @db.VarChar(1000)
+  createdById String
+  version     Int      @default(1)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([productId, pickupDate, returnDate])
+}
+
+model PaymentEntry {
+  id         String      @id @default(cuid())
+  orderId    String
+  actorId    String
+  kind       PaymentKind
+  amount     Int
+  occurredAt DateTime    @db.Timestamptz(3)
+  createdAt  DateTime    @default(now()) @db.Timestamptz(3)
+  note       String      @db.VarChar(1000)
+  order      RentalOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  actor      User        @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([orderId, occurredAt])
+  @@index([actorId])
+}
+
+model EditorialContent {
+  id         String           @id @default(cuid())
+  kind       ContentKind
+  title      String           @db.VarChar(100)
+  body       String           @db.Text
+  visibility Visibility       @default(draft)
+  version    Int              @default(1)
+  createdAt  DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime         @updatedAt @db.Timestamptz(3)
+  products   ContentProduct[]
+
+  @@index([kind, visibility])
+}
+
+model ContentProduct {
+  contentId String
+  productId String
+  position  Int              @default(0)
+  content   EditorialContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  product   Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@id([contentId, productId])
+  @@index([productId])
+}
+
+model CustomerReview {
+  id               String           @id @default(cuid())
+  orderId          String
+  customerId       String
+  rating           Int
+  story            String           @db.VarChar(2000)
+  consentToPublish Boolean          @default(false)
+  moderation       ModerationStatus @default(pending)
+  moderationNote   String           @default("") @db.VarChar(1000)
+  version          Int              @default(1)
+  createdAt        DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime         @updatedAt @db.Timestamptz(3)
+  order            RentalOrder      @relation(fields: [orderId, customerId], references: [id, customerId], onDelete: Restrict)
+  customer         User             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  media            ReviewMedia[]
+
+  @@unique([orderId, customerId])
+  @@index([moderation, consentToPublish])
+  @@index([customerId])
+}
+
+model ReviewMedia {
+  id         String         @id @default(cuid())
+  reviewId   String
+  storageKey String         @unique
+  asset      MediaAsset     @relation(fields: [storageKey], references: [id], onDelete: Restrict)
+  alt        String
+  position   Int
+  review     CustomerReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, position])
+}
+
+model AuditEvent {
+  id        String       @id @default(cuid())
+  actorId   String
+  scope     SessionScope
+  entity    String
+  entityId  String
+  orderId   String?
+  action    String
+  note      String       @db.VarChar(1000)
+  createdAt DateTime     @default(now()) @db.Timestamptz(3)
+  actor     User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  order     RentalOrder? @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([entity, entityId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([actorId])
+}
+
+model IdempotencyRecord {
+  id          String       @id @default(cuid())
+  actorId     String
+  scope       SessionScope
+  operation   String       @db.VarChar(100)
+  key         String       @db.VarChar(128)
+  fingerprint String       @db.Char(64)
+  response    Json
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  expiresAt   DateTime     @db.Timestamptz(3)
+  actor       User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@unique([actorId, scope, operation, key])
+  @@index([expiresAt])
+}
+
+// Shared rate limits across app processes; key is a hash, never a raw IP/session token.
+model RateLimitBucket {
+  key       String   @id @db.VarChar(64)
+  count     Int      @default(1)
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}
+
+model MediaAsset {
+  id          String        @id @default(cuid())
+  ownerId     String
+  orderId     String?
+  purpose     String        @default("review")
+  mimeType    String        @default("image/webp")
+  data        Bytes
+  byteLength  Int
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  order       RentalOrder?  @relation(fields: [orderId, ownerId], references: [id, customerId], onDelete: Restrict)
+  reviewLinks ReviewMedia[]
+
+  @@index([ownerId, orderId])
+}

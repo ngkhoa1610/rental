@@ -83,9 +83,12 @@ export function validateFeedback(draft: FeedbackDraft): string | null {
 export function feedbackShareText(
   feedback: Pick<Feedback, "name" | "quote" | "rating">,
   sample = false,
+  notice?: string,
 ): string {
-  const label = sample
-    ? "Illustrative feedback — not a verified customer review"
-    : "My feedback draft — not published on Rental Store";
+  const label =
+    notice ??
+    (sample
+      ? "Illustrative feedback — not a verified customer review"
+      : "My feedback draft — not published on Rental Store");
   return `${label}\n“${feedback.quote}”\n— ${feedback.name} · ${feedback.rating}/5\nRental Store`;
 }

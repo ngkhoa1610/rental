@@ -1,3 +1,4 @@
+import { T } from "@/components/store/language-provider";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { FashionImage } from "@/components/ui/fashion-image";
 import Link from "next/link";
@@ -7,10 +8,13 @@ import { formatPrice, type Product } from "@/lib/catalog";
 export function ProductCard({
   product,
   onUnsave,
+  availability,
 }: {
   product: Product;
   onUnsave?: () => void;
+  availability?: string;
 }) {
+  const live = process.env.NEXT_PUBLIC_RENTAL_API_MODE === "http";
   return (
     <ScrollReveal>
       <article className="store-product-card">
@@ -32,19 +36,46 @@ export function ProductCard({
             name={product.name}
             onRemove={onUnsave}
           />
-          <span className="store-image-label">Sample look</span>
+          <span className="store-image-label">
+            <T>{live ? "Rental look" : "Sample look"}</T>
+          </span>
         </div>
         <div className="store-card-meta">
           <div>
-            <p className="store-overline">{product.collection}</p>
+            <p className="store-overline">
+              <T>{product.collection}</T>
+            </p>
             <h2>
               <Link href={`/products/${product.slug}`}>{product.name}</Link>
             </h2>
           </div>
           <p className="store-price">
             <strong>{formatPrice(product.price)}</strong>
-            <span>/ {product.rentalDays} days · sample</span>
+            <span>
+              / {product.rentalDays}
+              <T>{live ? " days" : " days · sample"}</T>
+            </span>
           </p>
+        </div>
+        <div className="store-card-booking">
+          <p
+            className={
+              availability ? "store-card-status available" : "store-card-status"
+            }
+          >
+            <T>{availability || "Choose dates to check"}</T>
+          </p>
+          <div>
+            <span>
+              <T>{"Fit advice available"}</T>
+            </span>
+            <Link
+              href={`/products/${product.slug}`}
+              className="store-text-link"
+            >
+              <T>{"View available dates"}</T> ↗
+            </Link>
+          </div>
         </div>
       </article>
     </ScrollReveal>

@@ -1,4 +1,6 @@
+import { T } from "@/components/store/language-provider";
 import Link from "next/link";
+import { ContactOptions } from "@/components/store/contact-options";
 import { Shirt } from "lucide-react";
 
 export function SiteFooter() {
@@ -13,33 +15,68 @@ export function SiteFooter() {
             <span>RENTAL STORE</span>
           </Link>
           <p className="home-footer-description">
-            Fashion worth wearing, without the wardrobe commitment. A look for
-            every moment that matters.
+            <T>
+              {
+                "Fashion worth wearing, without the wardrobe commitment. A look for every moment that matters."
+              }
+            </T>
           </p>
-          <p className="home-copyright">© 2026 Rental Store.</p>
+          <ContactOptions />
+          <p className="home-copyright">
+            <T>{"© 2026 Rental Store."}</T>
+          </p>
         </div>
         <nav aria-label="Explore Rental Store">
-          <h2>Explore</h2>
+          <h2>
+            <T>{"Explore"}</T>
+          </h2>
           <ul>
             <li>
-              <Link href="/">Home</Link>
+              <Link href="/">
+                <T>{"Home"}</T>
+              </Link>
             </li>
             <li>
-              <Link href="/products">Explore looks</Link>
+              <Link href="/products">
+                <T>{"Explore looks"}</T>
+              </Link>
             </li>
             <li>
-              <Link href="/collections">Collections</Link>
+              <Link href="/collections">
+                <T>{"Collections"}</T>
+              </Link>
             </li>
           </ul>
         </nav>
         <nav aria-label="Rental information">
-          <h2>Before you rent</h2>
+          <h2>
+            <T>{"Before you rent"}</T>
+          </h2>
           <ul>
             <li>
-              <Link href="/lookbook">Styling inspiration</Link>
+              <Link href="/availability">
+                <T>{"Check available dates"}</T>
+              </Link>
             </li>
             <li>
-              <Link href="/feedback">The feedback wall</Link>
+              <Link href="/rental-guide">
+                <T>{"Size & rental guide"}</T>
+              </Link>
+            </li>
+            <li>
+              <Link href="/account/orders">
+                <T>{"Your bookings"}</T>
+              </Link>
+            </li>
+            <li>
+              <Link href="/lookbook">
+                <T>{"Styling inspiration"}</T>
+              </Link>
+            </li>
+            <li>
+              <Link href="/feedback">
+                <T>{"The feedback wall"}</T>
+              </Link>
             </li>
           </ul>
         </nav>

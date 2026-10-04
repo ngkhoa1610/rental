@@ -1,4 +1,6 @@
 "use client";
+import { useCatalogData } from "./catalog-data";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import { FashionImage } from "@/components/ui/fashion-image";
 import Link from "next/link";
@@ -8,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/store/page-heading";
 import { WishlistButton } from "@/components/store/selection-actions";
 import { useSelection } from "@/components/store/selection-provider";
-import { formatPrice, products } from "@/lib/catalog";
+import { formatPrice } from "@/lib/catalog";
 import { sampleSubtotal, selectedProducts } from "@/lib/rental-selection";
+import { RentalRequest } from "./rental-request";
+import { useRentalApi } from "./api-provider";
 
 import {
   Sheet,
@@ -22,6 +26,9 @@ import {
 } from "@/components/ui/sheet";
 
 export function RentalBag() {
+  const { t } = useLanguage();
+  const { demo } = useRentalApi();
+  const { products } = useCatalogData();
   const { selection, dispatch, ready } = useSelection();
   const region = useRef<HTMLDivElement>(null);
   const restoreFocus = () =>
@@ -31,14 +38,17 @@ export function RentalBag() {
   if (!ready)
     return (
       <p className="store-selection-loading" role="status">
-        Loading your saved looks…
+        <T>{"Loading your saved looks…"}</T>
       </p>
     );
 
   const empty = (
-    <EmptyState title="A little room for your next look.">
-      Your rental bag is empty. Explore the collection and save a piece you
-      would like to wear.
+    <EmptyState title={t("A little room for your next look.")}>
+      <T>
+        {
+          "Your rental bag is empty. Explore the collection and save a piece you would like to wear."
+        }
+      </T>
     </EmptyState>
   );
 
@@ -47,16 +57,21 @@ export function RentalBag() {
       ref={region}
       tabIndex={-1}
       className="store-selection-region"
-      aria-label="Rental bag contents"
+      aria-label={t("Rental bag contents")}
     >
       {!items.length ? (
         empty
       ) : (
         <div className="store-bag-layout">
-          <section aria-label="Selected looks">
+          <section aria-label={t("Selected looks")}>
             <div className="store-bag-heading">
               <p role="status">
-                {items.length} selected {items.length === 1 ? "look" : "looks"}
+                {t(
+                  items.length === 1
+                    ? "{count} selected look"
+                    : "{count} selected looks",
+                  { count: items.length },
+                )}
               </p>
               <ClearBagButton
                 onConfirm={() => {
@@ -71,7 +86,7 @@ export function RentalBag() {
                   <Link
                     href={`/products/${product.slug}`}
                     className="store-bag-photo"
-                    aria-label={`View ${product.name}`}
+                    aria-label={t("View {name}", { name: product.name })}
                     tabIndex={-1}
                   >
                     <FashionImage
@@ -82,7 +97,9 @@ export function RentalBag() {
                     />
                   </Link>
                   <div className="store-bag-item-copy">
-                    <p className="store-overline">{product.collection}</p>
+                    <p className="store-overline">
+                      <T>{product.collection}</T>
+                    </p>
                     <h2>
                       <Link href={`/products/${product.slug}`}>
                         {product.name}
@@ -90,7 +107,10 @@ export function RentalBag() {
                     </h2>
                     <p>
                       {formatPrice(product.price)}{" "}
-                      <span>/ {product.rentalDays} days · sample</span>
+                      <span>
+                        / {product.rentalDays}
+                        <T>{demo ? " days · sample" : " days"}</T>
+                      </span>
                     </p>
                     <div className="store-bag-item-actions">
                       <WishlistButton slug={product.slug} name={product.name} />
@@ -98,7 +118,9 @@ export function RentalBag() {
                         type="button"
                         variant="ghost"
                         className="store-remove"
-                        aria-label={`Remove ${product.name} from rental bag`}
+                        aria-label={t("Remove {name} from rental bag", {
+                          name: product.name,
+                        })}
                         onClick={() => {
                           dispatch({
                             type: "remove-from-bag",
@@ -108,7 +130,7 @@ export function RentalBag() {
                         }}
                       >
                         <Trash2 aria-hidden="true" />
-                        Remove
+                        <T>{"Remove"}</T>
                       </Button>
                     </div>
                   </div>
@@ -116,37 +138,44 @@ export function RentalBag() {
               ))}
             </ul>
             <Link href="/products" className="store-text-link">
-              Continue exploring
+              <T>{"Continue exploring"}</T>
             </Link>
           </section>
           <aside
             className="store-bag-summary"
             aria-labelledby="bag-summary-title"
           >
-            <h2 id="bag-summary-title">Your selection</h2>
+            <h2 id="bag-summary-title">
+              <T>{"Your selection"}</T>
+            </h2>
             <dl>
               <div>
-                <dt>Sample price subtotal</dt>
+                <dt>
+                  <T>
+                    {demo ? "Sample price subtotal" : "Listed block subtotal"}
+                  </T>
+                </dt>
                 <dd>{formatPrice(sampleSubtotal(items))}</dd>
               </div>
             </dl>
             <p>
-              This is a preview, not a quote. Sizes, rental dates, availability
-              and any additional charges have not been confirmed.
+              <T>
+                {demo
+                  ? "Catalog amounts are illustrative. Check your dates below to see the available rental quote."
+                  : "Listed prices are per rental block. Check your dates below for the final quote."}
+              </T>
             </p>
-            <div className="store-summary-note">
-              <strong>No booking has been placed.</strong>
-              <p>
-                Online booking is not available yet. Keep your selection here
-                while you plan your look.
-              </p>
-            </div>
+            <RentalRequest slugs={selection.bag} />
             <details className="store-bag-help">
-              <summary>What should I check before renting?</summary>
+              <summary>
+                <T>{"What should I check before renting?"}</T>
+              </summary>
               <p>
-                Confirm garment measurements, your rental dates, availability,
-                delivery and return arrangements before booking. Your saved
-                selection is a starting point, not a reservation.
+                <T>
+                  {
+                    "Confirm garment measurements, your rental dates, availability, store pickup and return arrangements before booking. Your saved selection is a starting point, not a reservation."
+                  }
+                </T>
               </p>
             </details>
           </aside>
@@ -162,7 +191,7 @@ function ClearBagButton({ onConfirm }: { onConfirm: () => void }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button type="button" variant="ghost" className="store-remove">
-          Clear bag
+          <T>{"Clear bag"}</T>
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -171,15 +200,21 @@ function ClearBagButton({ onConfirm }: { onConfirm: () => void }) {
         showCloseButton={false}
       >
         <SheetHeader className="p-0">
-          <SheetTitle>Clear your rental bag?</SheetTitle>
+          <SheetTitle>
+            <T>{"Clear your rental bag?"}</T>
+          </SheetTitle>
           <SheetDescription>
-            This removes all looks from your bag. Your wishlist stays saved.
+            <T>
+              {
+                "This removes all looks from your bag. Your wishlist stays saved."
+              }
+            </T>
           </SheetDescription>
         </SheetHeader>
         <div className="store-confirm-actions">
           <SheetClose asChild>
             <Button type="button" variant="outline" autoFocus>
-              Keep my looks
+              <T>{"Keep my looks"}</T>
             </Button>
           </SheetClose>
           <Button
@@ -190,7 +225,7 @@ function ClearBagButton({ onConfirm }: { onConfirm: () => void }) {
               onConfirm();
             }}
           >
-            Yes, clear bag
+            <T>{"Yes, clear bag"}</T>
           </Button>
         </div>
       </SheetContent>

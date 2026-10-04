@@ -6,3 +6,11 @@ public
 AGENTS.md
 CLAUDE.md
 IMPLEMENTATION-REVIEW.md
+
+src/generated/prisma
+prisma/migrations
+
+.next-http
+
+# Generated QA artifacts
+artifacts/

@@ -14,6 +14,7 @@ import userEvent from "@testing-library/user-event";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime.js";
 import { PathnameContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime.js";
 import { SelectionProvider } from "../src/components/store/selection-provider.tsx";
+import { ApiProvider } from "../src/components/store/api-provider.tsx";
 import {
   WishlistButton,
   AddToBagButton,
@@ -39,7 +40,9 @@ function App({ children, pathname = "/products" }) {
   return (
     <AppRouterContext.Provider value={router}>
       <PathnameContext.Provider value={pathname}>
-        <SelectionProvider>{children}</SelectionProvider>
+        <ApiProvider>
+          <SelectionProvider>{children}</SelectionProvider>
+        </ApiProvider>
       </PathnameContext.Provider>
     </AppRouterContext.Provider>
   );
@@ -296,13 +299,13 @@ test("header marks the product business route active and exposes no feature URLs
   const mainNav = screen.getByRole("navigation", { name: "Main navigation" });
   assert.equal(
     within(mainNav)
-      .getByRole("link", { name: "Explore looks" })
+      .getByRole("link", { name: "Rent clothing" })
       .getAttribute("aria-current"),
     "page",
   );
   assert.equal(
     within(mainNav)
-      .getByRole("link", { name: "Feedback" })
+      .getByRole("link", { name: "Rent accessories" })
       .getAttribute("aria-current"),
     null,
   );
@@ -310,7 +313,7 @@ test("header marks the product business route active and exposes no feature URLs
     assert.doesNotMatch(link.getAttribute("href"), /search|[?#]/);
 });
 
-test("mobile menu has one Explore link and Escape returns focus", async () => {
+test("mobile menu has one clothing link and Escape returns focus", async () => {
   const user = userEvent.setup();
   render(
     <App>
@@ -321,7 +324,7 @@ test("mobile menu has one Explore link and Escape returns focus", async () => {
   await user.click(trigger);
   const menu = screen.getByRole("navigation", { name: "More navigation" });
   assert.equal(
-    within(menu).getAllByRole("link", { name: "Explore looks" }).length,
+    within(menu).getAllByRole("link", { name: "Rent clothing" }).length,
     1,
   );
   await user.keyboard("{Escape}");

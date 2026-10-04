@@ -182,3 +182,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Generated Prisma client
+/src/generated/prisma/
+
+.next-http
+
+# Generated QA artifacts
+artifacts/

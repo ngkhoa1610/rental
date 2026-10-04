@@ -1,0 +1,597 @@
+import assert from "node:assert/strict";
+import { test, before, after } from "node:test";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../../src/generated/prisma/client";
+import { createServiceApi } from "../../src/server/rental/service";
+import { handleRentalRequest } from "../../src/server/http/handler";
+import { sessionContext, tokenCookie } from "../../src/server/http/security";
+import { principalFromUser } from "../../src/server/auth/policy";
+import { uploadMedia, readMedia } from "../../src/server/http/media";
+import sharp from "sharp";
+import { ApiError, type RentalOrder } from "../../src/lib/api/contracts";
+import type { ServiceContext } from "../../src/server/rental/services";
+const url = process.env.RENTAL_TEST_DATABASE_URL;
+if (!url)
+  throw new Error(
+    "Run npm run test:integration; this suite never uses a production DB.",
+  );
+const db = new PrismaClient({
+  adapter: new PrismaPg({
+    connectionString: url,
+    max: process.env.RENTAL_TEST_DB_ENGINE === "pglite" ? 1 : 8,
+  }),
+});
+let customer: ServiceContext, admin: ServiceContext, other: ServiceContext;
+const range = { pickupDate: "2030-06-01", returnDate: "2030-06-02" };
+const key = () => crypto.randomUUID();
+const rejects = (code: string) => (e: unknown) =>
+  e instanceof ApiError && e.code === code;
+before(async () => {
+  for (const id of ["c", "other", "owner", "staff"])
+    await db.user.create({
+      data: { id, name: id, phone: "0900000000", email: id + "@test.invalid" },
+    });
+  await db.staffProfile.create({
+    data: {
+      userId: "owner",
+      isOwner: true,
+      permissions: [
+        "orders_manage",
+        "payments_write",
+        "catalog_manage",
+        "availability_manage",
+        "customers_read",
+        "content_manage",
+        "reviews_moderate",
+        "staff_manage",
+      ],
+    },
+  });
+  await db.staffProfile.create({
+    data: { userId: "staff", permissions: ["orders_manage"] },
+  });
+  for (const [id, quantity] of [
+    ["p", 3],
+    ["scarce", 1],
+  ] as const)
+    await db.product.create({
+      data: {
+        id,
+        slug: id,
+        name: id,
+        description: "Fixture only",
+        category: "Dresses",
+        collection: "Tests",
+        price: 100000,
+        rentalDays: 3,
+        quantity,
+        visibility: "published",
+        images: {
+          create: {
+            url: "/images/sakura-muse-dress.png",
+            alt: "Fixture",
+            position: 0,
+          },
+        },
+      },
+    });
+  async function context(
+    id: string,
+    scope: "customer" | "admin",
+  ): Promise<ServiceContext> {
+    const user = await db.user.findUniqueOrThrow({
+      where: { id },
+      include: { staff: true },
+    });
+    return {
+      principal: principalFromUser(user, scope),
+      scope,
+      requestId: key(),
+      now: new Date("2029-01-01T00:00:00Z"),
+    };
+  }
+  customer = await context("c", "customer");
+  other = await context("other", "customer");
+  admin = await context("owner", "admin");
+});
+after(() => db.$disconnect());
+async function book(ctx = customer, slug = "p", dates = range) {
+  const api = createServiceApi(db, ctx);
+  const q = await api.call("availability.quote", {
+    ...dates,
+    items: [{ productSlug: slug, quantity: 1 }],
+  });
+  return api.call("orders.create", {
+    idempotencyKey: key(),
+    quoteId: q.id,
+    notes: "Fixture",
+  });
+}
+async function transition(order: RentalOrder, status: RentalOrder["status"]) {
+  return createServiceApi(db, admin).call("admin.orders.transition", {
+    idempotencyKey: key(),
+    orderId: order.id,
+    version: order.version,
+    status,
+    note: "Fixture transition",
+  });
+}
+
+test("runtime validation rejects unknown privilege fields, invalid dates and duplicate lines", async () => {
+  const api = createServiceApi(db, customer);
+  await assert.rejects(
+    api.call("profile.update", {
+      name: "c",
+      phone: "0900000000",
+      isOwner: true,
+    } as never),
+    rejects("VALIDATION"),
+  );
+  await assert.rejects(
+    api.call("availability.quote", {
+      pickupDate: "2030-02-30",
+      returnDate: "2030-03-01",
+      items: [{ productSlug: "p", quantity: 1 }],
+    }),
+    rejects("VALIDATION"),
+  );
+  await assert.rejects(
+    api.call("availability.quote", {
+      ...range,
+      items: [
+        { productSlug: "p", quantity: 1 },
+        { productSlug: "p", quantity: 1 },
+      ],
+    }),
+    rejects("VALIDATION"),
+  );
+  await assert.rejects(
+    createServiceApi(db, customer, {
+      mode: null,
+      version: "",
+      quoteTtlMs: 300000,
+    }).call("availability.quote", {
+      ...range,
+      items: [{ productSlug: "p", quantity: 1 }],
+    }),
+    rejects("POLICY_REQUIRED"),
+  );
+});
+test("owned quote creates pending/unpaid snapshot; replay and foreign access are safe", async () => {
+  const api = createServiceApi(db, customer);
+  const q = await api.call("availability.quote", {
+    ...range,
+    items: [{ productSlug: "p", quantity: 1 }],
+  });
+  const input = { idempotencyKey: key(), quoteId: q.id, notes: "Original" };
+  await assert.rejects(
+    createServiceApi(db, other).call("orders.create", input),
+    rejects("NOT_FOUND"),
+  );
+  const order = await api.call("orders.create", input);
+  assert.equal(order.status, "pending");
+  assert.equal(order.payment.status, "unpaid");
+  assert.equal((await api.call("orders.create", input)).id, order.id);
+  await assert.rejects(
+    api.call("orders.create", { ...input, notes: "Different" }),
+    rejects("CONFLICT"),
+  );
+  await api.call("profile.update", {
+    name: "New contact",
+    phone: "0911111111",
+  });
+  assert.equal(
+    (await api.call("orders.get", { orderId: order.id })).contact.name,
+    "c",
+  );
+  await assert.rejects(
+    createServiceApi(db, other).call("orders.get", { orderId: order.id }),
+    rejects("NOT_FOUND"),
+  );
+});
+test("simultaneous duplicate submission returns one order", async () => {
+  const api = createServiceApi(db, customer);
+  const q = await api.call("availability.quote", {
+    ...range,
+    items: [{ productSlug: "p", quantity: 1 }],
+  });
+  const input = { idempotencyKey: key(), quoteId: q.id, notes: "" };
+  const results = await Promise.all([
+    api.call("orders.create", input),
+    api.call("orders.create", input),
+  ]);
+  assert.equal(results[0].id, results[1].id);
+  assert.equal(await db.rentalOrder.count({ where: { quoteId: q.id } }), 1);
+});
+test("competing approvals cannot reserve the same last item", async () => {
+  const a = await book(customer, "scarce"),
+    b = await book(other, "scarce");
+  const outcomes = await Promise.allSettled([
+    transition(a, "confirmed"),
+    transition(b, "confirmed"),
+  ]);
+  assert.equal(outcomes.filter((r) => r.status === "fulfilled").length, 1);
+  assert.equal(
+    await db.rentalOrder.count({
+      where: { status: "confirmed", lines: { some: { productId: "scarce" } } },
+    }),
+    1,
+  );
+});
+test("change/resolve, stale version and state graph preserve payment", async () => {
+  let o = await book(customer, "p", {
+    pickupDate: "2030-07-01",
+    returnDate: "2030-07-02",
+  });
+  const c = createServiceApi(db, customer),
+    a = createServiceApi(db, admin);
+  o = await c.call("orders.change", {
+    idempotencyKey: key(),
+    orderId: o.id,
+    version: o.version,
+    kind: "dates",
+    dates: { pickupDate: "2030-07-04", returnDate: "2030-07-05" },
+    reason: "Move",
+  });
+  await assert.rejects(transition(o, "confirmed"), rejects("CONFLICT"));
+  o = await a.call("admin.orders.resolve", {
+    idempotencyKey: key(),
+    orderId: o.id,
+    version: o.version,
+    changeId: o.changes[0].id,
+    decision: "accepted",
+    note: "Available",
+  });
+  assert.equal(o.pickupDate, "2030-07-04");
+  await assert.rejects(
+    a.call("admin.orders.transition", {
+      idempotencyKey: key(),
+      orderId: o.id,
+      version: 1,
+      status: "confirmed",
+      note: "stale",
+    }),
+    rejects("CONFLICT"),
+  );
+  o = await transition(o, "confirmed");
+  assert.equal(o.payment.status, "unpaid");
+  o = await transition(o, "renting");
+  o = await transition(o, "returned");
+  o = await transition(o, "completed");
+  assert.equal(o.status, "completed");
+  assert.equal(o.payment.status, "unpaid");
+});
+test("offline ledger is independent, idempotent and rejects overcollection/refund/future time", async () => {
+  const a = createServiceApi(db, admin);
+  let o = await book(customer, "p", {
+    pickupDate: "2030-08-01",
+    returnDate: "2030-08-02",
+  });
+  const input = {
+    idempotencyKey: key(),
+    orderId: o.id,
+    version: o.version,
+    kind: "collection" as const,
+    amount: 40000,
+    occurredAt: "2028-12-31T00:00:00Z",
+    note: "Cash",
+  };
+  const results = await Promise.all([
+    a.call("admin.payments.record", input),
+    a.call("admin.payments.record", input),
+  ]);
+  o = results[0];
+  assert.equal(results[1].version, o.version);
+  assert.equal(o.payment.collected, 40000);
+  assert.equal(o.status, "pending");
+  for (const [kind, amount, time] of [
+    ["refund", 50000, input.occurredAt],
+    ["collection", 70000, input.occurredAt],
+    ["collection", 1, "2040-01-01T00:00:00Z"],
+  ] as const)
+    await assert.rejects(
+      a.call("admin.payments.record", {
+        ...input,
+        idempotencyKey: key(),
+        version: o.version,
+        kind,
+        amount,
+        occurredAt: time,
+      }),
+      rejects("VALIDATION"),
+    );
+  assert.equal(await db.paymentEntry.count({ where: { orderId: o.id } }), 1);
+  o = await a.call("admin.payments.record", {
+    ...input,
+    idempotencyKey: key(),
+    version: o.version,
+    kind: "refund",
+    amount: 10000,
+  });
+  assert.equal(o.payment.remaining, 70000);
+});
+test("catalog/block version and peak stock protect existing commitments", async () => {
+  const a = createServiceApi(db, admin);
+  const product = (await a.call("admin.products.list", undefined)).find(
+    (p) => p.slug === "scarce",
+  );
+  assert.ok(product);
+  await assert.rejects(
+    a.call("admin.products.save", {
+      idempotencyKey: key(),
+      product: { ...product, quantity: 0 },
+    }),
+    rejects("UNAVAILABLE"),
+  );
+  await assert.rejects(
+    a.call("admin.availability.save", {
+      idempotencyKey: key(),
+      block: {
+        id: "",
+        productSlug: "scarce",
+        ...range,
+        quantity: 1,
+        version: 0,
+        reason: "Clean",
+      },
+    }),
+    rejects("UNAVAILABLE"),
+  );
+  const block = await a.call("admin.availability.save", {
+    idempotencyKey: key(),
+    block: {
+      id: "",
+      productSlug: "p",
+      pickupDate: "2030-09-01",
+      returnDate: "2030-09-01",
+      quantity: 1,
+      version: 0,
+      reason: "Clean",
+    },
+  });
+  await a.call("admin.availability.remove", {
+    idempotencyKey: key(),
+    id: block.id,
+    version: block.version,
+  });
+  assert.equal(await db.inventoryBlock.count({ where: { id: block.id } }), 0);
+});
+test("content moderation and staff revoke enforce server permissions", async () => {
+  const a = createServiceApi(db, admin);
+  const content = await a.call("admin.content.save", {
+    idempotencyKey: key(),
+    content: {
+      id: "",
+      version: 0,
+      kind: "lookbook",
+      title: "Test",
+      body: "Plain <script> text",
+      productSlugs: ["p"],
+      visibility: "published",
+    },
+  });
+  assert.equal(content.version, 1);
+  await assert.rejects(
+    a.call("admin.staff.update", {
+      idempotencyKey: key(),
+      id: "owner",
+      version: 1,
+      active: false,
+      permissions: [],
+    }),
+    rejects("FORBIDDEN"),
+  );
+  const staffUser = await db.user.findUniqueOrThrow({
+    where: { id: "staff" },
+    include: { staff: true },
+  });
+  const ctx = { ...admin, principal: principalFromUser(staffUser, "admin") };
+  await assert.rejects(
+    createServiceApi(db, ctx).call("admin.payments.list", undefined),
+    rejects("FORBIDDEN"),
+  );
+  await a.call("admin.staff.update", {
+    idempotencyKey: key(),
+    id: "staff",
+    version: 1,
+    active: false,
+    permissions: [],
+  });
+  await assert.rejects(
+    createServiceApi(db, ctx).call("admin.orders.list", undefined),
+    rejects("UNAUTHENTICATED"),
+  );
+});
+test("HTTP validates sessions/CSRF/origin/method and rate-limits without leaking data", async () => {
+  await db.session.create({
+    data: {
+      id: "cs",
+      sessionToken: "customer-fixture-token",
+      userId: "c",
+      scope: "customer",
+      expires: new Date(Date.now() + 3600000),
+    },
+  });
+  const origin = process.env.APP_ORIGIN ?? "";
+  const cookie = `${tokenCookie("customer")}=customer-fixture-token`;
+  const get = new Request(origin + "/api/v1/session", { headers: { cookie } });
+  const session = await handleRentalRequest(get, ["session"], db);
+  assert.equal(session.status, 200);
+  const value = await session.json();
+  assert.ok(value.data.csrfToken);
+  assert.match(session.headers.get("cache-control") ?? "", /no-store/);
+  const cross = await handleRentalRequest(
+    new Request(origin + "/api/v1/admin/orders", { headers: { cookie } }),
+    ["admin", "orders"],
+    db,
+  );
+  assert.equal(cross.status, 401);
+  const input = { name: "HTTP customer", phone: "0900000000" };
+  for (const [site, token, status] of [
+    ["https://evil.invalid", value.data.csrfToken, 403],
+    [origin, "bad", 403],
+    [origin, value.data.csrfToken, 200],
+  ] as const) {
+    const res = await handleRentalRequest(
+      new Request(origin + "/api/v1/me/profile", {
+        method: "PATCH",
+        headers: {
+          cookie,
+          origin: site,
+          "Content-Type": "application/json",
+          "X-CSRF-Token": token,
+        },
+        body: JSON.stringify(input),
+      }),
+      ["me", "profile"],
+      db,
+    );
+    assert.equal(res.status, status);
+  }
+  assert.equal(
+    (
+      await handleRentalRequest(
+        new Request(origin + "/api/v1/me/profile"),
+        ["me", "profile"],
+        db,
+      )
+    ).status,
+    405,
+  );
+  assert.equal(
+    (
+      await handleRentalRequest(
+        new Request(origin + "/api/v1/unknown"),
+        ["unknown"],
+        db,
+      )
+    ).status,
+    404,
+  );
+  const context = await sessionContext(db, get, "customer");
+  assert.equal(context.principal?.scope, "customer");
+});
+
+test("review photos stay private until completed owner review, consent and moderation", async () => {
+  let order = await book(customer, "p", {
+    pickupDate: "2030-11-01",
+    returnDate: "2030-11-02",
+  });
+  for (const status of [
+    "confirmed",
+    "renting",
+    "returned",
+    "completed",
+  ] as const)
+    order = await transition(order, status);
+  const origin = process.env.APP_ORIGIN ?? "";
+  const cookie = `${tokenCookie("customer")}=customer-fixture-token`;
+  const session = await handleRentalRequest(
+    new Request(origin + "/api/v1/session", { headers: { cookie } }),
+    ["session"],
+    db,
+  );
+  const csrf = (await session.json()).data.csrfToken as string;
+  const bytes = await sharp({
+    create: { width: 12, height: 12, channels: 3, background: "#e7adc2" },
+  })
+    .png()
+    .toBuffer();
+  const uploaded = await uploadMedia(
+    new Request(origin + "/api/v1/me/reviews/media", {
+      method: "POST",
+      headers: {
+        cookie,
+        origin,
+        "x-csrf-token": csrf,
+        "x-order-id": order.id,
+        "content-type": "image/png",
+      },
+      body: bytes,
+    }),
+    db,
+  );
+  assert.equal(uploaded.status, 201);
+  const id = (await uploaded.json()).data.id as string;
+  assert.equal(
+    (await readMedia(new Request(origin + "/media/" + id), id, db)).status,
+    404,
+  );
+  assert.equal(
+    (
+      await readMedia(
+        new Request(origin + "/media/" + id, { headers: { cookie } }),
+        id,
+        db,
+      )
+    ).status,
+    200,
+  );
+  const review = await createServiceApi(db, customer).call("reviews.create", {
+    idempotencyKey: key(),
+    orderId: order.id,
+    rating: 5,
+    story: "Ảnh thực tế",
+    consentToPublish: true,
+    mediaIds: [id],
+  });
+  assert.equal(review.moderation, "pending");
+  assert.equal(
+    (await readMedia(new Request(origin + "/media/" + id), id, db)).status,
+    404,
+  );
+  await assert.rejects(
+    createServiceApi(db, other).call("reviews.create", {
+      idempotencyKey: key(),
+      orderId: order.id,
+      rating: 5,
+      story: "Foreign",
+      consentToPublish: true,
+      mediaIds: [],
+    }),
+    rejects("NOT_FOUND"),
+  );
+  await createServiceApi(db, admin).call("admin.reviews.moderate", {
+    idempotencyKey: key(),
+    id: review.id,
+    version: review.version,
+    decision: "approved",
+    note: "Verified fixture",
+  });
+  const publicPhoto = await readMedia(
+    new Request(origin + "/media/" + id),
+    id,
+    db,
+  );
+  assert.equal(publicPhoto.status, 200);
+  assert.equal(publicPhoto.headers.get("content-type"), "image/webp");
+  assert.match(publicPhoto.headers.get("cache-control") ?? "", /no-store/);
+});
+
+test("published catalog projects customer fields and media ownership remains isolated", async () => {
+  const a = createServiceApi(db, admin);
+  const managed = (await a.call("admin.products.list", undefined)).find(
+    (p) => p.slug === "p",
+  );
+  assert.ok(managed);
+  const customerProduct = await createServiceApi(db, customer).call(
+    "catalog.get",
+    { slug: "p" },
+  );
+  assert.equal("quantity" in customerProduct, false);
+  assert.equal("version" in customerProduct, false);
+  assert.equal("visibility" in customerProduct, false);
+  const saved = await a.call("admin.products.save", {
+    idempotencyKey: key(),
+    product: { ...managed, visibility: "draft" },
+  });
+  assert.equal(saved.visibility, "draft");
+  await assert.rejects(
+    createServiceApi(db, customer).call("catalog.get", { slug: "p" }),
+    rejects("NOT_FOUND"),
+  );
+  await a.call("admin.products.save", {
+    idempotencyKey: key(),
+    product: { ...saved, visibility: "published" },
+  });
+});

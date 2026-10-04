@@ -1,4 +1,5 @@
 "use client";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import { useState, type ComponentProps } from "react";
 import { usePathname } from "next/navigation";
@@ -13,46 +14,75 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Link from "next/link";
-import { Heart, Menu, Shirt, ShoppingBag, X } from "lucide-react";
+import {
+  Heart,
+  Menu,
+  Shirt,
+  ShoppingBag,
+  UserRound,
+  X,
+  CalendarDays,
+} from "lucide-react";
+import { LanguageSwitch } from "@/components/store/language-provider";
+import { AccountNavigation } from "@/components/store/account-navigation";
+import { ContactOptions } from "@/components/store/contact-options";
 import { BagCount } from "@/components/store/selection-actions";
 
 const navigation = [
-  { label: "Explore looks", href: "/products" },
-  { label: "Collections", href: "/collections" },
-  { label: "Lookbook", href: "/lookbook" },
-  { label: "Feedback", href: "/feedback" },
+  { label: "Home", href: "/" },
+  { label: "Rent clothing", href: "/products" },
+  { label: "Rent accessories", href: "/accessories" },
+  { label: "Check available dates", href: "/availability" },
+  { label: "Size & rental guide", href: "/rental-guide" },
+  { label: "Your bookings", href: "/account/orders" },
 ];
 
 export function SiteHeader() {
+  const { t } = useLanguage();
   return (
     <>
       <header className="home-header">
         <div className="home-container home-header-inner">
-          <Link href="/" className="home-brand" aria-label="Rental Store home">
+          <Link
+            href="/"
+            className="home-brand"
+            aria-label={t("Rental Store home")}
+          >
             <span className="home-brand-icon">
               <Shirt aria-hidden="true" />
             </span>
-            <span>RENTAL STORE</span>
+            <span>
+              RENTAL STORE<small>FASHION & ACCESSORIES</small>
+            </span>
           </Link>
-          <nav className="home-desktop-nav" aria-label="Main navigation">
+          <nav className="home-desktop-nav" aria-label={t("Main navigation")}>
             {navigation.map((item) => (
               <NavLink key={item.href} href={item.href}>
-                {item.label}
+                <T>{item.label}</T>
               </NavLink>
             ))}
           </nav>
           <div className="home-header-actions">
+            <ContactOptions className="home-header-advice" />
+            <LanguageSwitch />
+            <NavLink
+              href="/account"
+              className="home-icon-link"
+              aria-label={t("Your account")}
+            >
+              <UserRound aria-hidden="true" />
+            </NavLink>
             <NavLink
               href="/wishlist"
               className="home-icon-link home-wishlist-link"
-              aria-label="Wishlist"
+              aria-label={t("Wishlist")}
             >
               <Heart aria-hidden="true" />
             </NavLink>
             <NavLink
               href="/cart"
               className="home-icon-link home-bag-link"
-              aria-label="Rental bag"
+              aria-label={t("Rental bag")}
             >
               <ShoppingBag aria-hidden="true" />
               <BagCount />
@@ -60,6 +90,7 @@ export function SiteHeader() {
           </div>
         </div>
       </header>
+      <AccountNavigation />
       <MobileNav />
     </>
   );
@@ -79,31 +110,36 @@ function NavLink({
 
 const mobileLinks = [
   { label: "Looks", href: "/products", icon: Shirt },
-  { label: "Saved", href: "/wishlist", icon: Heart },
-  { label: "Bag", href: "/cart", icon: ShoppingBag },
+  { label: "Available dates", href: "/availability", icon: CalendarDays },
+  { label: "Your bookings", href: "/account/orders", icon: UserRound },
 ];
 
 function MobileNav() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <nav className="home-mobile-nav" aria-label="Mobile navigation">
+      <nav className="home-mobile-nav" aria-label={t("Mobile navigation")}>
         <div className="home-mobile-bar">
           {mobileLinks.map(({ label, href, icon: Icon }) => (
             <NavLink key={href} href={href}>
               <Icon aria-hidden="true" />
-              <span>{label}</span>
+              <span>
+                <T>{label}</T>
+              </span>
             </NavLink>
           ))}
           <SheetTrigger asChild>
             <Button
               variant="ghost"
               className="home-mobile-menu"
-              aria-label="Open navigation menu"
+              aria-label={t("Open navigation menu")}
             >
               <Menu aria-hidden="true" />
-              <span>Menu</span>
+              <span>
+                <T>{"Menu"}</T>
+              </span>
             </Button>
           </SheetTrigger>
         </div>
@@ -115,29 +151,49 @@ function MobileNav() {
       >
         <SheetHeader className="p-0 pr-12">
           <SheetTitle className="font-bold">Rental Store</SheetTitle>
-          <SheetDescription>Find your next look.</SheetDescription>
+          <SheetDescription>
+            <T>{"Find your next look."}</T>
+          </SheetDescription>
         </SheetHeader>
         <SheetClose asChild>
           <Button
             variant="ghost"
             size="icon"
             className="absolute right-3 top-3 size-11"
-            aria-label="Close navigation menu"
+            aria-label={t("Close navigation menu")}
           >
             <X aria-hidden="true" />
           </Button>
         </SheetClose>
-        <nav className="home-sheet-links" aria-label="More navigation">
+        <nav className="home-sheet-links" aria-label={t("More navigation")}>
+          <NavLink href="/account" onClick={() => setOpen(false)}>
+            <T>{"Your account"}</T>
+          </NavLink>
           {navigation.map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
             >
-              {item.label}
+              <T>{item.label}</T>
+            </NavLink>
+          ))}
+          {[
+            { href: "/wishlist", label: "Saved" },
+            { href: "/collections", label: "Collections" },
+            { href: "/lookbook", label: "Lookbook" },
+            { href: "/feedback", label: "Feedback" },
+          ].map((item) => (
+            <NavLink
+              key={item.href}
+              href={item.href}
+              onClick={() => setOpen(false)}
+            >
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
+        <ContactOptions />
       </SheetContent>
     </Sheet>
   );

@@ -1,4 +1,5 @@
 "use client";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import { FashionImage } from "@/components/ui/fashion-image";
 import { Expand, X } from "lucide-react";
@@ -23,6 +24,7 @@ export function ProductGallery({
   alt: string;
   name: string;
 }) {
+  const { t } = useLanguage();
   return (
     <Sheet>
       <figure className="store-detail-photo">
@@ -37,13 +39,15 @@ export function ProductGallery({
           <Button
             variant="outline"
             className="store-image-expand"
-            aria-label={`View full image of ${name}`}
+            aria-label={t("View full image of {name}", { name })}
           >
             <Expand aria-hidden="true" />
-            View full image
+            <T>{"View full image"}</T>
           </Button>
         </SheetTrigger>
-        <figcaption>Styling inspiration · 1 temporary image</figcaption>
+        <figcaption>
+          <T>{"Styling inspiration · 1 temporary image"}</T>
+        </figcaption>
       </figure>
       <SheetContent
         side="bottom"
@@ -53,14 +57,16 @@ export function ProductGallery({
         <SheetHeader className="pr-16">
           <SheetTitle>{name}</SheetTitle>
           <SheetDescription>
-            Editorial inspiration, not confirmed inventory photography.
+            <T>
+              {"Editorial inspiration, not confirmed inventory photography."}
+            </T>
           </SheetDescription>
         </SheetHeader>
         <SheetClose asChild>
           <Button
             variant="ghost"
             className="absolute right-3 top-3 size-11"
-            aria-label="Close image"
+            aria-label={t("Close image")}
           >
             <X aria-hidden="true" />
           </Button>

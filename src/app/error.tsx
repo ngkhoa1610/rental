@@ -1,4 +1,5 @@
 "use client";
+import { T } from "@/components/store/language-provider";
 
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -16,16 +17,22 @@ export default function ErrorPage({
     <div className="landing-page">
       <SiteHeader />
       <main className="home-container home-recovery">
-        <h1>A small interruption.</h1>
+        <h1>
+          <T>{"A small interruption."}</T>
+        </h1>
         <p>
-          We couldn’t load this page. Try again, or head back to the collection.
+          <T>
+            {
+              "We couldn’t load this page. Try again, or head back to the collection."
+            }
+          </T>
         </p>
         <div className="home-actions">
           <Button type="button" className="home-cta" onClick={retry}>
-            Try again
+            <T>{"Try again"}</T>
           </Button>
           <Link href="/products" className="home-cta-ghost">
-            Explore looks
+            <T>{"Explore looks"}</T>
           </Link>
         </div>
       </main>

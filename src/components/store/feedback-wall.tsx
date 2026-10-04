@@ -1,4 +1,5 @@
 "use client";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import { useRef, useState } from "react";
 import {
@@ -36,6 +37,7 @@ import {
 const emptyDraft: FeedbackDraft = { name: "", quote: "", rating: "5" };
 
 export function FeedbackWall() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(emptyDraft);
   const [preview, setPreview] = useState<Feedback | null>(null);
@@ -47,19 +49,22 @@ export function FeedbackWall() {
     <div className="feedback-page">
       <header className="feedback-hero">
         <div className="feedback-kicker">
-          <span aria-hidden="true" /> THE FEEDBACK WALL / VOL. 01
+          <span aria-hidden="true" />
+          <T>{"THE FEEDBACK WALL / VOL. 01"}</T>
         </div>
         <h1>
-          Good looks.
+          <T>{"Good looks."}</T>
           <br />
-          <span>Great stories.</span>
+          <span>
+            <T>{"Great stories."}</T>
+          </span>
           <Sparkles aria-hidden="true" />
         </h1>
         <div className="feedback-hero-bottom">
           <p>
-            The outfit is only half the story.
+            <T>{"The outfit is only half the story."}</T>
             <br />
-            The rest? That’s all you.
+            <T>{"The rest? That’s all you."}</T>
           </p>
           <Sheet
             open={open}
@@ -70,7 +75,8 @@ export function FeedbackWall() {
           >
             <SheetTrigger asChild>
               <Button className="feedback-write">
-                <Plus aria-hidden="true" /> Your words belong here
+                <Plus aria-hidden="true" />
+                <T>{"Your words belong here"}</T>
               </Button>
             </SheetTrigger>
             <SheetContent
@@ -86,11 +92,14 @@ export function FeedbackWall() {
             >
               <SheetHeader className="p-0 pr-8">
                 <SheetTitle className="text-2xl font-bold">
-                  Tell your outfit story.
+                  <T>{"Tell your outfit story."}</T>
                 </SheetTitle>
                 <SheetDescription>
-                  Create a private preview, then share your words. Nothing is
-                  posted publicly. Reloading this page clears your draft.
+                  <T>
+                    {
+                      "Create a private preview, then share your words. Nothing is posted publicly. Reloading this page clears your draft."
+                    }
+                  </T>
                 </SheetDescription>
               </SheetHeader>
               <form
@@ -114,7 +123,7 @@ export function FeedbackWall() {
                 }}
               >
                 <label htmlFor="feedback-name">
-                  Your name
+                  <T>{"Your name"}</T>
                   <input
                     id="feedback-name"
                     autoComplete="given-name"
@@ -127,7 +136,9 @@ export function FeedbackWall() {
                   />
                 </label>
                 <fieldset>
-                  <legend>Your rating</legend>
+                  <legend>
+                    <T>{"Your rating"}</T>
+                  </legend>
                   <div className="feedback-rating-input">
                     {[1, 2, 3, 4, 5].map((rating) => (
                       <label key={rating}>
@@ -143,14 +154,16 @@ export function FeedbackWall() {
                         <span>
                           {rating}
                           <Star aria-hidden="true" />
-                          <span className="sr-only"> out of 5 stars</span>
+                          <span className="sr-only">
+                            <T>{"out of 5 stars"}</T>
+                          </span>
                         </span>
                       </label>
                     ))}
                   </div>
                 </fieldset>
                 <label htmlFor="feedback-quote">
-                  Your story
+                  <T>{"Your story"}</T>
                   <textarea
                     id="feedback-quote"
                     value={draft.quote}
@@ -162,26 +175,33 @@ export function FeedbackWall() {
                     onChange={(event) =>
                       setDraft({ ...draft, quote: event.target.value })
                     }
-                    placeholder="The little details. The big feelings. The honest bits."
+                    placeholder={t(
+                      "The little details. The big feelings. The honest bits.",
+                    )}
                   />
                 </label>
                 <p id="feedback-count" className="feedback-form-hint">
-                  {draft.quote.length}/500 · Please leave out private contact or
-                  booking details.
+                  {draft.quote.length}
+                  <T>
+                    {
+                      "/500 · Please leave out private contact or booking details."
+                    }
+                  </T>
                 </p>
                 {error && (
                   <p role="alert" className="feedback-form-error">
-                    {error}
+                    <T>{error}</T>
                   </p>
                 )}
                 <div className="feedback-form-actions">
                   <SheetClose asChild>
                     <Button variant="outline" type="button">
-                      Keep editing later
+                      <T>{"Keep editing later"}</T>
                     </Button>
                   </SheetClose>
                   <Button type="submit">
-                    Preview my feedback <ArrowUpRight aria-hidden="true" />
+                    <T>{"Preview my feedback "}</T>
+                    <ArrowUpRight aria-hidden="true" />
                   </Button>
                 </div>
               </form>
@@ -189,9 +209,9 @@ export function FeedbackWall() {
           </Sheet>
         </div>
         <span className="feedback-sticker" aria-hidden="true">
-          a little
+          <T>{"a little"}</T>
           <br />
-          outspoken ✳
+          <T>{"outspoken ✳"}</T>
         </span>
       </header>
 
@@ -201,11 +221,14 @@ export function FeedbackWall() {
           aria-labelledby="feedback-preview-heading"
         >
           <h2 id="feedback-preview-heading" ref={previewHeading} tabIndex={-1}>
-            Your private preview
+            <T>{"Your private preview"}</T>
           </h2>
           <p>
-            Only visible here until you leave or reload. Share it when you’re
-            ready; this does not publish it to the wall.
+            <T>
+              {
+                "Only visible here until you leave or reload. Share it when you’re ready; this does not publish it to the wall."
+              }
+            </T>
           </p>
           <FeedbackCard feedback={preview} sample={false} />
         </section>
@@ -213,17 +236,20 @@ export function FeedbackWall() {
 
       <div className="feedback-wall-heading">
         <h2>
-          A little love. A lot of personality.{" "}
+          <T>{"A little love. A lot of personality."}</T>{" "}
           <ArrowDownRight aria-hidden="true" />
         </h2>
         <p>
-          Design preview · All stories below are illustrative, not verified
-          customer reviews. Photos are styling images.
+          <T>
+            {
+              "Design preview · All stories below are illustrative, not verified customer reviews. Photos are styling images."
+            }
+          </T>
         </p>
       </div>
       <section
         className="feedback-grid"
-        aria-label="Illustrative feedback stories"
+        aria-label={t("Illustrative feedback stories")}
       >
         {sampleFeedback.map((feedback, index) => (
           <ScrollReveal
@@ -239,11 +265,15 @@ export function FeedbackWall() {
         <aside className="feedback-outro">
           <MessageCircle aria-hidden="true" />
           <p>
-            Big feelings.
+            <T>{"Big feelings."}</T>
             <br />
-            <strong>No perfect words required.</strong>
+            <strong>
+              <T>{"No perfect words required."}</T>
+            </strong>
           </p>
-          <span>THE GOOD. THE COULD-BE-BETTER. ALL OF IT.</span>
+          <span>
+            <T>{"THE GOOD. THE COULD-BE-BETTER. ALL OF IT."}</T>
+          </span>
         </aside>
       </ScrollReveal>
     </div>
@@ -257,13 +287,19 @@ function FeedbackCard({
   feedback: Feedback;
   sample: boolean;
 }) {
+  const { t } = useLanguage();
   const product = feedback.productSlug
     ? getProduct(feedback.productSlug)
     : undefined;
   return (
     <article
       className={`feedback-card feedback-card-${feedback.tone}${product ? " feedback-card-with-photo" : ""}`}
-      aria-label={`${sample ? "Illustrative feedback" : "Private feedback preview"} by ${feedback.name}`}
+      aria-label={t(
+        sample
+          ? "Illustrative feedback by {name}"
+          : "Private feedback preview by {name}",
+        { name: feedback.name },
+      )}
     >
       {product && (
         <div className="feedback-photo">
@@ -277,10 +313,14 @@ function FeedbackCard({
       )}
       <div className="feedback-card-content">
         <div className="feedback-card-top">
-          <span>{sample ? "SAMPLE STORY" : "PRIVATE PREVIEW"}</span>
+          <span>
+            <T>{sample ? "SAMPLE STORY" : "PRIVATE PREVIEW"}</T>
+          </span>
           <span
             className="feedback-stars"
-            aria-label={`${feedback.rating} out of 5 stars`}
+            aria-label={t("{rating} out of 5 stars", {
+              rating: feedback.rating,
+            })}
           >
             {Array.from({ length: 5 }, (_, index) => (
               <Star
@@ -292,7 +332,7 @@ function FeedbackCard({
           </span>
         </div>
         <blockquote>
-          <p>“{feedback.quote}”</p>
+          <p>“{sample ? t(feedback.quote) : feedback.quote}”</p>
         </blockquote>
         <footer>
           <div>
@@ -300,7 +340,9 @@ function FeedbackCard({
               {feedback.name}
               <span aria-hidden="true"> ↗</span>
             </span>
-            <span className="feedback-occasion">{feedback.occasion}</span>
+            <span className="feedback-occasion">
+              <T>{feedback.occasion}</T>
+            </span>
           </div>
           <FeedbackShare
             key={`${feedback.name}:${feedback.rating}:${feedback.quote}`}
@@ -320,12 +362,21 @@ function FeedbackShare({
   feedback: Feedback;
   sample: boolean;
 }) {
+  const { t } = useLanguage();
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [manualText, setManualText] = useState("");
   const copyField = useRef<HTMLTextAreaElement>(null);
   async function share() {
-    const text = feedbackShareText(feedback, sample);
+    const text = feedbackShareText(
+      { ...feedback, quote: sample ? t(feedback.quote) : feedback.quote },
+      sample,
+      t(
+        sample
+          ? "Illustrative feedback — not a verified customer review"
+          : "My feedback draft — not published on Rental Store",
+      ),
+    );
     setBusy(true);
     setStatus("");
     setManualText("");
@@ -333,7 +384,7 @@ function FeedbackShare({
       if (navigator.share) {
         try {
           await navigator.share({
-            title: "An outfit story — Rental Store",
+            title: t("An outfit story — Rental Store"),
             text,
           });
           setStatus("Share request completed.");
@@ -368,19 +419,27 @@ function FeedbackShare({
         type="button"
         onClick={share}
         disabled={busy}
-        aria-label={`Share ${sample ? "illustrative feedback" : "private feedback"} by ${feedback.name}`}
+        aria-label={t(
+          sample
+            ? "Share illustrative feedback by {name}"
+            : "Share private feedback by {name}",
+          { name: feedback.name },
+        )}
       >
         {status.startsWith("Feedback copied") ? (
           <Check aria-hidden="true" />
         ) : (
           <Share2 aria-hidden="true" />
         )}
-        {busy ? "Sharing…" : "Share"}
+        <T>{busy ? "Sharing…" : "Share"}</T>
       </button>
-      <p role="status">{status}</p>
+      <p role="status">
+        <T>{status}</T>
+      </p>
       {manualText && (
         <label className="feedback-manual-copy">
-          <Copy aria-hidden="true" /> Text to copy
+          <Copy aria-hidden="true" />
+          <T>{"Text to copy"}</T>
           <textarea ref={copyField} readOnly value={manualText} rows={5} />
         </label>
       )}

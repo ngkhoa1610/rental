@@ -1,20 +1,23 @@
 "use client";
+import { useCatalogData } from "./catalog-data";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import { useRef } from "react";
 import { EmptyState } from "@/components/store/page-heading";
 import { ProductCard } from "@/components/store/product-card";
 import { useSelection } from "@/components/store/selection-provider";
-import { products } from "@/lib/catalog";
 import { selectedProducts } from "@/lib/rental-selection";
 
 export function SavedLooks() {
+  const { t } = useLanguage();
+  const { products } = useCatalogData();
   const region = useRef<HTMLDivElement>(null);
   const { selection, ready } = useSelection();
   const saved = selectedProducts(products, selection.wishlist);
   if (!ready)
     return (
       <p className="store-selection-loading" role="status">
-        Loading your saved looks…
+        <T>{"Loading your saved looks…"}</T>
       </p>
     );
 
@@ -23,12 +26,15 @@ export function SavedLooks() {
       ref={region}
       tabIndex={-1}
       className="store-selection-region"
-      aria-label="Saved looks"
+      aria-label={t("Saved looks")}
     >
       {saved.length ? (
         <>
           <p className="store-selection-count" role="status">
-            {saved.length} saved {saved.length === 1 ? "look" : "looks"}
+            {t(
+              saved.length === 1 ? "{count} saved look" : "{count} saved looks",
+              { count: saved.length },
+            )}
           </p>
           <div className="store-product-grid">
             {saved.map((product) => (
@@ -43,8 +49,8 @@ export function SavedLooks() {
           </div>
         </>
       ) : (
-        <EmptyState title="Keep the looks you love.">
-          Tap the heart on a look to collect your favourites here.
+        <EmptyState title={t("Keep the looks you love.")}>
+          <T>{"Tap the heart on a look to collect your favourites here."}</T>
         </EmptyState>
       )}
     </div>

@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  distDir: process.env.RENTAL_BUILD_DIR || ".next",
   images: { remotePatterns: [] },
   async headers() {
     return [

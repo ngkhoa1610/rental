@@ -1,3 +1,4 @@
+import { T } from "@/components/store/language-provider";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -12,9 +13,15 @@ export function PageHeading({
 }) {
   return (
     <header className="store-page-heading">
-      <p className="store-overline">{eyebrow}</p>
-      <h1>{title}</h1>
-      <p>{description}</p>
+      <p className="store-overline">
+        <T>{eyebrow}</T>
+      </p>
+      <h1>
+        <T>{title}</T>
+      </h1>
+      <p>
+        <T>{description}</T>
+      </p>
     </header>
   );
 }
@@ -34,11 +41,13 @@ export function EmptyState({
 }) {
   return (
     <div className="store-empty">
-      <h2>{title}</h2>
+      <h2>
+        <T>{title}</T>
+      </h2>
       <p>{children}</p>
       {showAction && (
         <Link href={href} className="home-cta">
-          {label}
+          <T>{label}</T>
         </Link>
       )}
     </div>

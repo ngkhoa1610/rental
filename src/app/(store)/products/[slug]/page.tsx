@@ -1,4 +1,12 @@
+import {
+  storeProduct,
+  storeProducts,
+  isLiveStore,
+} from "@/server/rental/storefront";
+import { T } from "@/components/store/language-provider";
 import type { Metadata } from "next";
+import { ProductBooking } from "@/components/store/product-booking";
+import { ContactOptions } from "@/components/store/contact-options";
 import { ProductGallery } from "@/components/store/product-gallery";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import Link from "next/link";
@@ -8,18 +16,14 @@ import {
   WishlistButton,
 } from "@/components/store/selection-actions";
 import { ProductCard } from "@/components/store/product-card";
-import { formatPrice, getProduct, products } from "@/lib/catalog";
+import { formatPrice } from "@/lib/catalog";
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return products.map(({ slug }) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/products/[slug]">): Promise<Metadata> {
-  const product = getProduct((await params).slug);
+  const product = await storeProduct((await params).slug);
   return product
     ? {
         title: `${product.name} — Rental Store`,
@@ -31,13 +35,16 @@ export async function generateMetadata({
 export default async function ProductPage({
   params,
 }: PageProps<"/products/[slug]">) {
-  const product = getProduct((await params).slug);
+  const product = await storeProduct((await params).slug);
   if (!product) notFound();
+  const products = await storeProducts();
 
   return (
     <>
       <nav className="store-breadcrumb" aria-label="Breadcrumb">
-        <Link href="/products">All looks</Link>
+        <Link href="/products">
+          <T>{"All looks"}</T>
+        </Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
       </nav>
@@ -48,72 +55,131 @@ export default async function ProductPage({
           name={product.name}
         />
         <section className="store-detail-copy" aria-labelledby="product-name">
-          <p className="store-overline">{product.collection}</p>
+          <p className="store-overline">
+            <T>{product.collection}</T>
+          </p>
           <h1 id="product-name">{product.name}</h1>
           <p className="store-detail-price">
             {formatPrice(product.price)}
-            <span>/ {product.rentalDays} days · sample price</span>
+            <span>
+              / {product.rentalDays}
+              <T>{isLiveStore() ? " days" : " days · sample price"}</T>
+            </span>
           </p>
-          <p>{product.description}</p>
+          <p>
+            <T>{product.description}</T>
+          </p>
           <ul className="store-tags" aria-label="Occasions">
             {product.occasions.map((occasion) => (
               <li key={occasion}>
-                <span>{occasion}</span>
+                <span>
+                  <T>{occasion}</T>
+                </span>
               </li>
             ))}
           </ul>
+          <ProductBooking product={product} />
           <div className="store-detail-actions">
             <AddToBagButton slug={product.slug} name={product.name} />
             <WishlistButton slug={product.slug} name={product.name} />
           </div>
           <dl className="store-product-facts">
             <div>
-              <dt>Category</dt>
-              <dd>{product.category}</dd>
+              <dt>
+                <T>{"Category"}</T>
+              </dt>
+              <dd>
+                <T>{product.category}</T>
+              </dd>
             </div>
             <div>
-              <dt>Sizes & measurements</dt>
-              <dd>To be confirmed</dd>
+              <dt>
+                <T>{"Sizes & measurements"}</T>
+              </dt>
+              <dd>
+                <T>{"To be confirmed"}</T>
+              </dd>
             </div>
             <div>
-              <dt>Availability</dt>
-              <dd>To be confirmed before renting</dd>
+              <dt>
+                <T>{"Availability"}</T>
+              </dt>
+              <dd>
+                <T>{"To be confirmed before renting"}</T>
+              </dd>
             </div>
           </dl>
           <details className="store-info-details">
-            <summary>Fit & measurement guide</summary>
+            <summary>
+              <T>{"Fit & measurement guide"}</T>
+            </summary>
             <p>
-              Compare the garment measurements with a piece you already like
-              wearing. For your body measurements, use a soft tape around the
-              fullest part of your bust, your natural waist and the fullest part
-              of your hips.
+              <T>
+                {
+                  "Compare the garment measurements with a piece you already like wearing. For your body measurements, use a soft tape around the fullest part of your bust, your natural waist and the fullest part of your hips."
+                }
+              </T>
             </p>
             <p>
-              Measurements and size options for this sample have not been
-              supplied. A size recommendation cannot be made yet.
+              <T>
+                {
+                  "Measurements and size options have not been supplied. Ask the store for a size recommendation."
+                }
+              </T>
             </p>
           </details>
           <details className="store-info-details">
-            <summary>Material & care</summary>
+            <summary>
+              <T>{"Material & care"}</T>
+            </summary>
             <p>
-              Fabric composition and care instructions have not been supplied
-              for this sample. Check the garment label and confirmed rental
-              instructions before cleaning or altering a piece.
+              <T>
+                {
+                  "Fabric composition and care instructions have not been supplied. Check the garment label and confirmed rental instructions before cleaning or altering a piece."
+                }
+              </T>
             </p>
           </details>
           <details className="store-info-details" open>
-            <summary>Before making a rental</summary>
+            <summary>
+              <T>{"Before making a rental"}</T>
+            </summary>
             <p>
-              This is a sample look. Sizes, dates, delivery, care and return
-              terms must be confirmed before any booking. Adding it to your bag
-              does not place an order.
+              <T>
+                {isLiveStore()
+                  ? "Check dates and send a rental request. The store confirms the reservation; adding this look to your bag does not place an order."
+                  : "This is a sample look. Sizes, dates, delivery, care and return terms must be confirmed before any booking. Adding it to your bag does not place an order."}
+              </T>
             </p>
           </details>
         </section>
       </div>
+      <section className="store-cross-sell">
+        <div>
+          <p className="store-overline">
+            <T>{"The finishing touches"}</T>
+          </p>
+          <h2>
+            <T>{"Complete your outfit."}</T>
+          </h2>
+          <p>
+            <T>
+              {
+                "Tell the store if you would like a bag, shoes or jewellery. Models, prices and availability will be confirmed separately."
+              }
+            </T>
+          </p>
+        </div>
+        <ContactOptions
+          label="Ask about accessories"
+          message={`Nhờ shop gợi ý phụ kiện phối với ${product.name}.`}
+        />
+      </section>
       <ScrollReveal>
         <section className="store-related" aria-labelledby="related-heading">
-          <h2 id="related-heading">A little more inspiration.</h2>
+          <h2 id="related-heading">
+            <T>{"A little more inspiration."}</T>
+          </h2>
           <div className="store-product-grid">
             {products
               .filter((item) => item.slug !== product.slug)

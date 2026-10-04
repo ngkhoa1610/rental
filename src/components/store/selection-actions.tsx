@@ -1,4 +1,5 @@
 "use client";
+import { T, useLanguage } from "@/components/store/language-provider";
 
 import Link from "next/link";
 import { Heart, ShoppingBag, Check } from "lucide-react";
@@ -12,6 +13,7 @@ interface ProductActionProps {
 }
 
 export function WishlistButton({ slug, name, onRemove }: ProductActionProps) {
+  const { t } = useLanguage();
   const { selection, dispatch, ready } = useSelection();
   const saved = selection.wishlist.includes(slug);
   return (
@@ -19,7 +21,10 @@ export function WishlistButton({ slug, name, onRemove }: ProductActionProps) {
       type="button"
       variant="outline"
       className="store-save-button"
-      aria-label={`${saved ? "Remove" : "Save"} ${name} ${saved ? "from" : "to"} wishlist`}
+      aria-label={t(
+        saved ? "Remove {name} from wishlist" : "Save {name} to wishlist",
+        { name },
+      )}
       aria-pressed={saved}
       disabled={!ready}
       onClick={() => {
@@ -33,6 +38,7 @@ export function WishlistButton({ slug, name, onRemove }: ProductActionProps) {
 }
 
 export function AddToBagButton({ slug, name }: ProductActionProps) {
+  const { t } = useLanguage();
   const { selection, dispatch, ready } = useSelection();
   const added = selection.bag.includes(slug);
   return (
@@ -48,15 +54,19 @@ export function AddToBagButton({ slug, name }: ProductActionProps) {
         ) : (
           <ShoppingBag aria-hidden="true" />
         )}
-        {added ? "In your rental bag" : "Add to rental bag"}
+        <T>{added ? "In your rental bag" : "Add to rental bag"}</T>
       </Button>
       <p className="store-action-feedback" aria-live="polite">
         {added ? (
           <>
-            {name} added. <Link href="/cart">View your bag</Link>
+            {name}
+            <T>{" added. "}</T>
+            <Link href="/cart">
+              <T>{"View your bag"}</T>
+            </Link>
           </>
         ) : (
-          "Save your selection. This does not reserve an item."
+          t("Save your selection. This does not reserve an item.")
         )}
       </p>
     </div>
@@ -64,14 +74,14 @@ export function AddToBagButton({ slug, name }: ProductActionProps) {
 }
 
 export function BagCount() {
+  const { t } = useLanguage();
   const { selection, ready } = useSelection();
   return (
     <span
-      aria-label={
-        ready
-          ? `${selection.bag.length} looks in rental bag`
-          : "Loading rental bag"
-      }
+      aria-label={t(
+        ready ? "{count} looks in rental bag" : "Loading rental bag",
+        { count: selection.bag.length },
+      )}
       className="store-bag-count"
     >
       {ready ? selection.bag.length : "…"}

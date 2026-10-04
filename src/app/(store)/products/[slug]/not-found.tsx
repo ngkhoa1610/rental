@@ -1,3 +1,4 @@
+import { T } from "@/components/store/language-provider";
 import { PageHeading, EmptyState } from "@/components/store/page-heading";
 
 export default function ProductNotFound() {
@@ -8,7 +9,9 @@ export default function ProductNotFound() {
         description="The link may be incorrect or the sample look may have changed."
       />
       <EmptyState title="Find something else worth wearing.">
-        Return to the collection to explore the available sample looks.
+        <T>
+          {"Return to the collection to explore the available sample looks."}
+        </T>
       </EmptyState>
     </>
   );

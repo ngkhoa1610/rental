@@ -1,16 +1,22 @@
+import { CatalogDataProvider } from "@/components/store/catalog-data";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SelectionProvider } from "@/components/store/selection-provider";
+import { LanguageProvider } from "@/components/store/language-provider";
+import {
+  ApiProvider,
+  ApiBackendProvider,
+} from "@/components/store/api-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
 });
 
 export const metadata: Metadata = {
@@ -22,11 +28,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="vi"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SelectionProvider>{children}</SelectionProvider>
+        <LanguageProvider>
+          <ApiBackendProvider>
+            <ApiProvider>
+              <CatalogDataProvider>
+                <SelectionProvider>{children}</SelectionProvider>
+              </CatalogDataProvider>
+            </ApiProvider>
+          </ApiBackendProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
