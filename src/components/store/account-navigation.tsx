@@ -13,7 +13,6 @@ export function AccountNavigation() {
       {[
         ["/account", "Profile"],
         ["/account/orders", "Rental orders"],
-        ["/account/history", "Rental history"],
       ].map(([href, label]) => (
         <Link
           key={href}

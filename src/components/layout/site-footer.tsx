@@ -41,11 +41,6 @@ export function SiteFooter() {
                 <T>{"Explore looks"}</T>
               </Link>
             </li>
-            <li>
-              <Link href="/collections">
-                <T>{"Collections"}</T>
-              </Link>
-            </li>
           </ul>
         </nav>
         <nav aria-label="Rental information">
@@ -66,11 +61,6 @@ export function SiteFooter() {
             <li>
               <Link href="/account/orders">
                 <T>{"Your bookings"}</T>
-              </Link>
-            </li>
-            <li>
-              <Link href="/lookbook">
-                <T>{"Styling inspiration"}</T>
               </Link>
             </li>
             <li>

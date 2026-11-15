@@ -568,7 +568,6 @@ export function createMockApi(
         const orderId = `sample-order-${index + 1}`;
         const terminal = ["completed", "cancelled"].includes(status);
         const amount = product.price;
-        const paid = status === "completed";
         const order: RentalOrder = {
           id: orderId,
           customerId: profiles.customer.id,
@@ -591,25 +590,6 @@ export function createMockApi(
           status,
           version: 1,
           createdAt: timestamp(),
-          payment: {
-            due: amount,
-            collected: paid ? amount : 0,
-            refunded: 0,
-            remaining: paid ? 0 : amount,
-            status: paid ? "paid" : "unpaid",
-          },
-          payments: paid
-            ? [
-                {
-                  id: `sample-payment-${index}`,
-                  kind: "collection",
-                  amount,
-                  occurredAt: timestamp(),
-                  note: "Sample cash collection",
-                  actorId: profiles.admin.id,
-                },
-              ]
-            : [],
           changes: [],
           history: [
             {
@@ -622,15 +602,6 @@ export function createMockApi(
         };
         orders.set(orderId, order);
       }
-      content.set("sample-lookbook", {
-        id: "sample-lookbook",
-        kind: "lookbook",
-        title: "A gentle weekend",
-        body: "Sample styling notes for the admin editor.",
-        productSlugs: ["luna-set"],
-        visibility: "draft",
-        version: 1,
-      });
       for (const [index, consent] of [true, false].entries())
         reviews.set(`sample-review-${index + 1}`, {
           id: `sample-review-${index + 1}`,
@@ -823,14 +794,6 @@ export function createMockApi(
             status: "pending",
             version: 1,
             createdAt: timestamp(),
-            payment: {
-              due: quote.total,
-              collected: 0,
-              refunded: 0,
-              remaining: quote.total,
-              status: "unpaid",
-            },
-            payments: [],
             changes: [],
             history: [
               {
@@ -856,6 +819,7 @@ export function createMockApi(
           input,
           "orders.change",
           (order) => {
+            order.changes ??= [];
             if (!["pending", "confirmed"].includes(order.status))
               throw new ApiError(
                 "CONFLICT",
@@ -899,7 +863,9 @@ export function createMockApi(
               "CONFLICT",
               "That status transition is not allowed.",
             );
-          if (order.changes.some((change) => change.status === "pending"))
+          if (
+            (order.changes ?? []).some((change) => change.status === "pending")
+          )
             throw new ApiError(
               "CONFLICT",
               "Resolve the pending change request first.",
@@ -914,7 +880,7 @@ export function createMockApi(
         }),
       "admin.orders.resolve": (input) =>
         modify(input, "admin.orders.resolve", (order) => {
-          const change = order.changes.find(
+          const change = (order.changes ?? []).find(
             (entry) => entry.id === input.changeId,
           );
           if (
@@ -963,6 +929,12 @@ export function createMockApi(
                 "Enter a valid transaction time that is not in the future.",
               );
             const payment = order.payment;
+            if (!payment) {
+              throw new ApiError(
+                "NOT_FOUND",
+                "Payment tracking is outside this app's scope.",
+              );
+            }
             if (
               input.kind === "refund" &&
               input.amount > payment.collected - payment.refunded
@@ -990,7 +962,7 @@ export function createMockApi(
                 : payment.collected === payment.refunded
                   ? "unpaid"
                   : "partial";
-            order.payments.push({
+            (order.payments ??= []).push({
               id: id("payment"),
               kind: input.kind,
               amount: input.amount,

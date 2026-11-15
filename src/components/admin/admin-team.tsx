@@ -82,7 +82,7 @@ function MemberEditor({
                     value={p}
                     defaultChecked={member.permissions.includes(p)}
                   />
-                  {t(permissionLabels[p])}
+                  {t(permissionLabels[p] ?? p)}
                 </label>
               ))}
           </fieldset>

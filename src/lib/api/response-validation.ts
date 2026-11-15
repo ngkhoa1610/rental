@@ -70,25 +70,27 @@ const order = (value: unknown) =>
   record(value.contact) &&
   fields(value.contact, ["name", "phone"]) &&
   list(value.lines, line) &&
-  payment(value.payment) &&
+  (value.payment === undefined || payment(value.payment)) &&
   (value.review === undefined || review(value.review)) &&
-  list(
-    value.payments,
-    (entry) =>
-      record(entry) &&
-      fields(entry, ["id", "occurredAt", "note", "actorId"]) &&
-      ["collection", "refund"].includes(String(entry.kind)) &&
-      money(entry.amount),
-  ) &&
-  list(
-    value.changes,
-    (entry) =>
-      record(entry) &&
-      fields(entry, ["id", "reason"]) &&
-      dates(entry) &&
-      ["dates", "cancel"].includes(String(entry.kind)) &&
-      ["pending", "accepted", "rejected"].includes(String(entry.status)),
-  ) &&
+  (value.payments === undefined ||
+    list(
+      value.payments,
+      (entry) =>
+        record(entry) &&
+        fields(entry, ["id", "occurredAt", "note", "actorId"]) &&
+        ["collection", "refund"].includes(String(entry.kind)) &&
+        money(entry.amount),
+    )) &&
+  (value.changes === undefined ||
+    list(
+      value.changes,
+      (entry) =>
+        record(entry) &&
+        fields(entry, ["id", "reason"]) &&
+        dates(entry) &&
+        ["dates", "cancel"].includes(String(entry.kind)) &&
+        ["pending", "accepted", "rejected"].includes(String(entry.status)),
+    )) &&
   list(
     value.history,
     (entry) =>

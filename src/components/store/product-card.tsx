@@ -14,7 +14,6 @@ export function ProductCard({
   onUnsave?: () => void;
   availability?: string;
 }) {
-  const live = process.env.NEXT_PUBLIC_RENTAL_API_MODE === "http";
   return (
     <ScrollReveal>
       <article className="store-product-card">
@@ -36,9 +35,6 @@ export function ProductCard({
             name={product.name}
             onRemove={onUnsave}
           />
-          <span className="store-image-label">
-            <T>{live ? "Rental look" : "Sample look"}</T>
-          </span>
         </div>
         <div className="store-card-meta">
           <div>
@@ -53,22 +49,17 @@ export function ProductCard({
             <strong>{formatPrice(product.price)}</strong>
             <span>
               / {product.rentalDays}
-              <T>{live ? " days" : " days · sample"}</T>
+              <T>{" days"}</T>
             </span>
           </p>
         </div>
         <div className="store-card-booking">
-          <p
-            className={
-              availability ? "store-card-status available" : "store-card-status"
-            }
-          >
-            <T>{availability || "Choose dates to check"}</T>
-          </p>
+          {availability && (
+            <p className="store-card-status available">
+              <T>{availability}</T>
+            </p>
+          )}
           <div>
-            <span>
-              <T>{"Fit advice available"}</T>
-            </span>
             <Link
               href={`/products/${product.slug}`}
               className="store-text-link"

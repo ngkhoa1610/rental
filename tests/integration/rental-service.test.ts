@@ -37,11 +37,9 @@ before(async () => {
       isOwner: true,
       permissions: [
         "orders_manage",
-        "payments_write",
         "catalog_manage",
         "availability_manage",
         "customers_read",
-        "content_manage",
         "reviews_moderate",
         "staff_manage",
       ],
@@ -157,7 +155,7 @@ test("runtime validation rejects unknown privilege fields, invalid dates and dup
     rejects("POLICY_REQUIRED"),
   );
 });
-test("owned quote creates pending/unpaid snapshot; replay and foreign access are safe", async () => {
+test("owned quote creates a pending order snapshot; replay and foreign access are safe", async () => {
   const api = createServiceApi(db, customer);
   const q = await api.call("availability.quote", {
     ...range,
@@ -170,7 +168,7 @@ test("owned quote creates pending/unpaid snapshot; replay and foreign access are
   );
   const order = await api.call("orders.create", input);
   assert.equal(order.status, "pending");
-  assert.equal(order.payment.status, "unpaid");
+  assert.ok(!("payment" in order));
   assert.equal((await api.call("orders.create", input)).id, order.id);
   await assert.rejects(
     api.call("orders.create", { ...input, notes: "Different" }),
@@ -218,98 +216,6 @@ test("competing approvals cannot reserve the same last item", async () => {
     1,
   );
 });
-test("change/resolve, stale version and state graph preserve payment", async () => {
-  let o = await book(customer, "p", {
-    pickupDate: "2030-07-01",
-    returnDate: "2030-07-02",
-  });
-  const c = createServiceApi(db, customer),
-    a = createServiceApi(db, admin);
-  o = await c.call("orders.change", {
-    idempotencyKey: key(),
-    orderId: o.id,
-    version: o.version,
-    kind: "dates",
-    dates: { pickupDate: "2030-07-04", returnDate: "2030-07-05" },
-    reason: "Move",
-  });
-  await assert.rejects(transition(o, "confirmed"), rejects("CONFLICT"));
-  o = await a.call("admin.orders.resolve", {
-    idempotencyKey: key(),
-    orderId: o.id,
-    version: o.version,
-    changeId: o.changes[0].id,
-    decision: "accepted",
-    note: "Available",
-  });
-  assert.equal(o.pickupDate, "2030-07-04");
-  await assert.rejects(
-    a.call("admin.orders.transition", {
-      idempotencyKey: key(),
-      orderId: o.id,
-      version: 1,
-      status: "confirmed",
-      note: "stale",
-    }),
-    rejects("CONFLICT"),
-  );
-  o = await transition(o, "confirmed");
-  assert.equal(o.payment.status, "unpaid");
-  o = await transition(o, "renting");
-  o = await transition(o, "returned");
-  o = await transition(o, "completed");
-  assert.equal(o.status, "completed");
-  assert.equal(o.payment.status, "unpaid");
-});
-test("offline ledger is independent, idempotent and rejects overcollection/refund/future time", async () => {
-  const a = createServiceApi(db, admin);
-  let o = await book(customer, "p", {
-    pickupDate: "2030-08-01",
-    returnDate: "2030-08-02",
-  });
-  const input = {
-    idempotencyKey: key(),
-    orderId: o.id,
-    version: o.version,
-    kind: "collection" as const,
-    amount: 40000,
-    occurredAt: "2028-12-31T00:00:00Z",
-    note: "Cash",
-  };
-  const results = await Promise.all([
-    a.call("admin.payments.record", input),
-    a.call("admin.payments.record", input),
-  ]);
-  o = results[0];
-  assert.equal(results[1].version, o.version);
-  assert.equal(o.payment.collected, 40000);
-  assert.equal(o.status, "pending");
-  for (const [kind, amount, time] of [
-    ["refund", 50000, input.occurredAt],
-    ["collection", 70000, input.occurredAt],
-    ["collection", 1, "2040-01-01T00:00:00Z"],
-  ] as const)
-    await assert.rejects(
-      a.call("admin.payments.record", {
-        ...input,
-        idempotencyKey: key(),
-        version: o.version,
-        kind,
-        amount,
-        occurredAt: time,
-      }),
-      rejects("VALIDATION"),
-    );
-  assert.equal(await db.paymentEntry.count({ where: { orderId: o.id } }), 1);
-  o = await a.call("admin.payments.record", {
-    ...input,
-    idempotencyKey: key(),
-    version: o.version,
-    kind: "refund",
-    amount: 10000,
-  });
-  assert.equal(o.payment.remaining, 70000);
-});
 test("catalog/block version and peak stock protect existing commitments", async () => {
   const a = createServiceApi(db, admin);
   const product = (await a.call("admin.products.list", undefined)).find(
@@ -356,21 +262,8 @@ test("catalog/block version and peak stock protect existing commitments", async 
   });
   assert.equal(await db.inventoryBlock.count({ where: { id: block.id } }), 0);
 });
-test("content moderation and staff revoke enforce server permissions", async () => {
+test("staff revoke enforces server permissions", async () => {
   const a = createServiceApi(db, admin);
-  const content = await a.call("admin.content.save", {
-    idempotencyKey: key(),
-    content: {
-      id: "",
-      version: 0,
-      kind: "lookbook",
-      title: "Test",
-      body: "Plain <script> text",
-      productSlugs: ["p"],
-      visibility: "published",
-    },
-  });
-  assert.equal(content.version, 1);
   await assert.rejects(
     a.call("admin.staff.update", {
       idempotencyKey: key(),
@@ -381,15 +274,6 @@ test("content moderation and staff revoke enforce server permissions", async () 
     }),
     rejects("FORBIDDEN"),
   );
-  const staffUser = await db.user.findUniqueOrThrow({
-    where: { id: "staff" },
-    include: { staff: true },
-  });
-  const ctx = { ...admin, principal: principalFromUser(staffUser, "admin") };
-  await assert.rejects(
-    createServiceApi(db, ctx).call("admin.payments.list", undefined),
-    rejects("FORBIDDEN"),
-  );
   await a.call("admin.staff.update", {
     idempotencyKey: key(),
     id: "staff",
@@ -397,6 +281,11 @@ test("content moderation and staff revoke enforce server permissions", async () 
     active: false,
     permissions: [],
   });
+  const staffUser = await db.user.findUniqueOrThrow({
+    where: { id: "staff" },
+    include: { staff: true },
+  });
+  const ctx = { ...admin, principal: principalFromUser(staffUser, "admin") };
   await assert.rejects(
     createServiceApi(db, ctx).call("admin.orders.list", undefined),
     rejects("UNAUTHENTICATED"),

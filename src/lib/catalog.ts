@@ -70,28 +70,126 @@ export const products: readonly Product[] = [
     description:
       "A fresh direction for an everyday outfit. Build your own combination around a piece you can imagine wearing beyond a single occasion.",
   },
+  {
+    slug: "camellia-midi-dress",
+    name: "Camellia Midi Dress",
+    category: "Dresses",
+    collection: "The Occasion Edit",
+    occasions: ["Wedding guest", "Party"],
+    price: 280000,
+    rentalDays: 3,
+    image: "/images/sakura-muse-dress.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu váy minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "petal-wrap-dress",
+    name: "Petal Wrap Dress",
+    category: "Dresses",
+    collection: "The Occasion Edit",
+    occasions: ["Date night", "Party"],
+    price: 280000,
+    rentalDays: 3,
+    image: "/images/sakura-muse-dress.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu váy minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "rose-garden-dress",
+    name: "Rose Garden Dress",
+    category: "Dresses",
+    collection: "The Occasion Edit",
+    occasions: ["Wedding guest", "Vacation"],
+    price: 280000,
+    rentalDays: 3,
+    image: "/images/sakura-muse-dress.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu váy minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "linen-weekend-set",
+    name: "Linen Weekend Set",
+    category: "Sets",
+    collection: "Weekend Edit",
+    occasions: ["Weekend", "Vacation"],
+    price: 220000,
+    rentalDays: 3,
+    image: "/images/sakura-luna-set.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu trang phục minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "soft-pink-set",
+    name: "Soft Pink Set",
+    category: "Sets",
+    collection: "Weekend Edit",
+    occasions: ["Weekend", "Date night"],
+    price: 220000,
+    rentalDays: 3,
+    image: "/images/sakura-luna-set.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu trang phục minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "bloom-blouse",
+    name: "Bloom Blouse",
+    category: "Tops",
+    collection: "Everyday Edit",
+    occasions: ["Date night", "Weekend"],
+    price: 160000,
+    rentalDays: 3,
+    image: "/images/sakura-soleil-top.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu áo minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "daylight-shirt",
+    name: "Daylight Shirt",
+    category: "Tops",
+    collection: "Everyday Edit",
+    occasions: ["Weekend", "Vacation"],
+    price: 160000,
+    rentalDays: 3,
+    image: "/images/sakura-soleil-top.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu áo minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "sakura-light-jacket",
+    name: "Sakura Light Jacket",
+    category: "Outerwear",
+    collection: "Everyday Edit",
+    occasions: ["Weekend", "Vacation"],
+    price: 220000,
+    rentalDays: 3,
+    image: "/images/sakura-luna-set.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu áo khoác minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
+  {
+    slug: "soft-layer-cardigan",
+    name: "Soft Layer Cardigan",
+    category: "Outerwear",
+    collection: "Everyday Edit",
+    occasions: ["Weekend", "Date night"],
+    price: 220000,
+    rentalDays: 3,
+    image: "/images/sakura-luna-set.png",
+    imageAlt: "Ảnh minh họa trang phục demo tông hồng",
+    description:
+      "Mẫu áo khoác minh họa để xem cách danh mục và trang chi tiết hiển thị.",
+  },
 ];
 
-export const collections = [
-  {
-    name: "The Occasion Edit",
-    title: "For the invitation.",
-    description: "Date nights, wedding invitations and reasons to celebrate.",
-    productSlug: "muse-dress",
-  },
-  {
-    name: "Weekend Edit",
-    title: "Leave room for plans.",
-    description: "A change of scenery. A different way to get dressed.",
-    productSlug: "luna-set",
-  },
-  {
-    name: "Everyday Edit",
-    title: "Make the ordinary yours.",
-    description: "Small wardrobe changes for the moments in between.",
-    productSlug: "soleil-top",
-  },
-] as const;
+export const catalogPageSize = 6;
 
 export interface CatalogFilters {
   query: string;

@@ -84,7 +84,7 @@ export default function RentalGuidePage() {
             <li>
               <T>
                 {
-                  "The store confirms deposit, refund, care and damage terms before collection."
+                  "Agree on care and damage terms with the store before collection."
                 }
               </T>
             </li>

@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   CalendarDays,
-  ShieldCheck,
   Sparkles,
   Shirt,
   ClipboardCheck,
@@ -20,7 +19,7 @@ import { storeProducts } from "@/server/rental/storefront";
 export const metadata: Metadata = {
   title: "Rental Store — Trang phục đẹp, đúng lịch của bạn",
   description:
-    "Khám phá trang phục, xem lịch trống và gửi yêu cầu thuê. Nhận mã hẹn, chờ shop xác nhận; không thanh toán qua cổng online.",
+    "Khám phá trang phục, xem lịch trống và gửi yêu cầu thuê để cửa hàng xác nhận.",
 };
 const steps = [
   {
@@ -36,7 +35,7 @@ const steps = [
   {
     icon: ClipboardCheck,
     title: "Get your booking ID",
-    copy: "The store confirms your dates and any deposit required.",
+    copy: "The store reviews your request and confirms the rental.",
   },
   {
     icon: MapPin,
@@ -77,10 +76,6 @@ export default async function HomePage() {
               <CalendarDays />
               <T>{"Check outfit availability"}</T>
             </SectionButton>
-            <SectionButton target="weekly-offers" className="store-text-link">
-              <T>{"This week's offers"}</T>
-              <ArrowUpRight />
-            </SectionButton>
           </div>
           <div className="store-hero-note">
             <span>01 / 03</span>
@@ -118,8 +113,7 @@ export default async function HomePage() {
       <ul className="store-trust-strip">
         {[
           { icon: CalendarDays, text: "Check dates before you book" },
-          { icon: ShieldCheck, text: "Deposit confirmed with the store" },
-          { icon: Sparkles, text: "Offline payment. No online gateway." },
+          { icon: Sparkles, text: "Send a request. The store will confirm." },
         ].map(({ icon: Icon, text }) => (
           <li key={text}>
             <Icon aria-hidden="true" />
@@ -183,28 +177,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-      <section id="weekly-offers" tabIndex={-1} className="store-offer-card">
-        <Sparkles aria-hidden="true" />
-        <div>
-          <p className="store-overline">
-            <T>{"This week's offers"}</T>
-          </p>
-          <h2>
-            <T>{"A little something to look forward to."}</T>
-          </h2>
-          <p>
-            <T>
-              {
-                "Offers are being updated. The store will confirm prices and terms before your rental."
-              }
-            </T>
-          </p>
-        </div>
-        <Link href="/products" className="home-cta-ghost">
-          <T>{"Explore looks"}</T>
-          <ArrowUpRight />
-        </Link>
-      </section>
       <section className="store-home-section store-home-faq">
         <div>
           <p className="store-overline">
@@ -218,50 +190,6 @@ export default async function HomePage() {
           </p>
         </div>
         <RentalFaq />
-      </section>
-      <section className="store-home-section">
-        <div className="store-section-heading">
-          <div>
-            <p className="store-overline">
-              <T>{"The outfit, out in the world"}</T>
-            </p>
-            <h2>
-              <T>{"See it. Style it. Make it yours."}</T>
-            </h2>
-            <p>
-              <T>
-                {
-                  "Styling examples for now. Real customer photos are published only with permission."
-                }
-              </T>
-            </p>
-          </div>
-          <Link href="/feedback" className="store-text-link">
-            <T>{"The feedback wall"}</T>
-            <ArrowUpRight />
-          </Link>
-        </div>
-        <div className="store-inspiration-grid">
-          {products.map((p) => (
-            <figure key={p.slug}>
-              <FashionImage
-                src={p.image}
-                alt={p.imageAlt}
-                fill
-                sizes="(max-width:639px) 90vw, 380px"
-              />
-              <figcaption>
-                <span>
-                  <T>{"Illustrative outfit"}</T>
-                </span>
-                <Link href={`/products/${p.slug}`}>
-                  {p.name}
-                  <ArrowUpRight />
-                </Link>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
       </section>
     </div>
   );

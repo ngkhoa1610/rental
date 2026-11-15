@@ -80,14 +80,17 @@ export async function handleRentalRequest(
     const entries = (
       Object.entries(apiRoutes) as [
         OperationName,
-        (typeof apiRoutes)[OperationName],
+        (typeof apiRoutes)[OperationName] | undefined,
       ][]
-    ).filter(
-      ([op, route]) =>
-        relative ===
-        (scope === "admin" && op.startsWith("session.") ? "/admin" : "") +
-          route.path,
-    );
+    )
+      .filter(
+        ([op, route]) =>
+          route !== undefined &&
+          relative ===
+            (scope === "admin" && op.startsWith("session.") ? "/admin" : "") +
+              route.path,
+      )
+      .map(([operation, route]) => [operation, route!] as const);
     if (!entries.length)
       return Response.json(
         { error: { code: "NOT_FOUND", message: "Endpoint not found." } },

@@ -87,9 +87,10 @@ export interface RentalOrder extends RentalDates {
   status: OrderStatus;
   version: number;
   createdAt: string;
-  payment: PaymentSummary;
-  payments: PaymentEntry[];
-  changes: OrderChange[];
+  /** Legacy mock fixture fields; live APIs omit payment tracking and customer change requests. */
+  payment?: PaymentSummary;
+  payments?: PaymentEntry[];
+  changes?: OrderChange[];
   history: AuditEntry[];
   review?: CustomerReview;
 }

@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/store/page-heading";
 import { ProductCard } from "@/components/store/product-card";
 import {
   activeCatalogFilters,
+  catalogPageSize,
   categories,
   emptyCatalogFilters,
   filterProducts,
@@ -47,10 +48,11 @@ export function Catalog() {
   const [draft, setDraft] =
     useState<Record<keyof CatalogFilters, string>>(emptyCatalogFilters);
   const [filters, setFilters] = useState(emptyCatalogFilters);
+  const [page, setPage] = useState(1);
   const applyButton = useRef<HTMLButtonElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const activeFilters = activeCatalogFilters(filters);
-  // Keep data/filter values stable across languages, and search both vocabularies.
+  // Keep canonical filters stable and make Vietnamese search work without accents.
   const normalizeSearch = (value: string) =>
     value
       .normalize("NFD")
@@ -71,10 +73,16 @@ export function Catalog() {
         ...product.occasions,
       ];
       const searchText = normalizeSearch(
-        terms.flatMap((term) => [term, translate("vi", term)]).join(" "),
+        terms.flatMap((term) => [term, translate(term)]).join(" "),
       );
       return queryWords.every((word) => searchText.includes(word));
     },
+  );
+  const pageCount = Math.max(1, Math.ceil(results.length / catalogPageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageResults = results.slice(
+    (currentPage - 1) * catalogPageSize,
+    currentPage * catalogPageSize,
   );
   const advancedCount = activeFilters.filter(
     ({ key }) => key !== "query",
@@ -90,6 +98,7 @@ export function Catalog() {
   function applyFilters(next: CatalogFilters) {
     setFilters(next);
     setDraft(next);
+    setPage(1);
   }
 
   return (
@@ -237,11 +246,38 @@ export function Catalog() {
         </span>
       </div>
       {results.length ? (
-        <div className="store-product-grid">
-          {results.map((product) => (
-            <ProductCard key={product.slug} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="store-product-grid">
+            {pageResults.map((product) => (
+              <ProductCard key={product.slug} product={product} />
+            ))}
+          </div>
+          {pageCount > 1 && (
+            <nav className="store-pagination" aria-label={t("Catalog pages")}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                <T>{"Previous"}</T>
+              </Button>
+              <span aria-live="polite">
+                Trang {currentPage} / {pageCount}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={currentPage === pageCount}
+                onClick={() =>
+                  setPage((current) => Math.min(pageCount, current + 1))
+                }
+              >
+                <T>{"Next"}</T>
+              </Button>
+            </nav>
+          )}
+        </>
       ) : (
         <EmptyState title={t("No looks match just yet.")} showAction={false}>
           <T>

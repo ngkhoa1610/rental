@@ -94,17 +94,13 @@ test("all existing completed API writes have feedback; passive reads never gener
     "profile.update",
     "session.logout",
     "orders.create",
-    "orders.change",
     "reviews.create",
     "admin.products.save",
     "admin.availability.save",
     "admin.availability.remove",
-    "admin.content.save",
     "admin.reviews.moderate",
     "admin.staff.update",
     "admin.orders.transition",
-    "admin.orders.resolve",
-    "admin.payments.record",
   ];
   assert.deepEqual(Object.keys(actionSuccess).sort(), expected.sort());
   for (const read of [

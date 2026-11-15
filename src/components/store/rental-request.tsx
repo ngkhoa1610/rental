@@ -21,7 +21,7 @@ export function RentalRequest({
   slugs: readonly string[];
   advice?: string;
 }) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { products } = useCatalogData();
   const { api, demo, session, draft, setDraft } = useRentalApi();
   const { busy, error, run, clearError } = useApiAction();
@@ -85,7 +85,7 @@ export function RentalRequest({
       <p>
         <T>
           {
-            "Pickup and return at the store. Payment is recorded separately by staff."
+            "Pickup and return at the store. The staff will review your request before confirming."
           }
         </T>
       </p>
@@ -206,16 +206,14 @@ export function RentalRequest({
           </p>
           <p>
             <T>{"Valid until "}</T>
-            {new Date(quote.expiresAt).toLocaleTimeString(
-              language === "vi" ? "vi-VN" : "en-GB",
-              { timeZone: "Asia/Ho_Chi_Minh" },
-            )}
+            {new Date(quote.expiresAt).toLocaleTimeString("vi-VN", {
+              timeZone: "Asia/Ho_Chi_Minh",
+            })}
             <T>
-              {". Sending a request does not confirm availability or payment."}
+              {
+                ". The store reviews the request before confirming availability."
+              }
             </T>
-          </p>
-          <p>
-            {t("Deposit")}: <strong>{t("The store will confirm")}</strong>
           </p>
           {expired && (
             <p role="alert">

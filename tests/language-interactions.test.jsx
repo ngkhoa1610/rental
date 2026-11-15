@@ -2,91 +2,38 @@ import "./dom-setup.mjs";
 import React from "react";
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   LanguageProvider,
-  LanguageSwitch,
+  T,
 } from "../src/components/store/language-provider.tsx";
-import { ApiProvider } from "../src/components/store/api-provider.tsx";
 import { SelectionProvider } from "../src/components/store/selection-provider.tsx";
-import { RentalRequest } from "../src/components/store/rental-request.tsx";
 import { Catalog } from "../src/components/store/catalog.tsx";
-import { createMockApi } from "../src/lib/api/mock.ts";
-import { languageStorageKey, translate } from "../src/lib/language.ts";
-import { rentalToday } from "../src/lib/rental-dates.ts";
+import { translate } from "../src/lib/language.ts";
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
 });
 
-test("VI is default; switching to EN keeps dates, notes and session without navigation and persists the choice", async () => {
-  const demo = createMockApi({ latencyMs: 0 });
-  const user = userEvent.setup();
-  const before = window.location.href;
+test("Vietnamese is the only visible language and ignores a saved English preference", () => {
+  localStorage.setItem("rental-store.language.v1", "en");
   render(
     <LanguageProvider>
-      <LanguageSwitch />
-      <ApiProvider runtime={{ demo, api: demo.api, setCsrf() {} }}>
-        <RentalRequest slugs={["muse-dress"]} />
-      </ApiProvider>
+      <T>{"The right look."}</T>
     </LanguageProvider>,
   );
-  const pickup = screen.getByLabelText("Ngày nhận");
-  const returned = screen.getByLabelText("Ngày trả");
-  assert.equal(pickup.min, rentalToday());
-  fireEvent.change(pickup, { target: { value: "2030-02-01" } });
-  assert.equal(returned.value, "2030-02-01");
-  assert.equal(returned.min, "2030-02-01");
-  fireEvent.change(returned, { target: { value: "2030-02-02" } });
-  fireEvent.change(screen.getByLabelText(/Lời nhắn/), {
-    target: { value: "Giữ nguyên nội dung của tôi" },
-  });
-  await user.click(
-    await screen.findByRole("button", { name: "Dùng tài khoản mẫu" }),
-  );
-  await user.click(screen.getByRole("button", { name: "English" }));
-  assert.equal(document.documentElement.lang, "en");
-  assert.equal(screen.getByLabelText("Return date").value, "2030-02-02");
-  assert.equal(
-    screen.getByLabelText(/Notes for the store/).value,
-    "Giữ nguyên nội dung của tôi",
-  );
-  assert.ok(screen.getByRole("button", { name: "Sign out" }));
-  assert.equal(localStorage.getItem(languageStorageKey), "en");
-  assert.equal(window.location.href, before);
-  fireEvent.change(screen.getByLabelText("Pickup date"), {
-    target: { value: "2030-02-05" },
-  });
-  assert.equal(screen.getByLabelText("Return date").value, "2030-02-05");
-  cleanup();
-  render(
-    <LanguageProvider>
-      <LanguageSwitch />
-    </LanguageProvider>,
-  );
-  await waitFor(() =>
-    assert.equal(
-      screen
-        .getByRole("button", { name: "English" })
-        .getAttribute("aria-pressed"),
-      "true",
-    ),
-  );
+  assert.equal(screen.getByText("Đúng outfit.").textContent, "Đúng outfit.");
+  assert.equal(screen.queryByRole("button", { name: "English" }), null);
+  assert.equal(screen.queryByRole("button", { name: "Tiếng Việt" }), null);
+  assert.equal(localStorage.getItem("rental-store.language.v1"), "en");
 });
 
-test("translated filters keep canonical values and Vietnamese search supports missing accents", async () => {
+test("catalog filters stay local and Vietnamese search supports missing accents", async () => {
   const user = userEvent.setup();
   render(
     <LanguageProvider>
-      <LanguageSwitch />
       <SelectionProvider>
         <Catalog />
       </SelectionProvider>
@@ -98,38 +45,44 @@ test("translated filters keep canonical values and Vietnamese search supports mi
   await user.click(screen.getByRole("button", { name: "Áp dụng bộ lọc" }));
   assert.ok(screen.getByRole("heading", { name: "Luna Set" }));
   assert.equal(screen.queryByRole("heading", { name: "Muse Dress" }), null);
-  await user.click(screen.getByRole("button", { name: "English" }));
-  assert.equal(screen.getByLabelText("Category").value, "Sets");
-  await user.click(screen.getByRole("button", { name: "Clear filters" }));
-  fireEvent.change(screen.getByLabelText("Search looks"), {
-    target: { value: "hen ho muse" },
-  });
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  await user.click(screen.getByRole("button", { name: "Xóa bộ lọc" }));
+  fireEvent.change(
+    screen.getByPlaceholderText("Thử Muse hoặc trang phục dự tiệc"),
+    {
+      target: { value: "hen ho muse" },
+    },
+  );
+  await user.click(screen.getByRole("button", { name: "Áp dụng bộ lọc" }));
   assert.ok(screen.getByRole("heading", { name: "Muse Dress" }));
   assert.equal(screen.queryByRole("heading", { name: "Luna Set" }), null);
 });
 
-test("translation preserves spacing and values; unsupported device preferences are ignored", async () => {
-  assert.equal(translate("vi", " Total: "), " Tổng cộng: ");
+test("Vietnamese translation preserves spacing and interpolated values", () => {
+  assert.equal(translate(" Total: "), " Tổng cộng: ");
   assert.equal(
-    translate("vi", "Order {id}", { id: "<script>name</script>" }),
+    translate("Order {id}", { id: "<script>name</script>" }),
     "Đơn thuê <script>name</script>",
   );
-  assert.equal(
-    translate("vi", "Unknown backend message"),
-    "Unknown backend message",
-  );
-  localStorage.setItem(languageStorageKey, "<script>");
+  assert.equal(translate("Unknown backend message"), "Unknown backend message");
+});
+
+test("catalog pagination changes local results and returns to page one after filtering", async () => {
+  const user = userEvent.setup();
   render(
     <LanguageProvider>
-      <LanguageSwitch />
+      <SelectionProvider>
+        <Catalog />
+      </SelectionProvider>
     </LanguageProvider>,
   );
-  await waitFor(() => assert.equal(document.documentElement.lang, "vi"));
-  assert.equal(
-    screen
-      .getByRole("button", { name: "Tiếng Việt" })
-      .getAttribute("aria-pressed"),
-    "true",
-  );
+  assert.equal(screen.getAllByRole("heading", { level: 2 }).length, 6);
+  assert.equal(screen.getByText("Trang 1 / 2").textContent, "Trang 1 / 2");
+  await user.click(screen.getByRole("button", { name: "Sau" }));
+  assert.equal(screen.getAllByRole("heading", { level: 2 }).length, 6);
+  assert.equal(screen.getByText("Trang 2 / 2").textContent, "Trang 2 / 2");
+  await user.click(screen.getByText("Bộ lọc & sắp xếp"));
+  await user.selectOptions(screen.getByLabelText("Dịp mặc"), "Weekend");
+  await user.click(screen.getByRole("button", { name: "Áp dụng bộ lọc" }));
+  assert.equal(screen.getByText("Trang 1 / 2").textContent, "Trang 1 / 2");
+  assert.equal(screen.getAllByRole("heading", { level: 2 }).length, 6);
 });

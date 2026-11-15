@@ -15,11 +15,7 @@ import {
   rangeDates,
   shiftMonth,
 } from "../src/lib/rental-calendar.ts";
-import {
-  contactHref,
-  requestNotes,
-  storeDetails,
-} from "../src/lib/store-details.ts";
+import { contactHref, requestNotes } from "../src/lib/store-details.ts";
 import { createMockApi } from "../src/lib/api/mock.ts";
 import { createHttpApi } from "../src/lib/api/http.ts";
 import { ApiProvider } from "../src/components/store/api-provider.tsx";
@@ -232,7 +228,7 @@ test("contact and delivery notes reject unsafe destinations and unbounded/empty 
   );
 });
 
-test("shipping and advisory size remain notes; submission stays pending/unpaid with no variants or automatic transfer", async () => {
+test("shipping and advisory size remain notes; submission stays pending with no variants or payment prompt", async () => {
   const demo = setup();
   demo.signIn("customer");
   const user = userEvent.setup();
@@ -259,28 +255,12 @@ test("shipping and advisory size remain notes; submission stays pending/unpaid w
   await screen.findByText("We've received your request.");
   const [order] = await demo.api.call("orders.list", undefined);
   assert.equal(order.status, "pending");
-  assert.equal(order.payment.status, "unpaid");
   assert.match(order.notes, /Size advice: S/);
   assert.match(order.notes, /12 Street/);
   assert.equal(order.lines[0].variantId, undefined);
   assert.equal(screen.queryByAltText("Store bank transfer QR"), null);
   cleanup();
-  const previous = storeDetails.bank;
-  try {
-    storeDetails.bank = {
-      name: "Test bank",
-      accountName: "Fixture",
-      accountNumber: "123",
-      qrImage: "/images/test-qr.png",
-    };
-    render(<BookingConfirmation order={order} />);
-    assert.ok(screen.getByAltText("Store bank transfer QR"));
-    assert.ok(
-      screen.getByText(
-        `Transfer reference: ${order.id} ${order.contact.phone}`,
-      ),
-    );
-  } finally {
-    storeDetails.bank = previous;
-  }
+  render(<BookingConfirmation order={order} />);
+  assert.equal(screen.queryByText(/Transfer reference:/), null);
+  assert.equal(screen.queryByText(/bank transfer|deposit|payment/i), null);
 });

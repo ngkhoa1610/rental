@@ -6,10 +6,7 @@ import { useState } from "react";
 import { adminNavigation, can } from "@/lib/access";
 import { Button } from "@/components/ui/button";
 import { useApiAction, useRentalApi } from "@/components/store/api-provider";
-import {
-  LanguageSwitch,
-  useLanguage,
-} from "@/components/store/language-provider";
+import { useLanguage } from "@/components/store/language-provider";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { t } = useLanguage();
@@ -44,7 +41,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               ))}
         </nav>
         <div className="admin-identity">
-          <LanguageSwitch />
           {session.profile && (
             <>
               <strong>{session.profile.name}</strong>

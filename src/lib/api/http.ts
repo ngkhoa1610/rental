@@ -10,9 +10,8 @@ import {
 import { assertApiOutput } from "./response-validation";
 
 /** Relative, same-origin endpoints; no user-supplied URL or bearer-token storage. */
-export const apiRoutes: Record<
-  OperationName,
-  { method: "GET" | "POST" | "PATCH"; path: string }
+export const apiRoutes: Partial<
+  Record<OperationName, { method: "GET" | "POST" | "PATCH"; path: string }>
 > = {
   "reviews.create": { method: "POST", path: "/me/reviews" },
   "catalog.list": { method: "GET", path: "/products" },
@@ -25,7 +24,6 @@ export const apiRoutes: Record<
   "orders.create": { method: "POST", path: "/me/orders" },
   "orders.list": { method: "GET", path: "/me/orders" },
   "orders.get": { method: "GET", path: "/me/orders/detail" },
-  "orders.change": { method: "POST", path: "/me/orders/changes" },
   "admin.products.list": { method: "GET", path: "/admin/products" },
   "admin.products.save": { method: "POST", path: "/admin/products/save" },
   "admin.availability.list": { method: "GET", path: "/admin/availability" },
@@ -38,23 +36,15 @@ export const apiRoutes: Record<
     path: "/admin/availability/remove",
   },
   "admin.customers.list": { method: "GET", path: "/admin/customers" },
-  "admin.content.list": { method: "GET", path: "/admin/content" },
-  "admin.content.save": { method: "POST", path: "/admin/content/save" },
   "admin.reviews.list": { method: "GET", path: "/admin/reviews" },
   "admin.reviews.moderate": { method: "POST", path: "/admin/reviews/moderate" },
   "admin.staff.list": { method: "GET", path: "/admin/staff" },
   "admin.staff.update": { method: "PATCH", path: "/admin/staff" },
-  "admin.payments.list": { method: "GET", path: "/admin/payments/orders" },
   "admin.orders.list": { method: "GET", path: "/admin/orders" },
   "admin.orders.transition": {
     method: "POST",
     path: "/admin/orders/transitions",
   },
-  "admin.orders.resolve": {
-    method: "POST",
-    path: "/admin/orders/changes/resolve",
-  },
-  "admin.payments.record": { method: "POST", path: "/admin/payments" },
 };
 const errorCodes: ApiErrorCode[] = [
   "VALIDATION",
@@ -97,6 +87,8 @@ export function createHttpApi(config: {
           "This operation belongs to a different workspace.",
         );
       const route = apiRoutes[operation];
+      if (!route)
+        throw new ApiError("NOT_FOUND", "This operation is not available.");
       const headers: Record<string, string> = { Accept: "application/json" };
       let path = `${base}${config.scope === "admin" && operation.startsWith("session.") ? "/admin" : ""}${route.path}`;
       let body: string | undefined;

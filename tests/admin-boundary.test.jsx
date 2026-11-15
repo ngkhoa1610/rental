@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMockApi } from "../src/lib/api/mock.ts";
 import { createHttpApi } from "../src/lib/api/http.ts";
+import { apiRoutes } from "../src/lib/api/http.ts";
 import { assertApiOutput } from "../src/lib/api/response-validation.ts";
 const now = () => Date.parse("2030-01-01T10:00:00Z");
 const setup = () => {
@@ -158,35 +159,37 @@ test("inventory blocks enforce stock, affect quote and remove with version check
     }),
   );
 });
-test("content saves, validates product relations and preserves idempotency", async () => {
-  const { admin } = setup();
-  admin.signIn("admin");
-  const input = {
-    content: {
-      id: "",
-      version: 0,
-      kind: "lookbook",
-      title: "New story",
-      body: "Text",
-      productSlugs: ["muse-dress"],
-      visibility: "draft",
+test("out-of-scope customer and staff endpoints are not mapped to HTTP", async () => {
+  const disabled = [
+    "orders.change",
+    "admin.orders.resolve",
+    "admin.payments.list",
+    "admin.payments.record",
+    "admin.content.list",
+    "admin.content.save",
+  ];
+  for (const operation of disabled)
+    assert.equal(apiRoutes[operation], undefined);
+
+  let requests = 0;
+  const api = createHttpApi({
+    fetcher: async () => {
+      requests += 1;
+      return new Response("{}", { status: 200 });
     },
-    idempotencyKey: key(),
-  };
-  const saved = await admin.api.call("admin.content.save", input);
-  assert.deepEqual(await admin.api.call("admin.content.save", input), saved);
+    getCsrfToken: () => "csrf",
+  });
   await assert.rejects(
-    admin.api.call("admin.content.save", {
-      ...input,
-      content: { ...saved, productSlugs: ["missing"] },
+    api.call("orders.change", {
+      orderId: "order",
+      version: 1,
+      kind: "cancel",
+      reason: "No longer needed",
       idempotencyKey: key(),
     }),
-    denied("VALIDATION"),
+    denied("NOT_FOUND"),
   );
-  assert.equal(
-    (await admin.api.call("admin.content.list", undefined)).length,
-    1,
-  );
+  assert.equal(requests, 0);
 });
 test("reviews need consent and completed rental; staff cannot moderate", async () => {
   const { admin, staff } = setup();
@@ -216,7 +219,7 @@ test("reviews need consent and completed rental; staff cannot moderate", async (
     else await assert.rejects(call, denied("VALIDATION"));
   }
 });
-test("staff permissions apply immediately, payment-only role works and owner stays protected", async () => {
+test("staff permissions apply immediately and owner stays protected", async () => {
   const { admin, staff } = setup();
   admin.signIn("admin");
   staff.signIn("staff");
@@ -227,7 +230,7 @@ test("staff permissions apply immediately, payment-only role works and owner sta
     id: employee.id,
     version: employee.version,
     active: true,
-    permissions: ["payments:write"],
+    permissions: ["availability:manage"],
     idempotencyKey: key(),
   };
   const updated = await admin.api.call("admin.staff.update", input);
@@ -235,19 +238,7 @@ test("staff permissions apply immediately, payment-only role works and owner sta
     staff.api.call("admin.orders.list", undefined),
     denied("FORBIDDEN"),
   );
-  const orders = await staff.api.call("admin.payments.list", undefined);
-  const target = orders.find((o) => o.status === "pending");
-  const paid = await staff.api.call("admin.payments.record", {
-    orderId: target.id,
-    version: target.version,
-    kind: "collection",
-    amount: 100,
-    occurredAt: new Date(now()).toISOString(),
-    note: "cash",
-    idempotencyKey: key(),
-  });
-  assert.equal(paid.status, "pending");
-  assert.equal(paid.payment.collected, 100);
+  assert.ok(await staff.api.call("admin.availability.list", undefined));
   await admin.api.call("admin.staff.update", {
     ...input,
     version: updated.version,
@@ -255,7 +246,7 @@ test("staff permissions apply immediately, payment-only role works and owner sta
     idempotencyKey: key(),
   });
   await assert.rejects(
-    staff.api.call("admin.payments.list", undefined),
+    staff.api.call("admin.availability.list", undefined),
     denied("UNAUTHENTICATED"),
   );
   assert.throws(() => staff.signIn("staff"), denied("FORBIDDEN"));

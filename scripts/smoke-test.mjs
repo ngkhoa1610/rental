@@ -83,22 +83,17 @@ try {
     ["/availability", "Lịch trống — Rental Store"],
     ["/accessories", "Thuê phụ kiện — Rental Store"],
     ["/rental-guide", "Bảng size &amp; Quy định — Rental Store"],
-    ["/collections", "Start with a feeling."],
-    ["/lookbook", "Wear it your way."],
     ["/feedback", "The Feedback Wall — Rental Store"],
     ["/wishlist", "Your favourites, together."],
     ["/cart", "Your next plans start here."],
     ["/account", "Your profile"],
     ["/account/orders", "Rental orders"],
-    ["/account/history", "Rental history"],
     ["/admin", "RENTAL STORE"],
     ["/admin/login", "RENTAL STORE"],
     ["/admin/orders", "RENTAL STORE"],
     ["/admin/products", "RENTAL STORE"],
     ["/admin/availability", "RENTAL STORE"],
-    ["/admin/payments", "RENTAL STORE"],
     ["/admin/customers", "RENTAL STORE"],
-    ["/admin/content", "RENTAL STORE"],
     ["/admin/reviews", "RENTAL STORE"],
     ["/admin/team", "RENTAL STORE"],
     ["/products/muse-dress", "Muse Dress — Rental Store"],
@@ -127,18 +122,6 @@ try {
     pass(path);
   }
 
-  const lookbook = await readPage("/lookbook");
-  assert.match(lookbook.html, /Your outfit guide/);
-  assert.match(lookbook.html, /Suggested accessories are not included/);
-  for (const slug of ["muse-dress", "luna-set", "soleil-top"]) {
-    assert.ok(lookbook.html.includes(`id="look-${slug}"`));
-    assert.ok(lookbook.html.includes(`href="/products/${slug}"`));
-  }
-  assert.equal((lookbook.html.match(/<dt>Phối cùng<\/dt>/g) ?? []).length, 3);
-  pass(
-    "lookbook prerenders three styling guides and their featured product destinations",
-  );
-
   const feedback = await readPage("/feedback");
   assert.match(feedback.html, /chưa phải đánh giá được xác thực/);
   assert.equal(
@@ -159,6 +142,41 @@ try {
   const removed = await readPage("/search");
   assert.equal(removed.response.status, 404);
   pass("removed search feature route returns 404");
+
+  for (const path of [
+    "/collections",
+    "/lookbook",
+    "/account/history",
+    "/admin/payments",
+    "/admin/content",
+  ]) {
+    const page = await readPage(path);
+    if (path.startsWith("/admin/")) {
+      assert.equal(page.response.status, 200, path);
+      assert.match(page.html, /Admin page not found/);
+      assert.doesNotMatch(
+        page.html,
+        /Record offline payment|Save editorial|Update content/i,
+      );
+      pass(`removed admin route stays in recovery page: ${path}`);
+    } else {
+      assert.equal(page.response.status, 404, path);
+      pass(`removed route returns 404: ${path}`);
+    }
+  }
+
+  for (const path of [
+    "/api/v1/me/orders/change",
+    "/api/v1/admin/orders/resolve",
+    "/api/v1/admin/payments",
+    "/api/v1/admin/payments/record",
+    "/api/v1/admin/content",
+    "/api/v1/admin/content/save",
+  ]) {
+    const { response } = await readPage(path);
+    assert.equal(response.status, 404, path);
+    pass(`removed API endpoint returns 404: ${path}`);
+  }
 
   const escaped = await readPage(
     "/products?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",

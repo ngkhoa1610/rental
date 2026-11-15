@@ -24,7 +24,7 @@ export function RentalDateFields({
   disabled?: boolean;
   change?: boolean;
 }) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const today = useSyncExternalStore(subscribe, rentalToday, () => "");
   const hintId = useId();
   return (
@@ -35,7 +35,7 @@ export function RentalDateFields({
           <input
             name="pickupDate"
             type="date"
-            lang={language === "vi" ? "vi-VN" : "en-GB"}
+            lang="vi-VN"
             min={today || undefined}
             value={dates.pickupDate}
             required
@@ -58,7 +58,7 @@ export function RentalDateFields({
           <input
             name="returnDate"
             type="date"
-            lang={language === "vi" ? "vi-VN" : "en-GB"}
+            lang="vi-VN"
             min={
               dates.pickupDate > today ? dates.pickupDate : today || undefined
             }

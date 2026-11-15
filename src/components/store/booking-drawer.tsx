@@ -14,7 +14,7 @@ import { RentalRequest } from "./rental-request";
 export function BookingDrawer({
   slugs,
   advice = "",
-  label = "Reserve these dates",
+  label = "Send rental request",
 }: {
   slugs: readonly string[];
   advice?: string;
@@ -34,7 +34,7 @@ export function BookingDrawer({
           <SheetTitle>{t("Confirm your booking request")}</SheetTitle>
           <SheetDescription>
             {t(
-              "No online payment. The store will review your dates before confirming.",
+              "The store will review your dates and request before confirming.",
             )}
           </SheetDescription>
         </SheetHeader>

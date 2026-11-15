@@ -108,7 +108,7 @@ test("changing selection invalidates its quote and failed requests expose retry 
   );
 });
 
-test("staff can confirm but cannot see payment controls; admin records payment without changing rental status", async () => {
+test("staff can update rental status without payment or change-request controls", async () => {
   const { runtime, demo } = setup();
   demo.signIn("customer");
   const quote = await demo.api.call("availability.quote", {
@@ -135,47 +135,16 @@ test("staff can confirm but cannot see payment controls; admin records payment w
   await user.click(
     within(card).getByText("Update rental status", { selector: "summary" }),
   );
-  await user.type(
-    within(card).getByLabelText("Reason / garment condition"),
-    "Checked stock",
-  );
+  await user.type(within(card).getByLabelText("Staff note"), "Checked stock");
   await user.click(
     within(card).getByRole("button", { name: "Update rental status" }),
   );
   await within(card).findByText("Confirmed", { selector: ".store-api-badge" });
-  assert.ok(within(card).getByText("unpaid"));
-  cleanup();
-  demo.signIn("admin");
-  render(
-    <ApiProvider runtime={runtime}>
-      <AdminOrders paymentsOnly />
-    </ApiProvider>,
-  );
-  await screen.findByText("Record offline payment", { selector: "summary" });
-  const adminCard = await screen.findByRole("article", {
-    name: `Order ${order.id}`,
-  });
-  await user.click(
-    within(adminCard).getByText("Record offline payment", {
-      selector: "summary",
-    }),
-  );
-  fireEvent.change(within(adminCard).getByLabelText("Amount (VND)"), {
-    target: { value: "280000" },
-  });
-  fireEvent.change(within(adminCard).getByLabelText("Transaction time"), {
-    target: { value: "2029-12-31T11:00" },
-  });
-  await user.type(
-    within(adminCard).getByLabelText("Payment note"),
-    "Cash collected",
-  );
-  await user.click(
-    within(adminCard).getByRole("button", { name: "Record transaction" }),
-  );
-  await within(adminCard).findByText("paid", { exact: true });
-  assert.ok(
-    within(adminCard).getByText("Confirmed", { selector: ".store-api-badge" }),
+  assert.equal(within(card).queryByText("unpaid"), null);
+  assert.equal(within(card).queryByText("Record offline payment"), null);
+  assert.equal(
+    within(card).queryByText("Request a date change or cancellation"),
+    null,
   );
   cleanup();
   demo.signIn("other-customer");

@@ -11,7 +11,7 @@ import { createRentalReadRepository } from "../../src/server/rental/prisma-repos
 import { serializable, lockProducts } from "../../src/server/db/transaction";
 
 const day = new Date("2030-01-01T00:00:00Z");
-test("order mapper preserves snapshots and computes offline ledger without exposing unrelated fields", () => {
+test("order mapper preserves customer snapshots and excludes internal payment ledger", () => {
   const record = {
     id: "o",
     customerId: "u",
@@ -43,15 +43,9 @@ test("order mapper preserves snapshots and computes offline ledger without expos
   assert.equal(dto.contact.name, "Snapshot");
   assert.equal(dto.pickupDate, "2030-01-01");
   assert.equal(dto.status, "pending");
-  assert.equal(dto.payment.remaining, 180000);
-  assert.equal(dto.payment.status, "partial");
+  assert.ok(!("payment" in dto));
+  assert.ok(!("payments" in dto));
   assert.ok(!("secret" in dto));
-  assert.throws(() =>
-    mapOrder({
-      ...record,
-      payments: [{ ...record.payments[0], kind: "refund" }],
-    }),
-  );
 });
 test("quote and staff mapper return explicit DTOs with correct permission names", () => {
   const quote = {

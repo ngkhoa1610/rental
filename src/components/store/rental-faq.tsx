@@ -14,12 +14,8 @@ export const rentalFaqs = [
     "Add a fitting request to your booking. The store will confirm a time and suitable options before you visit.",
   ],
   [
-    "How much is the deposit?",
-    "The store confirms the deposit and refund terms for your chosen item. Check the recipient and booking details before transferring money.",
-  ],
-  [
     "Does a request reserve my outfit?",
-    "Not yet. Your booking ID lets you follow the request. The store confirms the reservation; payment is recorded separately.",
+    "Not yet. Your booking ID is a request reference. The store confirms your reservation after reviewing it.",
   ],
 ] as const;
 export function RentalFaq() {

@@ -5,47 +5,47 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --cta: #a34461;
+  --cta: #9a5262;
   --home-accent: var(--primary);
-  --home-accent-hover: #85334e;
+  --home-accent-hover: #7c3e4b;
   --home-ink: var(--foreground);
   --home-muted: var(--muted-foreground);
   --home-blush: var(--blossom-soft);
   --home-canvas: var(--background);
   --home-paper: var(--card);
   --home-line: var(--border);
-  --background: #faf7f5;
-  --foreground: #302a2d;
+  --background: #ffffff;
+  --foreground: #342e2b;
 
   --surface: #ffffff;
-  --surface-foreground: #302a2d;
+  --surface-foreground: #342e2b;
 
   --card: #ffffff;
-  --card-foreground: #302a2d;
+  --card-foreground: #342e2b;
 
-  --primary: #704455;
+  --primary: #9a5262;
   --primary-foreground: #ffffff;
 
-  --accent: #b07b8f;
-  --accent-foreground: #302a2d;
+  --accent: #f5dadd;
+  --accent-foreground: #443431;
 
-  --secondary: #f3e9ed;
-  --secondary-foreground: #55424b;
+  --secondary: #fff3e8;
+  --secondary-foreground: #554238;
 
-  --muted: #f3edf0;
-  --muted-foreground: #70646a;
+  --muted: #fbf7f2;
+  --muted-foreground: #6b625c;
 
-  --border: #e5dadf;
-  --input: #e5dadf;
-  --ring: #a34461;
+  --border: #efdfd9;
+  --input: #efdfd9;
+  --ring: #9a5262;
 
   --success: #247354;
   --warning: #a36f3e;
   --destructive: #b95650;
   --info: #5f7480;
 
-  --blossom: #d7b8c5;
-  --blossom-soft: #f3e9ed;
+  --blossom: #efc4cb;
+  --blossom-soft: #fff3e8;
 
   --page-gutter: clamp(1rem, 3vw, 2rem);
   --page-width: 1200px;
@@ -55,22 +55,22 @@
   --radius: 0.75rem;
 
   --popover: #ffffff;
-  --popover-foreground: #302a2d;
+  --popover-foreground: #342e2b;
 
-  --chart-1: #b07b8f;
-  --chart-2: #704455;
-  --chart-3: #70646a;
-  --chart-4: #cea2b6;
-  --chart-5: #634253;
+  --chart-1: #df9eaa;
+  --chart-2: #9a5262;
+  --chart-3: #c59a69;
+  --chart-4: #f0c8ce;
+  --chart-5: #8b5b50;
 
   --sidebar: #ffffff;
-  --sidebar-foreground: #302a2d;
-  --sidebar-primary: #704455;
+  --sidebar-foreground: #342e2b;
+  --sidebar-primary: #9a5262;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3e9ed;
-  --sidebar-accent-foreground: #55424b;
-  --sidebar-border: #e5dadf;
-  --sidebar-ring: #a34461;
+  --sidebar-accent: #fff3e8;
+  --sidebar-accent-foreground: #554238;
+  --sidebar-border: #efdfd9;
+  --sidebar-ring: #9a5262;
 }
 
 @theme inline {
@@ -210,7 +210,7 @@ summary {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: #faf7f5f5;
+  background: #fffffff2;
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);
 }
@@ -309,22 +309,6 @@ summary {
   place-items: center;
   font-size: 10px;
 }
-.home-language {
-  display: flex;
-  gap: 2px;
-}
-.home-language button {
-  min-width: 34px;
-  min-height: 40px;
-  padding: 6px;
-  font-size: 11px;
-  font-weight: 650;
-  border-radius: 8px;
-}
-.home-language button[aria-pressed="true"] {
-  background: var(--secondary);
-  color: var(--primary);
-}
 .home-actions {
   display: flex;
   align-items: center;
@@ -357,7 +341,7 @@ summary {
   border: 1px solid var(--cta);
 }
 .home-cta:hover {
-  background: #85334e;
+  background: #7c3e4b;
 }
 .home-cta-ghost {
   border: 1px solid var(--border);
@@ -375,7 +359,7 @@ summary {
 }
 .home-footer {
   border-top: 1px solid var(--border);
-  background: #f2e9ed;
+  background: #fff5eb;
   padding: 48px 0 30px;
 }
 .home-footer-grid {
@@ -484,7 +468,7 @@ summary {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--card);
-  box-shadow: 0 8px 30px #302a2d15;
+  box-shadow: 0 8px 30px #342e2b15;
 }
 .selection-feedback p {
   flex: 1;
@@ -600,9 +584,6 @@ summary {
     min-width: 36px;
     height: 36px;
   }
-  .home-language button {
-    min-width: 28px;
-  }
   .home-actions .home-cta {
     width: 100%;
   }
@@ -637,7 +618,7 @@ summary {
   border-radius: 16px;
   background: var(--card);
   color: var(--foreground);
-  box-shadow: 0 8px 30px #302a2d1a;
+  box-shadow: 0 8px 30px #342e2b1a;
 }
 body:has(.selection-feedback) .store-action-notice {
   bottom: 136px;

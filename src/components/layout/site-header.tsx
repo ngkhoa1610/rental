@@ -23,7 +23,6 @@ import {
   X,
   CalendarDays,
 } from "lucide-react";
-import { LanguageSwitch } from "@/components/store/language-provider";
 import { AccountNavigation } from "@/components/store/account-navigation";
 import { ContactOptions } from "@/components/store/contact-options";
 import { BagCount } from "@/components/store/selection-actions";
@@ -64,7 +63,6 @@ export function SiteHeader() {
           </nav>
           <div className="home-header-actions">
             <ContactOptions className="home-header-advice" />
-            <LanguageSwitch />
             <NavLink
               href="/account"
               className="home-icon-link"
@@ -180,8 +178,6 @@ function MobileNav() {
           ))}
           {[
             { href: "/wishlist", label: "Saved" },
-            { href: "/collections", label: "Collections" },
-            { href: "/lookbook", label: "Lookbook" },
             { href: "/feedback", label: "Feedback" },
           ].map((item) => (
             <NavLink

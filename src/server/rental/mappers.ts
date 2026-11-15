@@ -116,23 +116,6 @@ export function mapOrder(record: OrderRecord): RentalOrder {
     version: record.version,
     createdAt: record.createdAt.toISOString(),
     lines: record.lines.map(mapLine),
-    payment: summarizePayments(record.total, record.payments),
-    payments: record.payments.map((e) => ({
-      id: e.id,
-      kind: e.kind,
-      amount: e.amount,
-      occurredAt: e.occurredAt.toISOString(),
-      note: e.note,
-      actorId: e.actorId,
-    })),
-    changes: record.changes.map((c) => ({
-      id: c.id,
-      kind: c.kind,
-      reason: c.reason,
-      status: c.status,
-      pickupDate: rentalDate(c.pickupDate),
-      returnDate: rentalDate(c.returnDate),
-    })),
     history: record.audits.map((e) => ({
       actorId: e.actorId,
       at: e.createdAt.toISOString(),

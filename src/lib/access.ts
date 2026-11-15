@@ -3,21 +3,17 @@ import type { Permission, Profile } from "./api/contracts";
 export type ApiScope = "customer" | "admin";
 export const permissions: readonly Permission[] = [
   "orders:manage",
-  "payments:write",
   "catalog:manage",
   "availability:manage",
   "customers:read",
-  "content:manage",
   "reviews:moderate",
   "staff:manage",
 ];
-export const permissionLabels: Record<Permission, string> = {
+export const permissionLabels: Partial<Record<Permission, string>> = {
   "orders:manage": "Manage orders",
-  "payments:write": "Record payments",
   "catalog:manage": "Manage products",
   "availability:manage": "Manage availability",
   "customers:read": "View customers",
-  "content:manage": "Manage content",
   "reviews:moderate": "Moderate reviews",
   "staff:manage": "Manage staff",
 };
@@ -38,13 +34,11 @@ export const adminNavigation: readonly {
     label: "Availability",
     permission: "availability:manage",
   },
-  { href: "/admin/payments", label: "Payments", permission: "payments:write" },
   {
     href: "/admin/customers",
     label: "Customers",
     permission: "customers:read",
   },
-  { href: "/admin/content", label: "Content", permission: "content:manage" },
   { href: "/admin/reviews", label: "Reviews", permission: "reviews:moderate" },
   {
     href: "/admin/team",

@@ -18,7 +18,7 @@ export function AvailabilityCalendar({
   onChange: (value: RentalDates) => void;
 }) {
   const { api, demo } = useRentalApi();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const id = useId();
   const initialMonth = useRef(dates.pickupDate.slice(0, 7));
   const [month, setMonth] = useState("");
@@ -151,10 +151,11 @@ export function AvailabilityCalendar({
         </Button>
         <strong aria-live="polite">
           {month
-            ? new Date(`${month}-01T00:00:00Z`).toLocaleDateString(
-                language === "vi" ? "vi-VN" : "en-GB",
-                { month: "long", year: "numeric", timeZone: "UTC" },
-              )
+            ? new Date(`${month}-01T00:00:00Z`).toLocaleDateString("vi-VN", {
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })
             : t("Loading calendar…")}
         </strong>
         <Button
@@ -175,10 +176,7 @@ export function AvailabilityCalendar({
         className="store-calendar-grid"
         aria-label={t("Choose pickup and return dates")}
       >
-        {(language === "vi"
-          ? ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
-          : ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
-        ).map((day) => (
+        {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((day) => (
           <span className="store-calendar-weekday" key={day}>
             {day}
           </span>
@@ -256,10 +254,10 @@ export function AvailabilityCalendar({
           <span>{t("Unavailable")}</span>
           <small>
             {t(demo ? "Sample calendar · checked at" : "Checked at")}{" "}
-            {new Date(data.checkedAt).toLocaleTimeString(
-              language === "vi" ? "vi-VN" : "en-GB",
-              { hour: "2-digit", minute: "2-digit" },
-            )}
+            {new Date(data.checkedAt).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </small>
         </p>
       )}

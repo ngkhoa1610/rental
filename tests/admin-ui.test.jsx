@@ -16,37 +16,28 @@ import { AdminProducts } from "../src/components/admin/admin-products.tsx";
 import { createMockApi } from "../src/lib/api/mock.ts";
 afterEach(cleanup);
 const runtime = (demo) => ({ demo, api: demo.api, setCsrf() {} });
-test("customer active/history views exclude other group and privileged controls and actor identifiers", async () => {
+test("customer orders show every status without privileged controls or actor identifiers", async () => {
   const backend = createMockApi({ latencyMs: 0 });
   const admin = backend.forScope("admin");
   admin.signIn("admin");
   admin.seedDemoData();
   const customer = backend.forScope("customer");
   customer.signIn("customer");
-  const view = render(
+  render(
     <ApiProvider runtime={runtime(customer)}>
       <RentalOrders />
     </ApiProvider>,
   );
   await screen.findByRole("article", { name: "Order sample-order-1" });
+  await screen.findByRole("article", { name: "Order sample-order-4" });
+  assert.equal(screen.queryByText("Record offline payment"), null);
   assert.equal(
-    screen.queryByRole("article", { name: "Order sample-order-4" }),
+    screen.queryByText("Request a date change or cancellation"),
     null,
   );
-  assert.equal(screen.queryByText("Record offline payment"), null);
   assert.equal(screen.queryByText("Update rental status"), null);
   assert.equal(screen.queryByText(/demo-admin/), null);
   assert.equal(document.querySelector('a[href^="/admin"]'), null);
-  view.rerender(
-    <ApiProvider runtime={runtime(customer)}>
-      <RentalOrders history />
-    </ApiProvider>,
-  );
-  await screen.findByRole("article", { name: "Order sample-order-4" });
-  assert.equal(
-    screen.queryByRole("article", { name: "Order sample-order-1" }),
-    null,
-  );
   assert.equal(document.body.textContent.includes("demo-admin"), false);
 });
 test("failed admin save retains input, retries once and shows success; markup remains escaped", async () => {

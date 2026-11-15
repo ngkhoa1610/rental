@@ -5,13 +5,7 @@ export const storeDetails: {
   zalo: string;
   facebook: string;
   phone: string;
-  bank: {
-    name: string;
-    accountName: string;
-    accountNumber: string;
-    qrImage: string;
-  } | null;
-} = { zalo: "", facebook: "", phone: "", bank: null };
+} = { zalo: "", facebook: "", phone: "" };
 
 export function contactHref(
   channel: "zalo" | "facebook" | "phone",
@@ -42,7 +36,7 @@ export function bookingMessage(order: RentalOrder): string {
     `Nhận: ${order.pickupDate} · Trả: ${order.returnDate}`,
     `Khách: ${order.contact.name}`,
     `SĐT: ${order.contact.phone}`,
-    "Nhờ shop xác nhận lịch và hướng dẫn cọc. Chưa xác nhận thanh toán.",
+    "Nhờ shop kiểm tra và xác nhận yêu cầu thuê này.",
   ].join("\n");
 }
 export function requestNotes(

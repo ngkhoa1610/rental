@@ -253,7 +253,7 @@
   bottom: 0;
   width: 100%;
   padding: 0.65rem 1rem;
-  background: #ede2e6ef;
+  background: #fff3e8ef;
   font-size: 0.8125rem;
 }
 .store-detail-copy .store-detail-price {
@@ -902,10 +902,10 @@
   max-width: 100%;
   min-height: 44px;
   padding: 0.75rem;
-  border: 1px solid #c7adb9;
+  border: 1px solid var(--border);
   border-radius: 0.65rem;
-  background: #f2e9e6;
-  color: #392c32;
+  background: #fffefa;
+  color: #342e2b;
   font: inherit;
 }
 .store-api-form textarea {
@@ -914,7 +914,7 @@
 .store-api-form :is(input, select, textarea):focus-visible,
 .store-api-panel summary:focus-visible,
 .store-order-card summary:focus-visible {
-  outline: 2px solid #81455c;
+  outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
 .store-api-form :disabled {
@@ -940,7 +940,7 @@
   padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: #e5d5db;
+  background: #fff3e8;
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -980,8 +980,8 @@
   padding: 0.35rem 0.8rem;
   font-size: 0.72rem;
   font-weight: 700;
-  background: #dcc2cc;
-  color: #653046;
+  background: #f1d3d6;
+  color: #684039;
 }
 .store-api-badge[data-status="confirmed"],
 .store-api-badge[data-status="completed"] {
@@ -990,19 +990,19 @@
 }
 .store-api-badge[data-status="cancelled"],
 .store-api-badge[data-status="rejected"] {
-  background: #ead5d0;
+  background: #f3ddd3;
   color: #76362e;
 }
 .store-api-hint {
   font-size: 0.8rem;
   line-height: 1.65;
-  color: #6b5360;
+  color: #6b625c;
 }
 .store-api-error {
   border-left: 3px solid #993652;
   padding: 0.8rem;
   color: #78233e;
-  background: #e9d2d9;
+  background: #f8e5e4;
   overflow-wrap: anywhere;
 }
 .store-api-preserve {
@@ -1013,14 +1013,14 @@
   position: relative;
   padding: clamp(1.25rem, 3vw, 2rem);
   margin-bottom: 1rem;
-  border: 1px solid #cfb9bd;
-  border-top: 5px solid #9b647a;
+  border: 1px solid var(--border);
+  border-top: 5px solid #df9eaa;
   border-radius: 0.6rem 0.6rem 0.2rem 0.2rem;
-  background: #f5eee5;
-  color: #392c32;
+  background: #fffefa;
+  color: #342e2b;
   min-width: 0;
   overflow-wrap: anywhere;
-  box-shadow: 0 14px 36px -22px #704455;
+  box-shadow: 0 14px 36px -22px #9a5262;
 }
 .store-order-card::after {
   content: "";
@@ -1030,20 +1030,20 @@
   height: 10px;
   bottom: -10px;
   background:
-    linear-gradient(135deg, #f5eee5 5px, transparent 0) 0 0 / 10px 10px,
-    linear-gradient(225deg, #f5eee5 5px, transparent 0) 0 0 / 10px 10px;
+    linear-gradient(135deg, #fffefa 5px, transparent 0) 0 0 / 10px 10px,
+    linear-gradient(225deg, #fffefa 5px, transparent 0) 0 0 / 10px 10px;
   pointer-events: none;
 }
 .store-receipt-header {
   padding-bottom: 1.25rem;
-  border-bottom: 1px dashed #bba3ab;
+  border-bottom: 1px dashed #e8d3cf;
 }
 .store-receipt-brand {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   margin-bottom: 1.2rem;
-  color: #855368;
+  color: #9a5262;
   font-size: 0.7rem;
   font-weight: 750;
   letter-spacing: 0.18em;
@@ -1068,7 +1068,7 @@
   margin-top: 0.5rem;
   font-size: 0.75rem;
   font-family: var(--font-geist-mono), monospace;
-  color: #765665;
+  color: #73554b;
 }
 .store-receipt-header .store-api-hint {
   margin-top: 0.35rem;
@@ -1081,7 +1081,7 @@
   padding-block: 0.3rem 1rem;
 }
 .store-receipt-details dt {
-  color: #735c65;
+  color: #6b625c;
   font-size: 0.75rem;
   margin-bottom: 0.4rem;
 }
@@ -1093,7 +1093,7 @@
   display: block;
   margin-top: 0.25rem;
   font-weight: 400;
-  color: #735c65;
+  color: #6b625c;
   font-size: 0.78rem;
 }
 .store-receipt-items {
@@ -1105,14 +1105,14 @@
 .store-receipt-items th {
   text-align: left;
   padding: 0.65rem 0.2rem;
-  background: #e9dcd9;
-  color: #674853;
+  background: #fff0df;
+  color: #62463b;
   font-size: 0.72rem;
   font-weight: 700;
 }
 .store-receipt-items td {
   padding: 0.9rem 0.2rem;
-  border-bottom: 1px solid #ddc9cc;
+  border-bottom: 1px solid #eadbd3;
 }
 .store-receipt-items :is(th, td):nth-child(2) {
   width: 13%;
@@ -1125,8 +1125,8 @@
 }
 .store-receipt-note {
   padding: 0.9rem 1rem;
-  border-left: 2px solid #ac8191;
-  background: #eee2de;
+  border-left: 2px solid #df9eaa;
+  background: #fff4e7;
   border-radius: 0 0.4rem 0.4rem 0;
   font-size: 0.85rem;
 }
@@ -1134,58 +1134,9 @@
   font-size: 0.68rem;
   margin-bottom: 0.3rem;
 }
-.store-payment-summary {
-  display: grid;
-  gap: 0.65rem;
-  padding-block: 0.75rem;
-  font-size: 0.85rem;
-}
-.store-payment-summary > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-.store-payment-summary dt {
-  color: #6b5360;
-}
-.store-payment-summary dd {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.store-payment-summary .store-receipt-total {
-  padding-bottom: 0.5rem;
-  font-weight: 700;
-  font-size: 1rem;
-}
-.store-payment-summary .store-receipt-balance {
-  padding-top: 0.9rem;
-  margin-top: 0.3rem;
-  border-top: 1px dashed #bba3ab;
-  font-size: 1.1rem;
-}
-.store-receipt-balance dd {
-  color: #7b3f57;
-  font-weight: 800;
-}
-.store-receipt-payment {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  border-radius: 0.5rem;
-  background: #e5d5db;
-  color: #624252;
-  font-size: 0.8rem;
-}
-.store-receipt-payment svg {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-}
 .store-order-card > details {
   padding-top: 0.55rem;
-  border-top: 1px solid #ddc9cc;
+  border-top: 1px solid #eadbd3;
   font-size: 0.86rem;
 }
 .store-order-history {
@@ -1195,7 +1146,7 @@
   list-style: decimal;
 }
 .store-order-history small {
-  color: #6b5360;
+  color: #6b625c;
   overflow-wrap: anywhere;
 }
 @media (max-width: 767px) {
@@ -1233,11 +1184,11 @@
   border-radius: 2rem;
 }
 .store-account-nav [aria-current="page"] {
-  background: #e5cbd2;
-  color: #603746;
+  background: #f5dadd;
+  color: #684039;
 }
 .store-account-nav span {
-  color: #795e68;
+  color: #6b625c;
 }
 
 /* Presentation updates shared by all customer pages. */
@@ -1290,6 +1241,20 @@
   background: currentColor;
   margin-right: 6px;
 }
+.store-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2rem 0;
+}
+.store-pagination > span {
+  min-width: 6.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
 .store-bag-summary {
   position: static;
   border: 1px solid var(--border);
@@ -1311,7 +1276,7 @@
   background: var(--card);
 }
 .store-order-card {
-  background: #fffdf9;
+  background: #fffefa;
   border-color: var(--border);
 }
 .store-collection {

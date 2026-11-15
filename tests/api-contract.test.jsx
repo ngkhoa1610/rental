@@ -26,7 +26,7 @@ const mutation = (order, extra = {}) => ({
   ...extra,
 });
 
-test("mock creates a pending unpaid order, snapshots contact, ignores client prices/owner, and clones responses", async () => {
+test("mock creates a pending order without a payment ledger, snapshots contact, ignores client prices/owner, and clones responses", async () => {
   const mock = setup();
   mock.signIn("customer");
   const quote = await mock.api.call("availability.quote", {
@@ -45,8 +45,9 @@ test("mock creates a pending unpaid order, snapshots contact, ignores client pri
   });
   assert.equal(order.customerId, "demo-customer");
   assert.equal(order.status, "pending");
-  assert.equal(order.payment.status, "unpaid");
-  assert.equal(order.payment.due, 280000);
+  assert.equal(order.lines[0].amount, 280000);
+  assert.equal("payment" in order, false);
+  assert.equal("payments" in order, false);
   await mock.api.call("profile.update", {
     name: "Changed",
     phone: "0911111111",
@@ -227,7 +228,7 @@ test("availability uses peak daily overlap for disjoint reservations", async () 
   assert.equal(quote.lines[0].available, 1);
 });
 
-test("change requests wait for staff, check availability again, and preserve payments on cancellation", async () => {
+test("change requests wait for staff, recheck availability, and cancellation keeps payment data out of scope", async () => {
   const mock = setup({ stockPerProduct: 1 });
   mock.signIn("customer");
   let order = await createOrder(mock);
@@ -289,84 +290,8 @@ test("change requests wait for staff, check availability again, and preserve pay
     }),
   );
   assert.equal(order.status, "cancelled");
-  assert.equal(order.payment.status, "unpaid");
-});
-
-test("payment permissions, whole-money validation, idempotency and refund ledger are independent of rental status", async () => {
-  const mock = setup();
-  mock.signIn("customer");
-  let order = await createOrder(mock);
-  const transaction = mutation(order, {
-    kind: "collection",
-    amount: 100000,
-    occurredAt: new Date(clock).toISOString(),
-    note: "Cash received",
-  });
-  mock.signIn("staff");
-  await assert.rejects(
-    mock.api.call("admin.payments.record", transaction),
-    errorCode("FORBIDDEN"),
-  );
-  mock.signIn("admin");
-  for (const amount of [-1, 0, 1.5, 280001])
-    await assert.rejects(
-      mock.api.call("admin.payments.record", { ...transaction, amount }),
-      errorCode("VALIDATION"),
-    );
-  order = await mock.api.call("admin.payments.record", transaction);
-  assert.equal(order.payment.status, "partial");
-  assert.equal(order.status, "pending");
-  const replay = await mock.api.call("admin.payments.record", transaction);
-  assert.equal(replay.payments.length, 1);
-  await assert.rejects(
-    mock.api.call("admin.orders.transition", {
-      ...mutation(order, { status: "confirmed", note: "Checked" }),
-      version: 1,
-    }),
-    errorCode("CONFLICT"),
-  );
-  order = await mock.api.call(
-    "admin.payments.record",
-    mutation(order, {
-      kind: "collection",
-      amount: 180000,
-      occurredAt: new Date(clock).toISOString(),
-      note: "Balance",
-    }),
-  );
-  assert.equal(order.payment.status, "paid");
-  for (const status of ["confirmed", "renting", "returned", "completed"]) {
-    order = await mock.api.call(
-      "admin.orders.transition",
-      mutation(order, { status, note: "Garment checked" }),
-    );
-    assert.equal(order.payment.collected, 280000);
-  }
-  order = await mock.api.call(
-    "admin.payments.record",
-    mutation(order, {
-      kind: "refund",
-      amount: 50000,
-      occurredAt: new Date(clock).toISOString(),
-      note: "Correction after actual refund",
-    }),
-  );
-  assert.equal(order.payment.collected, 280000);
-  assert.equal(order.payment.refunded, 50000);
-  assert.equal(order.payments.length, 3);
-  assert.equal(order.payment.status, "partial");
-  await assert.rejects(
-    mock.api.call(
-      "admin.payments.record",
-      mutation(order, {
-        kind: "refund",
-        amount: 230001,
-        occurredAt: new Date(clock).toISOString(),
-        note: "Too much",
-      }),
-    ),
-    errorCode("VALIDATION"),
-  );
+  assert.equal("payment" in order, false);
+  assert.equal("payments" in order, false);
 });
 
 test("abort, injected failures and changing identity during a request cannot mutate data", async () => {
@@ -495,7 +420,7 @@ test("same-day and next-day quotes create orders; a pickup that becomes yesterda
     });
     assert.equal(order.returnDate, returned);
     assert.equal(
-      order.payment.due,
+      order.lines[0].amount,
       280000,
       "Fixed illustrative price is not silently prorated",
     );

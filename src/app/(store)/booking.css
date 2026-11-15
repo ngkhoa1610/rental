@@ -430,26 +430,6 @@
   font-weight: 600;
   text-align: right;
 }
-.store-deposit {
-  background: var(--secondary);
-  padding: 16px;
-  border-radius: 12px;
-}
-.store-deposit h4 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 650;
-  font-size: 14px;
-}
-.store-deposit svg {
-  width: 18px;
-  flex-shrink: 0;
-}
-.store-deposit p {
-  margin-top: 10px;
-  font-size: 12px;
-}
 @media (max-width: 1023px) {
   .store-quick-form {
     grid-template-columns: 2fr 1fr;

@@ -13,9 +13,7 @@ export function AdminOverview() {
       <section className="admin-panel">
         <h2>{t("A clear view of your store")}</h2>
         <p>
-          {t(
-            "Review requests, prepare rentals and keep offline payments up to date.",
-          )}
+          {t("Review customer requests and keep rental statuses up to date.")}
         </p>
       </section>
       {can(session.profile, "orders:manage") && (
