@@ -26,7 +26,9 @@ export function mapProduct(record: ProductRecord): ManagedProduct {
   const acceptedOccasions = record.occasions.map((value) =>
     occasions.find((option) => option === value),
   );
-  const image = record.images.toSorted((a, b) => a.position - b.position)[0];
+  const [image, ...additionalPhotos] = record.images.toSorted(
+    (a, b) => a.position - b.position,
+  );
   if (!category || !image || acceptedOccasions.some((value) => !value))
     throw new ApiError(
       "INVALID_RESPONSE",
@@ -43,6 +45,7 @@ export function mapProduct(record: ProductRecord): ManagedProduct {
     rentalDays: record.rentalDays,
     image: image.url,
     imageAlt: image.alt,
+    additionalPhotos: additionalPhotos.map(({ url, alt }) => ({ url, alt })),
     quantity: record.quantity,
     visibility: record.visibility,
     version: record.version,

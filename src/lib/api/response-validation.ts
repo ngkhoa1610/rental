@@ -100,6 +100,11 @@ const order = (value: unknown) =>
 const managedProduct = (value: unknown) =>
   record(value) &&
   product(value) &&
+  (value.additionalPhotos === undefined ||
+    list(
+      value.additionalPhotos,
+      (photo) => record(photo) && fields(photo, ["url", "alt"]),
+    )) &&
   money(value.quantity) &&
   money(value.version) &&
   ["draft", "published"].includes(String(value.visibility));
@@ -109,6 +114,46 @@ const block = (value: unknown) =>
   dates(value) &&
   money(value.quantity) &&
   money(value.version);
+const stockProduct = (value: unknown) =>
+  record(value) &&
+  fields(value, ["slug", "name"]) &&
+  money(value.quantity) &&
+  (value.visibility === "draft" || value.visibility === "published");
+function stockSnapshot(value: unknown): boolean {
+  if (
+    !record(value) ||
+    !Array.isArray(value.products) ||
+    !value.products.every(stockProduct) ||
+    !Array.isArray(value.days)
+  )
+    return false;
+  if (value.productSlug === null)
+    return value.products.length === 0 && value.days.length === 0;
+  if (typeof value.productSlug !== "string") return false;
+  const product = value.products.find(
+    (item) => item.slug === value.productSlug,
+  );
+  const first = value.days[0];
+  const expected =
+    product && record(first) && typeof first.date === "string"
+      ? monthDates(first.date.slice(0, 7))
+      : [];
+  return (
+    expected.length > 0 &&
+    expected.length === value.days.length &&
+    value.days.every(
+      (day, index) =>
+        record(day) &&
+        day.date === expected[index] &&
+        typeof day.reserved === "number" &&
+        typeof day.blocked === "number" &&
+        money(day.reserved) &&
+        money(day.blocked) &&
+        day.available ===
+          Math.max(0, product.quantity - day.reserved - day.blocked),
+    )
+  );
+}
 const editorial = (value: unknown) =>
   record(value) &&
   fields(value, ["id", "title", "body"]) &&
@@ -148,6 +193,9 @@ export function assertApiOutput(
       break;
     case "admin.availability.list":
       valid = list(value, block);
+      break;
+    case "admin.availability.stock":
+      valid = stockSnapshot(value);
       break;
     case "admin.availability.save":
       valid = block(value);

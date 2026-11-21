@@ -144,6 +144,10 @@ export interface ApiOperations {
     ManagedProduct
   >;
   "admin.availability.list": Operation<void, InventoryBlock[]>;
+  "admin.availability.stock": Operation<
+    { month: string; productSlug?: string },
+    AdminStockSnapshot
+  >;
   "admin.availability.save": Operation<
     Mutation & { block: InventoryBlock },
     InventoryBlock
@@ -238,7 +242,13 @@ export class ApiError extends Error {
 }
 
 /** Admin prototype records. Version 0 creates a new record; IDs stay immutable. */
+export const maxProductPhotos = 8;
+export interface ProductPhoto {
+  url: string;
+  alt: string;
+}
 export interface ManagedProduct extends Product {
+  additionalPhotos?: ProductPhoto[];
   version: number;
   quantity: number;
   visibility: "draft" | "published";
@@ -270,6 +280,21 @@ export interface InventoryBlock extends RentalDates {
   quantity: number;
   reason: string;
   version: number;
+}
+export type AdminStockProduct = Pick<
+  ManagedProduct,
+  "slug" | "name" | "quantity" | "visibility"
+>;
+export interface AdminStockDay {
+  date: string;
+  reserved: number;
+  blocked: number;
+  available: number;
+}
+export interface AdminStockSnapshot {
+  products: AdminStockProduct[];
+  productSlug: string | null;
+  days: AdminStockDay[];
 }
 export interface StaffMember extends Profile {
   active: boolean;

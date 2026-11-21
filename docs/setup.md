@@ -1,8 +1,8 @@
 # SETUP — bắt đầu từ số 0 đến khi chạy cửa hàng
 
-Tài liệu này dành cho người nhận bàn giao chưa biết dự án. Bạn có thể xem giao diện mẫu ngay mà không có database. Để nhận đơn thật, cần thêm PostgreSQL, dịch vụ đăng nhập OIDC, dữ liệu sản phẩm và chính sách giá được cửa hàng duyệt. Staff xác nhận và cập nhật đơn; thanh toán nằm ngoài ứng dụng.
+Tài liệu này dành cho người nhận bàn giao chưa biết dự án. Bạn có thể xem giao diện mẫu ngay mà không có database. Để nhận đơn thật, cần thêm PostgreSQL, cấu hình đăng nhập, dữ liệu sản phẩm và chính sách giá được cửa hàng duyệt. Staff xác nhận và cập nhật đơn; thanh toán nằm ngoài ứng dụng.
 
-## 1. Hiểu 5 thứ trước khi bắt đầu
+## 1. Hiểu 4 thứ trước khi bắt đầu
 
 | Thuật ngữ                              | Hiểu đơn giản                          | Trong dự án này                                                                               |
 | -------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -10,11 +10,10 @@ Tài liệu này dành cho người nhận bàn giao chưa biết dự án. Bạ
 | Terminal                               | Cửa sổ gõ lệnh                         | Mở tại **thư mục gốc** nói trên, không mở tại `docs/`                                         |
 | Environment variable (biến môi trường) | Giá trị cài đặt riêng cho mỗi nơi chạy | Bản mẫu ở `.env.example`; máy của bạn dùng `.env`; server thật dùng secret của nơi triển khai |
 | Database (DB)                          | Nơi giữ sản phẩm, tài khoản, đơn       | PostgreSQL, chỉ dùng ở chế độ `http`                                                          |
-| OIDC                                   | Dịch vụ xác minh người đăng nhập       | Một cấu hình cho khách và một cấu hình riêng cho nhân viên quản trị                           |
 
 **Hai chế độ:** `mock` là dữ liệu minh họa nằm trong ứng dụng/trình duyệt; `http` gọi API thật, đọc/ghi PostgreSQL. Khi chuyển sang `http`, dữ liệu demo **không chuyển** sang DB. Chế độ `http` cũng không âm thầm quay về `mock` khi có lỗi.
 
-**Bạn cần chuẩn bị:** máy có Node.js **22.18 trở lên**, npm và chương trình sửa văn bản thuần (VS Code, Notepad…). Có thể kiểm tra bằng `node --version` và `npm --version`. Với chế độ thật, cần người có quyền tạo PostgreSQL, ứng dụng OIDC và quyền cấu hình nơi triển khai.
+**Bạn cần chuẩn bị:** máy có Node.js **22.18 trở lên**, npm và chương trình sửa văn bản thuần (VS Code, Notepad…). Có thể kiểm tra bằng `node --version` và `npm --version`. Với chế độ thật, cần người có quyền tạo PostgreSQL và có quyền cấu hình nơi triển khai.
 
 ## 2. Chạy bản mẫu — chưa cần DB hay tài khoản đăng nhập thật
 
@@ -84,55 +83,40 @@ Không có script seed catalog production. Sau khi gắn DB mới, danh sách h�
 
 Nếu `DATABASE_URL` đổi sang DB khác, ứng dụng nhìn thấy dữ liệu ở DB mới; DB cũ không bị xóa bởi thao tác đổi URL. Nếu thiếu URL hoặc DB không vào được, tính năng HTTP/Auth lỗi; không có fallback sang mock. Nếu schema chưa migrate, API cũng không làm việc đúng. DB rỗng sau migration vẫn chưa có catalog, account owner hay chính sách cửa hàng.
 
-## 6. Gắn đăng nhập khách và quản trị
+## 6. Cấu hình đăng nhập và cấp tài khoản quản trị
 
-Hệ thống dùng **hai scope Auth.js**: khách đi qua `/api/auth/*`, quản trị qua `/api/admin/auth/*`. Trang quản trị ở `/admin/*`; trang của khách ở `/account/*`. Link quản trị không xuất hiện trên điều hướng khách; đăng nhập khách **không** được quyền admin.
+Khách mở `/account` để đăng ký bằng tên, email và mật khẩu, rồi đăng nhập bằng email và mật khẩu. Quản trị đăng nhập ở `/admin/login` bằng tài khoản được cấp qua CLI. Hai khu có cookie và phiên riêng.
 
-1. Chọn dịch vụ OIDC hỗ trợ issuer HTTPS và trả `sub`, `email`, `email_verified=true`. Cần cấu hình ứng dụng OIDC cho **customer** và **admin** theo chính sách nhà cung cấp; lấy issuer, client ID, client secret cho từng scope. Đăng ký callback URI chính xác tại dịch vụ OIDC. Route callback có dạng `<APP_ORIGIN>/api/auth/callback/<provider-id>` cho khách và `<APP_ORIGIN>/api/admin/auth/callback/<provider-id>` cho admin. `<provider-id>` được code sinh từ hash của issuer, vì vậy người triển khai cần xác định ID thực từ cấu hình/chạy ứng dụng rồi đối chiếu với provider; không nhập nguyên chuỗi placeholder.
-2. Điền vào `.env` hoặc secrets hosting:
+1. Xác nhận đã cấu hình `DATABASE_URL`, `AUTH_SECRET`, `APP_ORIGIN` và đã chạy migration theo mục 5.
+2. Từ Terminal tương tác, tạo owner đầu tiên bằng email riêng của quản trị:
 
-   ```dotenv
-   AUTH_CUSTOMER_OIDC_ISSUER=https://issuer-cua-khach.example
-   AUTH_CUSTOMER_OIDC_CLIENT_ID=ID_KHACH
-   AUTH_CUSTOMER_OIDC_CLIENT_SECRET=SECRET_KHACH
-   AUTH_ADMIN_OIDC_ISSUER=https://issuer-cua-admin.example
-   AUTH_ADMIN_OIDC_CLIENT_ID=ID_ADMIN
-   AUTH_ADMIN_OIDC_CLIENT_SECRET=SECRET_ADMIN
+   ```sh
+   npm run staff:provision -- --email owner@example.com --name "Tên quản trị" --role owner
    ```
 
-   Sau khi điền `.env`, người triển khai có thể lấy hai `<provider-id>` bằng lệnh sau trong thư mục gốc (chỉ in ID, không in client secret):
+   Công cụ nhắc nhập rồi xác nhận mật khẩu với phần nhập được ẩn. Owner chỉ tạo một lần. Tạo nhân viên bằng `--role staff` và `--permissions` chứa danh sách quyền ngăn cách bằng dấu phẩy, ví dụ `orders:manage,availability:manage`. Dùng email mới, chưa có trong hệ thống.
 
-   ```bash
-   node -r dotenv/config -e "const h=require('node:crypto').createHash;for(const s of ['CUSTOMER','ADMIN']){const issuer=process.env['AUTH_'+s+'_OIDC_ISSUER'];if(!issuer)continue;console.log(s,'oidc-'+h('sha256').update(issuer).digest('hex').slice(0,16))}"
-   ```
+3. Mở `/admin/login` để kiểm tra tài khoản quản trị, rồi quản lý quyền staff từ `/admin/team` nếu tài khoản được cấp quyền.
 
-   Ghép ID vào hai URL callback tương ứng và đăng ký với provider. Đổi issuer thì tính lại ID/callback.
-
-3. Đảm bảo `DATABASE_URL`, `AUTH_SECRET`, `APP_ORIGIN` đều hợp lệ; restart/rebuild. Mở `/account` để thử đăng nhập khách, `/admin/login` để thử admin. Thiếu một bộ ba OIDC hoặc secret/DB cần thiết thì flow có thể trả `AUTH_NOT_CONFIGURED`/503.
-4. **Owner đầu tiên:** website không tự tạo owner. Người vận hành xác minh User thật trong DB và `sub` từ issuer admin, rồi chạy `npm run staff:provision -- --user-id <User.id> --subject <OIDC-sub> --role owner` trong môi trường đã cấu hình đúng. Đây là thao tác cấp quyền thật, không điền ID đoán; sau đó có thể quản lý nhân viên tại `/admin/team` theo quyền. Người nhận bàn giao nên giao bước này cho người vận hành có quyền DB/OIDC.
-
-Đổi `AUTH_SECRET` có thể làm phiên đăng nhập cũ hết hiệu lực. Đổi issuer/client app có thể đổi định danh provider, cần đối chiếu liên kết account và provision lại theo danh tính đã xác minh; không ghép account chỉ vì email giống nhau. Đổi `APP_ORIGIN` khi chuyển domain yêu cầu sửa redirect URIs phía OIDC và triển khai lại. Production cần HTTPS đúng domain.
+Môi trường triển khai sử dụng HTTPS. Sau khi đổi domain hoặc secret, khởi động lại và UAT đăng nhập, đăng xuất và thao tác ghi ở cả hai khu.
 
 ## 7. Danh sách biến môi trường và hậu quả khi đổi
 
-**Bắt buộc theo nhu cầu:** để xem mock, không phải điền DB/OIDC. Để tạo quote/đơn thật ở HTTP, cần DB, Auth, OIDC và chính sách giá đã phê duyệt. Mọi secret chỉ để ở `.env`/secrets server.
+**Bắt buộc theo nhu cầu:** để xem mock, không phải điền DB hoặc secret xác thực. Để tạo quote/đơn thật ở HTTP, cần DB, cấu hình đăng nhập và chính sách giá đã phê duyệt. Mọi secret chỉ để ở `.env`/secrets server.
 
-| Biến                                                                                            | Lấy/điền ở đâu                                                         | Nếu thiếu hoặc đổi                                                                                                                                     |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_RENTAL_API_MODE`                                                                   | `.env`: `mock` hoặc `http`; mặc định mock                              | Đổi nguồn dữ liệu và cần restart/rebuild, nhất là vì được đưa vào bundle trình duyệt. Giá trị khác bị từ chối. Không di chuyển dữ liệu giữa hai nguồn. |
-| `DATABASE_URL`                                                                                  | URL PostgreSQL do người quản trị DB/provider cấp                       | HTTP/Auth cần DB. Đổi URL là trỏ sang dữ liệu khác; DB cũ vẫn còn. Migration tác động **DB đang trỏ tới**.                                             |
-| `AUTH_SECRET`                                                                                   | Secret ngẫu nhiên của operator/hosting                                 | Thiếu thì đăng nhập không chạy; đổi có thể làm người dùng phải đăng nhập lại, không xóa DB.                                                            |
-| `APP_ORIGIN`                                                                                    | URL chính xác của site, ví dụ `https://shop.example`, không `/` cuối   | Sai host/protocol làm callback/mutation lỗi. Đổi domain cần cập nhật OIDC; production phải HTTPS.                                                      |
-| `AUTH_CUSTOMER_OIDC_ISSUER`, `AUTH_CUSTOMER_OIDC_CLIENT_ID`, `AUTH_CUSTOMER_OIDC_CLIENT_SECRET` | Ứng dụng OIDC dành cho khách                                           | Thiếu bộ ba thì login khách không dùng được. Đổi issuer/app có thể ảnh hưởng account linkage; cần thử đăng nhập lại.                                   |
-| `AUTH_ADMIN_OIDC_ISSUER`, `AUTH_ADMIN_OIDC_CLIENT_ID`, `AUTH_ADMIN_OIDC_CLIENT_SECRET`          | Ứng dụng OIDC dành cho quản trị                                        | Thiếu bộ ba thì admin login không dùng được. Đổi issuer/app cần rà soát StaffProfile và owner.                                                         |
-| `AUTH_CUSTOMER_OIDC_NAME`, `AUTH_ADMIN_OIDC_NAME`                                               | Tùy chọn, nhãn nút đăng nhập; có trong code, chưa ghi ở `.env.example` | Đổi tên hiển thị, không đổi danh tính DB.                                                                                                              |
-| `RENTAL_PRICING_MODE`                                                                           | Chỉ đặt `per-block` sau khi shop duyệt cách tính                       | Thiếu/sai: quote HTTP bị chặn `POLICY_REQUIRED`; không tự dùng giá mock.                                                                               |
-| `RENTAL_PRICING_VERSION`                                                                        | Tên phiên bản chính sách do shop đặt, ví dụ `2026-10-approved`         | Thiếu: quote bị chặn. Đổi nhãn policy có thể khiến quote cũ phải báo lại; đơn đã tạo lưu snapshot của nó.                                              |
-| `RENTAL_QUOTE_TTL_SECONDS`                                                                      | Tùy chọn, 30–3600; mặc định 300 giây                                   | Giá trị sai phạm vi dùng mặc định. Đổi ảnh hưởng quote mới; quote cũ đã có hạn lưu riêng.                                                              |
-| `TRUST_PROXY_IP`                                                                                | Mặc định `false`; chỉ operator sau khi cấu hình trusted reverse proxy  | Bật sai có thể khiến rate limit tin IP giả trong header. Không cần đổi để chạy local.                                                                  |
-| `DATABASE_POOL_SIZE`                                                                            | Tùy chọn, server; code giới hạn tối đa 10, `1` cho trường hợp test     | Đổi số kết nối/hiệu năng và giới hạn của provider, không đổi dữ liệu.                                                                                  |
-| `RENTAL_BUILD_DIR`                                                                              | Tùy chọn, thư mục output Next thay `.next`                             | Đổi nơi chứa build; build/start cần cùng cấu hình, không đổi DB.                                                                                       |
-| `NODE_ENV`                                                                                      | Next/npm thường tự đặt theo dev/production                             | Ảnh hưởng cookie bảo mật và kiểm HTTPS; không đặt `production` giả khi chạy HTTP local.                                                                |
+| Biến                          | Lấy/điền ở đâu                                                        | Nếu thiếu hoặc đổi                                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_RENTAL_API_MODE` | `.env`: `mock` hoặc `http`; mặc định mock                             | Đổi nguồn dữ liệu và cần restart/rebuild, nhất là vì được đưa vào bundle trình duyệt. Giá trị khác bị từ chối. Không di chuyển dữ liệu giữa hai nguồn. |
+| `DATABASE_URL`                | URL PostgreSQL do người quản trị DB/provider cấp                      | HTTP/Auth cần DB. Đổi URL là trỏ sang dữ liệu khác; DB cũ vẫn còn. Migration tác động **DB đang trỏ tới**.                                             |
+| `AUTH_SECRET`                 | Secret ngẫu nhiên của operator/hosting                                | Thiếu thì đăng nhập không chạy; đổi có thể làm người dùng phải đăng nhập lại, không xóa DB.                                                            |
+| `APP_ORIGIN`                  | URL chính xác của site, ví dụ `https://shop.example`, không `/` cuối  | Sai host/protocol làm xác thực và mutation lỗi. Production dùng HTTPS.                                                                                 |
+| `RENTAL_PRICING_MODE`         | Chỉ đặt `per-block` sau khi shop duyệt cách tính                      | Thiếu/sai: quote HTTP bị chặn `POLICY_REQUIRED`; không tự dùng giá mock.                                                                               |
+| `RENTAL_PRICING_VERSION`      | Tên phiên bản chính sách do shop đặt, ví dụ `2026-10-approved`        | Thiếu: quote bị chặn. Đổi nhãn policy có thể khiến quote cũ phải báo lại; đơn đã tạo lưu snapshot của nó.                                              |
+| `RENTAL_QUOTE_TTL_SECONDS`    | Tùy chọn, 30–3600; mặc định 300 giây                                  | Giá trị sai phạm vi dùng mặc định. Đổi ảnh hưởng quote mới; quote cũ đã có hạn lưu riêng.                                                              |
+| `TRUST_PROXY_IP`              | Mặc định `false`; chỉ operator sau khi cấu hình trusted reverse proxy | Bật sai có thể khiến rate limit tin IP giả trong header. Không cần đổi để chạy local.                                                                  |
+| `DATABASE_POOL_SIZE`          | Tùy chọn, server; code giới hạn tối đa 10, `1` cho trường hợp test    | Đổi số kết nối/hiệu năng và giới hạn của provider, không đổi dữ liệu.                                                                                  |
+| `RENTAL_BUILD_DIR`            | Tùy chọn, thư mục output Next thay `.next`                            | Đổi nơi chứa build; build/start cần cùng cấu hình, không đổi DB.                                                                                       |
+| `NODE_ENV`                    | Next/npm thường tự đặt theo dev/production                            | Ảnh hưởng cookie bảo mật và kiểm HTTPS; không đặt `production` giả khi chạy HTTP local.                                                                |
 
 **Giá thật:** `src/server/rental/pricing.ts` tính số block bằng cách làm tròn lên số ngày thuê (tính cả ngày nhận/trả) chia `Product.rentalDays`, rồi nhân `Product.price` và số lượng. Owner cần duyệt đơn giá, độ dài block, cọc, giao nhận trước khi vận hành; đặt `per-block` và version không tự tạo mức cọc hay phí ship. Sản phẩm mới thường ở trạng thái draft; chỉ published xuất hiện ở catalog HTTP.
 
@@ -140,15 +124,15 @@ Hệ thống dùng **hai scope Auth.js**: khách đi qua `/api/auth/*`, quản t
 
 ## 8. Link, dịch vụ và thông tin liên hệ
 
-| Địa chỉ/dịch vụ                            | Dùng để làm gì                                        | Ai cần cấu hình?                                                                                                                                                                                 |
-| ------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `http://localhost:3000`                    | Site trên máy khi chạy dev                            | Không cần mua domain; production đổi sang HTTPS domain thật qua `APP_ORIGIN`/hosting.                                                                                                            |
-| `/`, `/products`, `/availability`, `/cart` | Tìm đồ/lịch và chuẩn bị thuê                          | Khách; catalog thật cần sản phẩm published trong DB.                                                                                                                                             |
-| `/account`, `/account/orders`              | Hồ sơ và toàn bộ đơn của khách                        | OIDC customer và DB trong HTTP.                                                                                                                                                                  |
-| `/admin/login`, `/admin/*`                 | Quản trị đơn, sản phẩm, kho, khách, đánh giá, nhân sự | OIDC admin + StaffProfile có quyền. Không đưa link này vào navigation của khách.                                                                                                                 |
-| `/api/auth/*`, `/api/admin/auth/*`         | Endpoint phiên/callback Auth.js của hai scope         | Operator đăng ký callback đúng với từng OIDC provider.                                                                                                                                           |
-| `/api/v1/*`, `/media/[id]`                 | API nghiệp vụ, ảnh do hệ thống phục vụ                | App cùng origin; server kiểm session/quyền/Origin.                                                                                                                                               |
-| `src/lib/store-details.ts`                 | Zalo, Facebook, hotline **công khai**                 | Shop xác minh thông tin rồi developer điền và deploy. Zalo phải `https://zalo.me/...`; Facebook dùng `facebook.com`, `www.facebook.com` hoặc `m.me`; số điện thoại 8–15 chữ số, có thể thêm `+`. |
+| Địa chỉ/dịch vụ                                                  | Dùng để làm gì                                        | Ai cần cấu hình?                                                                                                                                                                                 |
+| ---------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `http://localhost:3000`                                          | Site trên máy khi chạy dev                            | Không cần mua domain; production đổi sang HTTPS domain thật qua `APP_ORIGIN`/hosting.                                                                                                            |
+| `/`, `/products`, `/availability`, `/cart`                       | Tìm đồ/lịch và chuẩn bị thuê                          | Khách; catalog thật cần sản phẩm published trong DB.                                                                                                                                             |
+| `/account`, `/account/orders`                                    | Hồ sơ và toàn bộ đơn của khách                        | Email, mật khẩu và DB trong HTTP.                                                                                                                                                                |
+| `/admin/login`, `/admin/*`                                       | Quản trị đơn, sản phẩm, kho, khách, đánh giá, nhân sự | Email, mật khẩu và StaffProfile có quyền. Không đưa link này vào navigation của khách.                                                                                                           |
+| `/api/auth/register`, `/api/auth/login`, `/api/admin/auth/login` | Endpoint đăng ký khách và đăng nhập của hai scope     | Tài khoản admin do người vận hành cấp qua CLI.                                                                                                                                                   |
+| `/api/v1/*`, `/media/[id]`                                       | API nghiệp vụ, ảnh do hệ thống phục vụ                | App cùng origin; server kiểm session/quyền/Origin.                                                                                                                                               |
+| `src/lib/store-details.ts`                                       | Zalo, Facebook, hotline **công khai**                 | Shop xác minh thông tin rồi developer điền và deploy. Zalo phải `https://zalo.me/...`; Facebook dùng `facebook.com`, `www.facebook.com` hoặc `m.me`; số điện thoại 8–15 chữ số, có thể thêm `+`. |
 
 Staff tự kiểm tra và thỏa thuận thanh toán ngoài app rồi cập nhật trạng thái đơn. App không hiển thị hướng dẫn chuyển khoản, không ghi thu/hoàn tiền và không xác nhận tiền. Không có SMS/Zalo API, payment gateway, object storage hay push realtime được cấu hình sẵn.
 
@@ -173,23 +157,59 @@ Staff tự kiểm tra và thỏa thuận thanh toán ngoài app rồi cập nh�
 - **DB:** kiểm đúng `DATABASE_URL`; `npm run db:validate` chỉ kiểm schema, `npm run db:migrate` mới kết nối và sửa DB. Xác nhận migration và sản phẩm published thật.
 - **Auth/phân quyền:** thử khách đăng nhập và xem đơn của mình; thử admin có quyền và người không có quyền; kiểm customer UI không hiện lối vào admin.
 - **Flow đơn:** thử ngày trống/kín, quote/giá đã duyệt, gửi yêu cầu, mã đơn và trạng thái chờ staff xác nhận.
-- **Gate code:** `npm run check` chạy validate, format, lint, test, test server, build, smoke và audit; `npm run test:integration` dùng DB test cô lập khi có hạ tầng test. Kiểm thêm OIDC, DB và browser thật của môi trường triển khai.
+- **Gate code:** `npm run check` chạy validate, format, lint, test, test server, build, smoke và audit; `npm run test:integration` dùng DB test cô lập khi có hạ tầng test. Kiểm thêm đăng ký, đăng nhập, DB và browser thật của môi trường triển khai.
 
 Khi thay secret/domain/DB hoặc giá, cần kiểm lại những flow tương ứng; không suy từ việc trang chủ mở được rằng admin/đơn hoạt động. Bản source đã bàn giao trước đó có ghi nhận build/audit/integration còn bị chặn bởi môi trường cài dependency; các kết quả lịch sử **không** thay cho lần test mới với `npm ci` đúng lockfile. Không chạy `db:maintenance` trên production nếu chưa đọc `scripts/db-maintenance.ts` và thống nhất vận hành.
 
 ## 11. Lỗi thường gặp
 
-| Biểu hiện                                 | Kiểm ngay                                                                                       |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `npm ci` lỗi                              | Phiên bản Node >=22.18, mạng/registry và đúng thư mục có `package-lock.json`.                   |
-| `db:validate` qua nhưng app không thấy DB | Lệnh validate không kiểm kết nối; kiểm `.env`, URL, quyền, SSL và `db:migrate` trên DB đúng.    |
-| Đổi sang HTTP mà catalog rỗng             | DB mới chưa có sản phẩm **published**; ba món demo không tự import.                             |
-| Báo `AUTH_NOT_CONFIGURED`/503             | `AUTH_SECRET`, `APP_ORIGIN`, `DATABASE_URL`, ba biến OIDC đúng scope, issuer HTTPS và restart.  |
-| Callback đăng nhập lỗi                    | Domain/protocol của `APP_ORIGIN`, callback URI đã đăng ký, issuer, claim `email_verified=true`. |
-| Không tạo được quote                      | `RENTAL_PRICING_MODE=per-block`, version, giá và số ngày block của sản phẩm thật; lịch kho.     |
-| Nút liên hệ Zalo không mở                 | `src/lib/store-details.ts` còn rỗng/URL sai host; đã build/deploy lại chưa.                     |
-| Vừa đổi `.env` mà trang vẫn như cũ        | Dừng/chạy lại dev; ở production rebuild/deploy, nhất là `NEXT_PUBLIC_RENTAL_API_MODE`.          |
+| Biểu hiện                                 | Kiểm ngay                                                                                    |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `npm ci` lỗi                              | Phiên bản Node >=22.18, mạng/registry và đúng thư mục có `package-lock.json`.                |
+| `db:validate` qua nhưng app không thấy DB | Lệnh validate không kiểm kết nối; kiểm `.env`, URL, quyền, SSL và `db:migrate` trên DB đúng. |
+| Đổi sang HTTP mà catalog rỗng             | DB mới chưa có sản phẩm **published**; ba món demo không tự import.                          |
+| Báo `POLICY_REQUIRED`/503                 | `AUTH_SECRET`, `APP_ORIGIN`, `DATABASE_URL` và đã khởi động lại ứng dụng.                    |
+| Không tạo được quote                      | `RENTAL_PRICING_MODE=per-block`, version, giá và số ngày block của sản phẩm thật; lịch kho.  |
+| Nút liên hệ Zalo không mở                 | `src/lib/store-details.ts` còn rỗng/URL sai host; đã build/deploy lại chưa.                  |
+| Vừa đổi `.env` mà trang vẫn như cũ        | Dừng/chạy lại dev; ở production rebuild/deploy, nhất là `NEXT_PUBLIC_RENTAL_API_MODE`.       |
 
 Nếu cần biết một tính năng lưu gì và file nào xử lý, xem tiếp `docs/feature.md`; để hình dung cấu trúc folder, xem `docs/structure.md`.
 
 Mock wardrobe: danh mục có 12 mẫu minh họa, chia 6 món mỗi trang để xem bố cục và tương tác. Không nhập các mẫu này vào DB; ở chế độ HTTP chỉ sản phẩm đã published từ DB mới hiển thị.
+
+## Kiểm tra refactor phần tồn
+
+Chạy `npm run test:server` để kiểm tra contract truy vấn và `npm run test:integration` với `RENTAL_TEST_DB_ENGINE=pglite` để kiểm thử trên fixture cô lập. Sau build, chạy `npm run test:smoke` ở chế độ mock. Trên desktop và mobile, tra lịch và gửi đơn mẫu, sau đó thử cập nhật một đơn mẫu bằng phiên admin riêng.
+
+## Checkpoint Git theo mốc
+
+Với thay đổi workflow Codex, kiểm tra bằng `node --test tests/agent-protocol.test.mjs tests/codex-config.test.mjs`. UAT: cả sửa một file và thay đổi liên tầng đều được phân công triển khai, kiểm thử độc lập và review. Tác vụ chỉ đọc được giao trực tiếp cho vai trò kiểm tra hoặc review phù hợp. Khi host thiếu khả năng phân vai, ghi BLOCKED cho bước tương ứng và tiếp tục các bước còn phân công được.
+
+**Quy tắc giới hạn:** tạo commit cục bộ sau khi hoàn thành và kiểm tra một tính năng, bản sửa lỗi hoặc refactor có phạm vi rõ ràng. Chọn đúng file hoặc hunk của mốc. Kiểm tra dữ liệu staged để chặn file chứa credential và các mẫu secret nhận diện được.
+
+**UAT:** với repo Git thử nghiệm, commit thay đổi nguồn sạch thành công. Hook phải từ chối file credential bị force-add và secret nhận diện được trong blob staged, kể cả khi bản làm việc đã được sửa sạch. Thông báo chỉ nêu đường dẫn và loại vi phạm.
+
+Trên mỗi checkout, chạy `git config --local core.hooksPath .githooks` để bật kiểm tra cho các lệnh `git commit` thông thường. Nếu cài từ source rời trên macOS/Linux, chạy `chmod +x .githooks/pre-commit`. Khi đưa hook lên Git lần đầu, dùng `git add --chmod=+x -- .githooks/pre-commit` để lưu quyền thực thi vào Git.
+
+Khi tới một mốc, stage đúng file hoặc hunk, kiểm tra `git diff --cached --stat` và xem nội dung thay đổi, rồi chạy:
+
+```sh
+node scripts/check-staged-secrets.mjs
+git -c core.hooksPath=.githooks commit -m "checkpoint: mô tả mốc"
+```
+
+Nếu bị chặn, gỡ phần vi phạm khỏi stage hoặc thay dữ liệu nhạy cảm bằng biến môi trường trước khi thử lại. Biến chứa thông tin xác thực trong `.env.example` phải để trống. Kiểm tra tự động nhận diện các định dạng phổ biến và chỉ đọc blob được stage cho commit hiện tại. Vẫn cần rà diff để phát hiện secret có định dạng riêng hoặc nằm trong dữ liệu nhị phân.
+
+## Chạy thử Admin Mốc 1
+
+Trong mock, mở `/admin/login`, dùng tài khoản quản trị mẫu và nạp dữ liệu mẫu trong mục prototype. Kiểm tra bốn màn `/admin`, `/admin/orders`, `/admin/products`, `/admin/availability`. Tạo sản phẩm mock bằng ảnh mẫu có sẵn, còn HTTP tải ảnh JPEG/PNG/WebP qua endpoint Admin hiện có. Đổi trạng thái công khai, tạo/sửa/gỡ khóa và so sánh lịch trước/sau ở kích thước 1440px và 390px. Dùng fixture PostgreSQL cô lập khi kiểm tra HTTP, quyền và xung đột tồn.
+
+Nguồn thiết kế trong đợt này: [Mobbin — Dashboard Design](https://mobbin.com/blog/what-good-dashboard-design-looks-like), [Booqable — Dashboard](https://help.booqable.com/en/articles/5603615-how-to-use-the-dashboard), [Shopify — Lọc đơn](https://help.shopify.com/en/manual/fulfillment/managing-orders/viewing-orders), [Square — Quản lý sản phẩm](https://squareup.com/help/us/en/article/8335-create-and-edit-items), [Carbon — Data table](https://v10.carbondesignsystem.com/components/data-table/usage/) và [WCAG 2.2](https://www.w3.org/TR/WCAG22/).
+
+- Tham chiếu thứ tự ưu tiên của hàng việc và cách chuyển từ tổng quan sang tác vụ tại [Mobbin — Dashboard Design](https://mobbin.com/blog/what-good-dashboard-design-looks-like).
+- Tham chiếu điều hướng, bộ lọc và biểu mẫu tạo/sửa cho Đơn thuê, Sản phẩm và Lịch kho tại [Mobbin — Web Internal Tools](https://mobbin.com/explore/web/screens/internal-tool).
+- Tham chiếu cách nhóm biểu mẫu sản phẩm với phần xem trước ảnh trên desktop. Kiểm tra các nhóm nội dung đọc theo thứ tự khi xếp dọc trên mobile. [Mobbin — Web Multi-Column Layout](https://mobbin.com/explore/web/screens/multi-column-layout)
+
+## Chạy thử Admin Mốc 2
+
+Chạy mock, nạp dữ liệu mẫu và lần lượt mở `/admin/products`, `/admin/customers`, `/admin/reviews` và `/admin/team`. Dùng ảnh mẫu để tạo album và kiểm lại sau khi mở form lần nữa. Dùng phiếu thuê và tài khoản nhân sự mẫu để kiểm trạng thái, bộ lọc và phân quyền trên desktop và mobile. Chạy `node --import tsx --test tests/admin-ui.test.jsx tests/admin-m1.test.jsx tests/admin-boundary.test.jsx`. Kiểm tra upload và lưu album HTTP với PostgreSQL cô lập.

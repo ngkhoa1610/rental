@@ -69,12 +69,9 @@ try {
 
   for (const path of ["/api/auth/session", "/api/admin/auth/session"]) {
     const response = await fetch(`${origin}${path}`);
-    assert.equal(response.status, 503);
-    assert.equal(response.headers.get("cache-control"), "no-store");
-    const body = await response.json();
-    assert.equal(body.error.code, "AUTH_NOT_CONFIGURED");
+    assert.ok([404, 405].includes(response.status), path);
     assert.equal(response.headers.get("set-cookie"), null);
-    pass(`unconfigured auth fails closed: ${path}`);
+    pass(`legacy session endpoint is unavailable: ${path}`);
   }
 
   const pages = [

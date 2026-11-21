@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash, randomBytes } from "node:crypto";
 import { test } from "node:test";
 import type { PrismaClient } from "../../src/generated/prisma/client";
-import { scopedPrismaAdapter } from "../../src/server/auth/scoped-adapter";
+import { handleAuth } from "../../src/server/auth/handler";
 import {
   authBoundary,
-  authRedirect,
   principalFromUser,
   type IdentityRecord,
 } from "../../src/server/auth/policy";
@@ -12,7 +12,7 @@ import {
   requirePermission,
   requireCustomer,
 } from "../../src/server/auth/authorization";
-import { createAuthConfig } from "../../src/server/auth/config";
+import { sessionContext, tokenCookie } from "../../src/server/http/security";
 const identity: IdentityRecord = {
   id: "u",
   name: "Staff",
@@ -26,7 +26,7 @@ const identity: IdentityRecord = {
   },
 };
 
-test("auth cookies/base paths and redirects cannot cross customer/admin or external origins", () => {
+test("auth cookie names and base paths are isolated by scope", () => {
   const customer = authBoundary("customer", true),
     admin = authBoundary("admin", true);
   assert.notEqual(customer.basePath, admin.basePath);
@@ -37,24 +37,6 @@ test("auth cookies/base paths and redirects cannot cross customer/admin or exter
     assert.ok(cookie.options.secure);
     assert.equal(cookie.options.sameSite, "lax");
   }
-  for (const url of [
-    "https://evil.invalid/admin",
-    "//evil.invalid/admin",
-    "/account",
-    "/api/auth/session",
-  ])
-    assert.equal(
-      authRedirect(url, "https://rental.test", "admin"),
-      "https://rental.test/admin",
-    );
-  assert.equal(
-    authRedirect("/admin/orders", "https://rental.test", "customer"),
-    "https://rental.test/account",
-  );
-  assert.equal(
-    authRedirect("/account/orders", "https://rental.test", "customer"),
-    "https://rental.test/account/orders",
-  );
 });
 test("principals drop staff permissions on customer scope and reject disabled membership", () => {
   const customer = principalFromUser(identity, "customer");
@@ -78,78 +60,210 @@ test("principals drop staff permissions on customer scope and reject disabled me
   );
 });
 
-test("adapter session read/update/delete filters scope; refresh cannot change owner", async () => {
-  const calls: unknown[] = [];
-  const record = {
-    id: "s",
-    sessionToken: "token",
-    userId: "u",
-    expires: new Date(Date.now() + 3600000),
-    scope: "customer",
-    user: {
-      ...identity,
-      email: "u@test.invalid",
-      emailVerified: null,
-      image: null,
-    },
-  };
+test("session lookup hashes the cookie and honors scope and expiry", async (t) => {
+  const originalSecret = process.env.AUTH_SECRET;
+  process.env.AUTH_SECRET = randomBytes(32).toString("hex");
+  t.after(() => {
+    if (originalSecret === undefined) delete process.env.AUTH_SECRET;
+    else process.env.AUTH_SECRET = originalSecret;
+  });
+
+  const token = randomBytes(32).toString("base64url");
+  const expectedHash = createHash("sha256").update(token).digest("hex");
+  let expires = new Date(Date.now() + 60_000);
   const db = {
     session: {
-      findFirst: async (args: { where: { scope: string } }) => {
-        calls.push(args);
-        return args.where.scope === record.scope ? record : null;
-      },
-      updateMany: async (args: unknown) => {
-        calls.push(args);
-        return { count: 1 };
-      },
-      deleteMany: async (args: unknown) => {
-        calls.push(args);
-        return { count: 1 };
+      async findFirst({
+        where,
+      }: {
+        where: { sessionToken: string; scope: string; expires: { gt: Date } };
+      }) {
+        assert.equal(where.sessionToken, expectedHash);
+        return where.scope === "customer" && expires > where.expires.gt
+          ? { id: "s", user: identity }
+          : null;
       },
     },
   } as unknown as PrismaClient;
-  const admin = scopedPrismaAdapter(db, "admin"),
-    customer = scopedPrismaAdapter(db, "customer");
-  assert.equal(await admin.getSessionAndUser!("token"), null);
+  const request = (scope: "customer" | "admin") =>
+    new Request("https://rental.test/api/v1/session", {
+      headers: { cookie: `${tokenCookie(scope)}=${token}` },
+    });
+
+  const customer = await sessionContext(db, request("customer"), "customer");
+  assert.equal(customer.sessionId, "s");
+  assert.equal(customer.principal?.userId, "u");
+  assert.deepEqual(customer.principal?.permissions, []);
+  assert.match(customer.csrfToken ?? "", /^[a-f0-9]{64}$/);
   assert.equal(
-    await admin.updateSession!({ sessionToken: "token", userId: "intruder" }),
+    (await sessionContext(db, request("customer"), "admin")).principal,
     null,
   );
-  const result = await customer.updateSession!({
-    sessionToken: "token",
-    userId: "intruder",
-  });
-  assert.equal(result?.userId, "u");
-  await admin.deleteSession!("token");
-  assert.deepEqual(calls.at(-1), {
-    where: { sessionToken: "token", scope: "admin" },
-  });
-  assert.deepEqual(calls[3], {
-    where: { id: "s", scope: "customer" },
-    data: {},
-  });
-});
-test("admin auth cannot grant membership using unlinked email or provider profile", async () => {
-  const db = {
-    account: { findUnique: async () => null },
-    user: { findUnique: async () => identity },
-  } as unknown as PrismaClient;
-  const config = createAuthConfig(
-    db,
-    "admin",
-    [],
-    "fixture-only-not-used-to-sign",
+  assert.equal(
+    (await sessionContext(db, request("admin"), "admin")).principal,
+    null,
   );
-  const signIn = config.callbacks!.signIn!;
-  const result = await signIn({
-    user: { id: "u", email: "u@test.invalid" },
-    account: {
-      provider: "example",
-      providerAccountId: "external",
-      type: "oauth",
-    },
-    profile: { email: "u@test.invalid", role: "admin" },
+  expires = new Date(0);
+  assert.equal(
+    (await sessionContext(db, request("customer"), "customer")).principal,
+    null,
+  );
+});
+
+test("credential handler signs up customers and checks current staff membership before issuing admin sessions", async (t) => {
+  const originalOrigin = process.env.APP_ORIGIN;
+  const originalSecret = process.env.AUTH_SECRET;
+  const origin = "https://rental.test";
+  process.env.APP_ORIGIN = origin;
+  process.env.AUTH_SECRET = randomBytes(32).toString("hex");
+  t.after(() => {
+    if (originalOrigin === undefined) delete process.env.APP_ORIGIN;
+    else process.env.APP_ORIGIN = originalOrigin;
+    if (originalSecret === undefined) delete process.env.AUTH_SECRET;
+    else process.env.AUTH_SECRET = originalSecret;
   });
-  assert.equal(result, false);
+
+  const password = randomBytes(20).toString("base64url");
+  const email = "customer@test.invalid";
+  type SessionWrite = { scope: string; sessionToken: string; expires: Date };
+  let passwordHash: string | undefined;
+  let staff: IdentityRecord["staff"] = null;
+  let staffVersionAfterRead = 1;
+  const sessions: SessionWrite[] = [];
+  const db = {
+    rateLimitBucket: { upsert: async () => ({ count: 1 }) },
+    user: {
+      async findUnique({ where }: { where: { email: string } }) {
+        return passwordHash && where.email === email
+          ? { ...identity, staff, email, passwordHash }
+          : null;
+      },
+      async create({
+        data,
+      }: {
+        data: {
+          email: string;
+          passwordHash: string;
+          sessions: { create: SessionWrite };
+        };
+      }) {
+        assert.equal(data.email, email);
+        passwordHash = data.passwordHash;
+        sessions.push(data.sessions.create);
+        return { ...identity, staff: null, email };
+      },
+    },
+    session: {
+      async create({ data }: { data: SessionWrite }) {
+        sessions.push(data);
+      },
+    },
+    async $transaction(run: (tx: unknown) => Promise<void>) {
+      await run({
+        staffProfile: {
+          async updateMany({
+            where,
+          }: {
+            where: { userId: string; active: boolean; version: number };
+          }) {
+            assert.deepEqual(where, {
+              userId: identity.id,
+              active: true,
+              version: staff?.version,
+            });
+            return { count: Number(where.version === staffVersionAfterRead) };
+          },
+        },
+        session: {
+          async create({ data }: { data: SessionWrite & { userId: string } }) {
+            assert.equal(data.userId, identity.id);
+            sessions.push(data);
+          },
+        },
+      });
+    },
+  } as unknown as PrismaClient;
+  const send = (
+    path: string,
+    body: Record<string, string>,
+    scope: "customer" | "admin" = "customer",
+    site = origin,
+  ) =>
+    handleAuth(
+      scope,
+      new Request(origin + path, {
+        method: "POST",
+        headers: { origin: site, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+      db,
+    );
+
+  const form = {
+    name: "Fixture Customer",
+    email: email.toUpperCase(),
+    password,
+  };
+  assert.equal(
+    (await send("/api/auth/register", form, "customer", "https://other.test"))
+      .status,
+    403,
+  );
+  assert.equal(sessions.length, 0);
+  const registration = await send("/api/auth/register", form);
+  assert.ok(registration.ok, await registration.clone().text());
+  assert.deepEqual(await registration.json(), { ok: true });
+  assert.ok(passwordHash && passwordHash !== password);
+  assert.equal(sessions.length, 1);
+  const token = registration.headers
+    .get("set-cookie")
+    ?.split(";")[0]
+    .split("=")[1];
+  assert.ok(token);
+  assert.equal(
+    sessions[0].sessionToken,
+    createHash("sha256").update(token).digest("hex"),
+  );
+  assert.equal(sessions[0].scope, "customer");
+  assert.ok(sessions[0].expires > new Date());
+
+  assert.equal(
+    (await send("/api/auth/login", { email, password: password + "invalid" }))
+      .status,
+    401,
+  );
+  assert.equal(
+    (await send("/api/admin/auth/login", { email, password }, "admin")).status,
+    401,
+  );
+  assert.equal(sessions.length, 1);
+  const login = await send("/api/auth/login", { email, password });
+  assert.ok(login.ok, await login.clone().text());
+  assert.equal(sessions.length, 2);
+  assert.notEqual(sessions[0].sessionToken, sessions[1].sessionToken);
+
+  staff = identity.staff;
+  const adminLogin = await send(
+    "/api/admin/auth/login",
+    { email, password },
+    "admin",
+  );
+  assert.equal(adminLogin.status, 200);
+  assert.ok(
+    adminLogin.headers
+      .get("set-cookie")
+      ?.startsWith(`${tokenCookie("admin")}=`),
+  );
+  assert.equal(sessions.length, 3);
+  assert.equal(sessions[2].scope, "admin");
+
+  staffVersionAfterRead++;
+  const staleLogin = await send(
+    "/api/admin/auth/login",
+    { email, password },
+    "admin",
+  );
+  assert.equal(staleLogin.status, 401);
+  assert.equal(staleLogin.headers.get("set-cookie"), null);
+  assert.equal(sessions.length, 3);
 });

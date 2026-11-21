@@ -17,6 +17,3 @@ export const orderTransitions: Record<OrderStatus, OrderStatus[]> = {
   rejected: [],
   cancelled: [],
 };
-
-export const isOrderHistory = (status: OrderStatus) =>
-  ["completed", "cancelled", "rejected"].includes(status);

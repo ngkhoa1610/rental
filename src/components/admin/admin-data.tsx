@@ -12,9 +12,11 @@ type ListOperation = {
 export function AdminData<K extends ListOperation>({
   operation,
   children,
+  showRefresh = true,
 }: {
   operation: K;
   children: (data: Output<K>, reload: (notice?: string) => void) => ReactNode;
+  showRefresh?: boolean;
 }) {
   const { api, demo } = useRentalApi();
   const { t } = useLanguage();
@@ -54,15 +56,17 @@ export function AdminData<K extends ListOperation>({
   }, [api, operation, revision]);
   return (
     <div className="admin-data">
-      <div className="admin-toolbar">
-        <Button
-          variant="outline"
-          disabled={state.loading}
-          onClick={() => reload()}
-        >
-          {t("Refresh")}
-        </Button>
-      </div>
+      {(showRefresh || state.error) && (
+        <div className="admin-toolbar">
+          <Button
+            variant="outline"
+            disabled={state.loading}
+            onClick={() => reload()}
+          >
+            {t("Refresh")}
+          </Button>
+        </div>
+      )}
       {notice && <p role="status">{t(notice)}</p>}
       {state.loading ? (
         <p role="status">{t("Loading…")}</p>

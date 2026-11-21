@@ -1,5 +1,7 @@
 import "server-only";
 import type { PrismaClient } from "@/generated/prisma/client";
+import { ApiError } from "@/lib/api/contracts";
+import { monthDates } from "@/lib/rental-calendar";
 import {
   mapProduct,
   mapContent,
@@ -11,8 +13,11 @@ import {
 import { contentRelations } from "./admin-service";
 import { orderRelations } from "./prisma-repository";
 import type { RentalServices } from "./services";
+import { allocationSources, peakOccupancy } from "./stock";
 
-type AdminReadOperation = Extract<keyof RentalServices, `admin.${string}.list`>;
+type AdminReadOperation =
+  | Extract<keyof RentalServices, `admin.${string}.list`>
+  | "admin.availability.stock";
 /** Read-only admin views; authorization happens at the service boundary. */
 export function adminReadServices(
   db: PrismaClient,
@@ -47,6 +52,62 @@ export function adminReadServices(
         reason: b.reason,
         version: b.version,
       })),
+    "admin.availability.stock": ({ month, productSlug }) =>
+      db.$transaction(
+        async (tx) => {
+          const dates = monthDates(month);
+          if (!dates.length)
+            throw new ApiError("VALIDATION", "Chọn tháng hợp lệ.");
+          const products = await tx.product.findMany({
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              quantity: true,
+              visibility: true,
+            },
+            orderBy: [{ name: "asc" }, { slug: "asc" }],
+          });
+          const choices = products.map(
+            ({ slug, name, quantity, visibility }) => ({
+              slug,
+              name,
+              quantity,
+              visibility,
+            }),
+          );
+          const selected = productSlug
+            ? products.find(({ slug }) => slug === productSlug)
+            : products[0];
+          if (!selected && productSlug)
+            throw new ApiError("NOT_FOUND", "Không tìm thấy sản phẩm.");
+          if (!selected)
+            return { products: choices, productSlug: null, days: [] };
+
+          const boundaries = dates.map((date) => new Date(`${date}T00:00:00Z`));
+          const { reservations, blocks } = await allocationSources(
+            tx,
+            [selected.id],
+            {
+              pickupDate: boundaries[0],
+              returnDate: boundaries[boundaries.length - 1],
+            },
+          );
+          const days = boundaries.map((point, index) => {
+            const day = { pickupDate: point, returnDate: point };
+            const reserved = peakOccupancy(reservations, day);
+            const blocked = peakOccupancy(blocks, day);
+            return {
+              date: dates[index],
+              reserved,
+              blocked,
+              available: Math.max(0, selected.quantity - reserved - blocked),
+            };
+          });
+          return { products: choices, productSlug: selected.slug, days };
+        },
+        { isolationLevel: "RepeatableRead" },
+      ),
     "admin.customers.list": async () =>
       (
         await db.user.findMany({

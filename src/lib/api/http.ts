@@ -27,6 +27,10 @@ export const apiRoutes: Partial<
   "admin.products.list": { method: "GET", path: "/admin/products" },
   "admin.products.save": { method: "POST", path: "/admin/products/save" },
   "admin.availability.list": { method: "GET", path: "/admin/availability" },
+  "admin.availability.stock": {
+    method: "GET",
+    path: "/admin/availability/stock",
+  },
   "admin.availability.save": {
     method: "POST",
     path: "/admin/availability/save",

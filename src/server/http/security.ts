@@ -40,6 +40,9 @@ export function tokenCookie(scope: ApiScope) {
   return authBoundary(scope, process.env.NODE_ENV === "production").cookies
     .sessionToken.name;
 }
+export function hashSessionToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
 export async function sessionContext(
   db: PrismaClient,
   request: Request,
@@ -60,9 +63,13 @@ export async function sessionContext(
     throw new ApiError("UNAUTHENTICATED", "Please sign in again.");
   }
   const now = new Date();
-  const session = token
+  const session = /^[A-Za-z0-9_-]{43}$/.test(token)
     ? await db.session.findFirst({
-        where: { sessionToken: token, scope, expires: { gt: now } },
+        where: {
+          sessionToken: hashSessionToken(token),
+          scope,
+          expires: { gt: now },
+        },
         include: { user: { include: { staff: true } } },
       })
     : null;
@@ -118,6 +125,7 @@ export async function rateLimit(
   request: Request,
   context: ServiceContext,
   operation: string,
+  accountKey?: string,
 ) {
   // Proxy header is considered only after the operator explicitly trusts their ingress.
   const ip =
@@ -126,7 +134,7 @@ export async function rateLimit(
           .split(",")[0]
           .trim()
       : "anonymous";
-  const identity = context.principal?.userId ?? ip.slice(0, 100);
+  const identity = accountKey ?? context.principal?.userId ?? ip.slice(0, 100);
   const window = Math.floor(context.now.getTime() / 60000);
   const bucket = createHash("sha256")
     .update(`${context.scope}:${identity}:${operation}:${window}`)
@@ -137,13 +145,17 @@ export async function rateLimit(
     update: { count: { increment: 1 } },
   });
   const limit =
-    operation === "media.upload"
-      ? 12
-      : operation === "availability.quote"
+    operation === "auth.account"
+      ? 5
+      : operation === "auth.credentials"
         ? 20
-        : request.method === "GET"
-          ? 120
-          : 60;
+        : operation === "media.upload"
+          ? 12
+          : operation === "availability.quote"
+            ? 20
+            : request.method === "GET"
+              ? 120
+              : 60;
   if (entry.count > limit)
     throw new ApiError(
       "UNAVAILABLE",

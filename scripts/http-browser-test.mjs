@@ -1,6 +1,7 @@
 /** Ephemeral SQL-backed HTTP/browser UAT. Run through scripts/integration-test.mjs. */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createHash, randomBytes } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
@@ -22,6 +23,10 @@ let server;
 let browser;
 let passed = 0;
 const pass = (label) => console.log(`PASS ${++passed}: ${label}`);
+const sessionDigest = (token) =>
+  createHash("sha256").update(token).digest("hex");
+const customerToken = randomBytes(32).toString("base64url");
+const adminToken = randomBytes(32).toString("base64url");
 try {
   await db.user.createMany({
     data: [
@@ -61,14 +66,14 @@ try {
         id: "http-cs",
         userId: "http-customer",
         scope: "customer",
-        sessionToken: "http-customer-token",
+        sessionToken: sessionDigest(customerToken),
         expires: new Date(Date.now() + 3600000),
       },
       {
         id: "http-as",
         userId: "http-admin",
         scope: "admin",
-        sessionToken: "http-admin-token",
+        sessionToken: sessionDigest(adminToken),
         expires: new Date(Date.now() + 3600000),
       },
     ],
@@ -160,23 +165,23 @@ try {
   assert.equal(guest.status, 401);
   const cross = await fetch(origin + "/api/v1/admin/products", {
     headers: {
-      cookie: "__Secure-rental.customer.session-token=http-customer-token",
+      cookie: `__Secure-rental.customer.session-token=${customerToken}`,
     },
   });
   assert.equal(cross.status, 401);
   const customerSession = await fetch(origin + "/api/v1/session", {
     headers: {
-      cookie: "__Secure-rental.customer.session-token=http-customer-token",
+      cookie: `__Secure-rental.customer.session-token=${customerToken}`,
     },
   });
   assert.equal(customerSession.status, 200);
   assert.equal((await customerSession.json()).data.profile.id, "http-customer");
   const adminSession = await fetch(origin + "/api/v1/admin/session", {
-    headers: { cookie: "__Secure-rental.admin.session-token=http-admin-token" },
+    headers: { cookie: `__Secure-rental.admin.session-token=${adminToken}` },
   });
   assert.equal(adminSession.status, 200);
   const adminProducts = await fetch(origin + "/api/v1/admin/products", {
-    headers: { cookie: "__Secure-rental.admin.session-token=http-admin-token" },
+    headers: { cookie: `__Secure-rental.admin.session-token=${adminToken}` },
   });
   assert.equal(adminProducts.status, 200);
   assert.equal((await adminProducts.json()).data.length, 2);
@@ -200,14 +205,14 @@ try {
     await context.addCookies([
       {
         name: "__Secure-rental.customer.session-token",
-        value: "http-customer-token",
+        value: customerToken,
         url: origin.replace("http:", "https:"),
         secure: true,
         sameSite: "Lax",
       },
       {
         name: "__Secure-rental.admin.session-token",
-        value: "http-admin-token",
+        value: adminToken,
         url: origin.replace("http:", "https:"),
         secure: true,
         sameSite: "Lax",
@@ -238,7 +243,7 @@ try {
     });
     await page.goto(origin + "/account/orders");
     await page
-      .locator('.store-account-nav a[href="/account/history"]')
+      .locator('.store-account-nav a[href="/account/orders"]')
       .waitFor();
     assert.equal(await page.locator('a[href^="/admin"]').count(), 0);
     await page.goto(origin + "/admin/products");

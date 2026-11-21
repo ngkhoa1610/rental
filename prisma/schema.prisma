@@ -70,6 +70,7 @@ model User {
   id              String              @id @default(cuid())
   name            String?
   email           String?             @unique
+  passwordHash    String?
   emailVerified   DateTime?           @db.Timestamptz(3)
   image           String?
   phone           String              @default("") @db.VarChar(20)

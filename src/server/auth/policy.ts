@@ -45,54 +45,18 @@ export function principalFromUser(
   };
 }
 export function authBoundary(scope: ApiScope, secure: boolean) {
-  const name = (part: string) =>
-    `${secure ? "__Secure-" : ""}rental.${scope}.${part}`;
-  const options = {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    path: "/",
-    secure,
-  };
   return {
     basePath: scope === "admin" ? "/api/admin/auth" : "/api/auth",
     cookies: {
-      sessionToken: { name: name("session-token"), options },
-      csrfToken: { name: name("csrf-token"), options },
-      callbackUrl: { name: name("callback-url"), options },
-      pkceCodeVerifier: {
-        name: name("pkce-code-verifier"),
-        options: { ...options, maxAge: 900 },
-      },
-      state: { name: name("state"), options: { ...options, maxAge: 900 } },
-      nonce: { name: name("nonce"), options },
-      webauthnChallenge: {
-        name: name("webauthn-challenge"),
-        options: { ...options, maxAge: 900 },
+      sessionToken: {
+        name: `${secure ? "__Secure-" : ""}rental.${scope}.session-token`,
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+        },
       },
     },
   };
-}
-/** Restrict post-auth destinations to the correct UI boundary and same origin. */
-export function authRedirect(
-  url: string,
-  baseUrl: string,
-  scope: ApiScope,
-): string {
-  const fallback = new URL(scope === "admin" ? "/admin" : "/account", baseUrl)
-    .href;
-  try {
-    const destination = new URL(url, baseUrl);
-    if (destination.origin !== new URL(baseUrl).origin) return fallback;
-    const admin =
-      destination.pathname === "/admin" ||
-      destination.pathname.startsWith("/admin/");
-    if (
-      admin !== (scope === "admin") ||
-      destination.pathname.startsWith("/api/")
-    )
-      return fallback;
-    return destination.href;
-  } catch {
-    return fallback;
-  }
 }

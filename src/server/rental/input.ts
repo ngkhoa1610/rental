@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { ApiError, type Input, type OperationName } from "@/lib/api/contracts";
+import {
+  ApiError,
+  maxProductPhotos,
+  type Input,
+  type OperationName,
+} from "@/lib/api/contracts";
 import { categories, occasions } from "@/lib/catalog";
 import { permissions } from "@/lib/access";
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -12,6 +17,7 @@ const version = z.number().int().min(0).max(2147483646);
 const money = z.number().int().positive().max(2147483647);
 const note = text(1000);
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const month = z.string().regex(/^(20\d{2}|2100)-(0[1-9]|1[0-2])$/);
 const dates = { pickupDate: date, returnDate: date };
 const mutation = { idempotencyKey: id };
 const order = { ...mutation, orderId: id, version: version.min(1) };
@@ -53,7 +59,7 @@ export const inputSchemas = {
   }),
   "availability.calendar": z.strictObject({
     productSlug: slug,
-    month: z.string().regex(/^(20\d{2}|2100)-(0[1-9]|1[0-2])$/),
+    month,
   }),
   "availability.quote": z.strictObject({
     ...dates,
@@ -97,9 +103,17 @@ export const inputSchemas = {
       visibility,
       image,
       imageAlt: text(200),
+      additionalPhotos: z
+        .array(z.strictObject({ url: image, alt: text(200) }))
+        .max(maxProductPhotos - 1)
+        .optional(),
     }),
   }),
   "admin.availability.list": empty,
+  "admin.availability.stock": z.strictObject({
+    month,
+    productSlug: slug.optional(),
+  }),
   "admin.availability.save": z.strictObject({
     ...mutation,
     block: z.strictObject({

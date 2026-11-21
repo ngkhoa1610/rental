@@ -1,4 +1,3 @@
-import type { Prisma } from "@/generated/prisma/client";
 import type {
   DateRange,
   OrderRecord,
@@ -6,7 +5,6 @@ import type {
   QuoteRecord,
   StockAllocation,
 } from "./models";
-import type { IdempotencyIdentity, MutationReceipt } from "./services";
 
 export interface RentalReadRepository {
   findPublishedProduct(slug: string): Promise<ProductRecord | null>;
@@ -22,22 +20,3 @@ export interface RentalReadRepository {
     dates: DateRange,
   ): Promise<StockAllocation[]>;
 }
-/** Future write services must commit state/audit/idempotency as one unit, not three calls. */
-export interface RentalUnitOfWork {
-  run<T extends Prisma.InputJsonValue>(
-    identity: IdempotencyIdentity,
-    work: (tx: RentalTransaction) => Promise<T>,
-  ): Promise<MutationReceipt<T>>;
-}
-export interface RentalTransaction {
-  readonly client: Prisma.TransactionClient;
-  /** Stable sorted row locks, followed by overlapping stock calculation in this transaction. */
-  lockProducts(productIds: readonly string[]): Promise<void>;
-  /** Must reject stale version rather than overwrite somebody else's work. */
-  requireOrderVersion(
-    orderId: string,
-    expectedVersion: number,
-  ): Promise<OrderRecord>;
-}
-// Mutating repository implementations are intentionally not wired: they require the
-// approved service rules for pricing, ownership, stock, version and ledger validation.

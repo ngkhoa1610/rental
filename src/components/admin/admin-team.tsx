@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { StaffMember, Permission } from "@/lib/api/contracts";
 import { permissions, permissionLabels } from "@/lib/access";
 import {
@@ -10,14 +11,35 @@ import { useLanguage } from "@/components/store/language-provider";
 import { Button } from "@/components/ui/button";
 import { AdminData } from "./admin-data";
 export function AdminTeam() {
+  const [status, setStatus] = useState("");
   return (
     <AdminData operation="admin.staff.list">
       {(members, reload) => (
-        <div className="admin-grid">
-          {members.map((member) => (
-            <MemberEditor key={member.id} member={member} reload={reload} />
-          ))}
-        </div>
+        <>
+          <label className="admin-form">
+            Trạng thái nhân sự
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              <option value="">Tất cả</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Đã vô hiệu hóa</option>
+            </select>
+          </label>
+          <div className="admin-grid">
+            {members
+              .filter(
+                (member) => !status || member.active === (status === "active"),
+              )
+              .map((member) => (
+                <MemberEditor key={member.id} member={member} reload={reload} />
+              ))}
+            {!members.some(
+              (member) => !status || member.active === (status === "active"),
+            ) && <p>Không có nhân sự phù hợp.</p>}
+          </div>
+        </>
       )}
     </AdminData>
   );
@@ -30,17 +52,18 @@ function MemberEditor({
   reload: (notice?: string) => void;
 }) {
   const { t } = useLanguage();
-  const { api, session } = useRentalApi();
+  const { api, session, demo } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const key = useRequestKey();
   const owner =
     member.id === session.profile?.id ||
     member.permissions.includes("staff:manage");
   return (
-    <section className="admin-panel">
+    <section className="admin-surface">
       <h2>{member.name}</h2>
+      <p>{member.active ? "Đang hoạt động" : "Đã vô hiệu hóa"}</p>
       {owner ? (
-        <p>{t("Owner account · protected")}</p>
+        <p>Tài khoản quản trị được bảo vệ.</p>
       ) : (
         <form
           className="admin-form"
@@ -58,7 +81,9 @@ function MemberEditor({
                 ...input,
                 idempotencyKey: key(input),
               });
-              reload("Changes saved in this tab.");
+              reload(
+                demo ? "Đã lưu quyền mẫu trong tab này." : "Đã lưu quyền.",
+              );
             });
           }}
         >
@@ -68,10 +93,10 @@ function MemberEditor({
               name="active"
               defaultChecked={member.active}
             />
-            {t("Active account")}
+            Tài khoản hoạt động
           </label>
           <fieldset>
-            <legend>{t("Task permissions")}</legend>
+            <legend>Quyền tác vụ</legend>
             {permissions
               .filter((p) => p !== "staff:manage")
               .map((p) => (
@@ -86,7 +111,7 @@ function MemberEditor({
                 </label>
               ))}
           </fieldset>
-          <Button disabled={busy}>{t("Save permissions")}</Button>
+          <Button disabled={busy}>Lưu quyền</Button>
           {error && <p role="alert">{t(error)}</p>}
         </form>
       )}

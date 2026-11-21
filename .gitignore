@@ -190,3 +190,23 @@ vite.config.ts.timestamp-*
 
 # Generated QA artifacts
 artifacts/
+
+# Local agent message/evidence scratch (not source artifacts)
+.agent-work/
+
+# Local credentials, signing keys and source snapshots
+.aws/
+.ssh/
+.gnupg/
+.npmrc
+.netrc
+_netrc
+.pypirc
+.git-credentials
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+/rental-store.zip

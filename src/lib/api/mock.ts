@@ -2,9 +2,16 @@ import { monthDates } from "../rental-calendar";
 import { permissions, scopeAllows, type ApiScope } from "../access";
 import { orderStatusLabels, orderTransitions } from "../order-workflow";
 import { rentalToday, rentalDateError } from "../rental-dates";
-import { filterProducts, normalizeCatalogFilters, products } from "../catalog";
+import {
+  categories,
+  filterProducts,
+  normalizeCatalogFilters,
+  occasions,
+  products,
+} from "../catalog";
 import {
   ApiError,
+  maxProductPhotos,
   type Input,
   type OperationName,
   type Output,
@@ -21,6 +28,32 @@ import {
   type CustomerReview,
   type StaffMember,
 } from "./contracts";
+
+function publicCatalogProduct({
+  slug,
+  name,
+  description,
+  category,
+  collection,
+  occasions,
+  price,
+  rentalDays,
+  image,
+  imageAlt,
+}: ManagedProduct) {
+  return {
+    slug,
+    name,
+    description,
+    category,
+    collection,
+    occasions,
+    price,
+    rentalDays,
+    image,
+    imageAlt,
+  };
+}
 
 export type DemoIdentity = "customer" | "other-customer" | "staff" | "admin";
 const identities: Record<DemoIdentity, Profile> = {
@@ -166,6 +199,35 @@ export function createMockApi(
         );
     }
 
+    function dailyStock(slug: string, date: string, excludeId?: string) {
+      const day = { pickupDate: date, returnDate: date };
+      const reserved = [...orders.values()]
+        .filter(
+          (order) =>
+            order.id !== excludeId &&
+            ["confirmed", "renting"].includes(order.status) &&
+            overlap(order, day),
+        )
+        .reduce(
+          (total, order) =>
+            total +
+            (order.lines.find((line) => line.productSlug === slug)?.quantity ??
+              0),
+          0,
+        );
+      const blocked = [...blocks.values()]
+        .filter((block) => block.productSlug === slug && overlap(block, day))
+        .reduce((total, block) => total + block.quantity, 0);
+      return {
+        date,
+        reserved,
+        blocked,
+        available: Math.max(
+          0,
+          (inventory.get(slug)?.quantity ?? 0) - reserved - blocked,
+        ),
+      };
+    }
     function available(slug: string, range: RentalDates, excludeId?: string) {
       // Evaluate peak occupancy per date, not a sum across disjoint bookings.
       let minimum = inventory.get(slug)?.quantity ?? 0;
@@ -175,29 +237,9 @@ export function createMockApi(
         day += 86400000
       ) {
         const point = new Date(day).toISOString().slice(0, 10);
-        const oneDay = { pickupDate: point, returnDate: point };
-        const held = [...orders.values()]
-          .filter(
-            (order) =>
-              order.id !== excludeId &&
-              ["confirmed", "renting"].includes(order.status) &&
-              overlap(order, oneDay),
-          )
-          .reduce(
-            (total, order) =>
-              total +
-              (order.lines.find((line) => line.productSlug === slug)
-                ?.quantity ?? 0),
-            0,
-          );
-        const blocked = [...blocks.values()]
-          .filter(
-            (block) => block.productSlug === slug && overlap(block, oneDay),
-          )
-          .reduce((total, block) => total + block.quantity, 0);
         minimum = Math.min(
           minimum,
-          (inventory.get(slug)?.quantity ?? 0) - held - blocked,
+          dailyStock(slug, point, excludeId).available,
         );
       }
       return Math.max(0, minimum);
@@ -320,6 +362,7 @@ export function createMockApi(
       | "admin.products.list"
       | "admin.products.save"
       | "admin.availability.list"
+      | "admin.availability.stock"
       | "admin.availability.save"
       | "admin.availability.remove"
       | "admin.customers.list"
@@ -338,30 +381,45 @@ export function createMockApi(
         actor("catalog:manage");
         return once("admin.products.save", input, () => {
           const value = input.product;
-          checkRecordVersion(inventory.get(value.slug), value.version);
+          const existing = inventory.get(value.slug);
+          checkRecordVersion(existing, value.version);
+          const additionalPhotos = value.additionalPhotos;
+          if (
+            additionalPhotos !== undefined &&
+            (!Array.isArray(additionalPhotos) ||
+              additionalPhotos.length >= maxProductPhotos ||
+              new Set([
+                value.image,
+                ...additionalPhotos.map((photo) => photo?.url),
+              ]).size !==
+                additionalPhotos.length + 1 ||
+              additionalPhotos.some(
+                (photo) =>
+                  !products.some((sample) => sample.image === photo?.url),
+              ))
+          ) {
+            throw new ApiError(
+              "VALIDATION",
+              "Chọn các ảnh sản phẩm khác nhau.",
+            );
+          }
           if (
             !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug) ||
             value.slug.length > 80 ||
             !Number.isSafeInteger(value.price) ||
             value.price < 1 ||
+            value.price > 2147483647 ||
+            !Number.isSafeInteger(value.rentalDays) ||
+            value.rentalDays < 1 ||
+            value.rentalDays > 366 ||
             !Number.isSafeInteger(value.quantity) ||
             value.quantity < 0 ||
             value.quantity > 100 ||
             !["draft", "published"].includes(value.visibility) ||
-            !["Dresses", "Sets", "Tops", "Outerwear"].includes(
-              value.category,
-            ) ||
+            !categories.includes(value.category) ||
             !Array.isArray(value.occasions) ||
-            value.occasions.some(
-              (item) =>
-                ![
-                  "Date night",
-                  "Wedding guest",
-                  "Party",
-                  "Vacation",
-                  "Weekend",
-                ].includes(item),
-            ) ||
+            value.occasions.length > 5 ||
+            value.occasions.some((item) => !occasions.includes(item)) ||
             !products.some((product) => product.image === value.image)
           )
             throw new ApiError(
@@ -381,11 +439,16 @@ export function createMockApi(
             quantity: value.quantity,
             visibility: value.visibility,
             category: value.category,
-            collection: requireText(value.collection, "collection", 80),
+            collection: requireText(value.collection, "collection", 100),
             occasions: [...value.occasions],
             image: value.image,
             imageAlt: requireText(value.imageAlt, "imageAlt", 200),
-            rentalDays: 3,
+            additionalPhotos:
+              additionalPhotos?.map(({ url, alt }) => ({
+                url,
+                alt: requireText(alt, "imageAlt", 200),
+              })) ?? existing?.additionalPhotos,
+            rentalDays: value.rentalDays,
             version: value.version + 1,
           };
           inventory.set(product.slug, product);
@@ -395,6 +458,38 @@ export function createMockApi(
       "admin.availability.list": () => {
         actor("availability:manage");
         return [...blocks.values()];
+      },
+      "admin.availability.stock": ({ month, productSlug }) => {
+        actor("availability:manage");
+        const dates = typeof month === "string" ? monthDates(month) : [];
+        if (!dates.length)
+          throw new ApiError("VALIDATION", "Chọn tháng hợp lệ.");
+        if (
+          productSlug !== undefined &&
+          (typeof productSlug !== "string" ||
+            productSlug.length > 80 ||
+            !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(productSlug))
+        )
+          throw new ApiError("VALIDATION", "Chọn sản phẩm hợp lệ.");
+        const products = [...inventory.values()]
+          .map(({ slug, name, quantity, visibility }) => ({
+            slug,
+            name,
+            quantity,
+            visibility,
+          }))
+          .sort(
+            (a, b) =>
+              a.name.localeCompare(b.name) || a.slug.localeCompare(b.slug),
+          );
+        const selected = productSlug ?? products[0]?.slug;
+        if (productSlug && !inventory.has(productSlug))
+          throw new ApiError("NOT_FOUND", "Không tìm thấy sản phẩm.");
+        return {
+          products,
+          productSlug: selected ?? null,
+          days: selected ? dates.map((date) => dailyStock(selected, date)) : [],
+        };
       },
       "admin.availability.save": (input) => {
         actor("availability:manage");
@@ -420,7 +515,7 @@ export function createMockApi(
             pickupDate: value.pickupDate,
             returnDate: value.returnDate,
             quantity: value.quantity,
-            reason: requireText(value.reason, "reason", 500),
+            reason: requireText(value.reason, "reason", 1000),
             version: value.version + 1,
           };
           if (
@@ -656,9 +751,9 @@ export function createMockApi(
         }),
       "catalog.list": (input) =>
         filterProducts(
-          [...inventory.values()].filter(
-            (product) => product.visibility === "published",
-          ),
+          [...inventory.values()]
+            .filter((product) => product.visibility === "published")
+            .map(publicCatalogProduct),
           normalizeCatalogFilters(input),
         ),
       "catalog.get": ({ slug }) => {
@@ -666,7 +761,7 @@ export function createMockApi(
           (item) => item.slug === slug && item.visibility === "published",
         );
         if (!product) throw new ApiError("NOT_FOUND", "Product not found.");
-        return product;
+        return publicCatalogProduct(product);
       },
       "session.get": () => ({
         profile: currentProfile(),

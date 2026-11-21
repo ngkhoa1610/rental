@@ -46,7 +46,7 @@ interface ApiContextValue {
   session: Session;
   ready: boolean;
   sessionError: string;
-  refreshSession: () => Promise<boolean>;
+  refreshSession: (requireProfile?: boolean) => Promise<boolean>;
   notify: (message: string) => void;
   draft: { pickupDate: string; returnDate: string; notes: string };
   setDraft: React.Dispatch<React.SetStateAction<ApiContextValue["draft"]>>;
@@ -92,27 +92,30 @@ export function ApiProvider({
     notes: "",
   });
   const loadVersion = useRef(0);
-  const refreshSession = useCallback(async () => {
-    const version = ++loadVersion.current;
-    try {
-      const value = await runtime.api.call("session.get", undefined);
-      if (version !== loadVersion.current) return false;
-      runtime.setCsrf(value.csrfToken);
-      setSession(value);
-      setSessionError("");
-      return true;
-    } catch (error) {
-      if (version !== loadVersion.current) return false;
-      runtime.setCsrf(null);
-      setSession({ profile: null, csrfToken: null });
-      setSessionError(
-        error instanceof Error ? error.message : "Unable to load session.",
-      );
-      return false;
-    } finally {
-      if (version === loadVersion.current) setReady(true);
-    }
-  }, [runtime]);
+  const refreshSession = useCallback(
+    async (requireProfile = false) => {
+      const version = ++loadVersion.current;
+      try {
+        const value = await runtime.api.call("session.get", undefined);
+        if (version !== loadVersion.current) return false;
+        runtime.setCsrf(value.csrfToken);
+        setSession(value);
+        setSessionError("");
+        return !requireProfile || Boolean(value.profile);
+      } catch (error) {
+        if (version !== loadVersion.current) return false;
+        runtime.setCsrf(null);
+        setSession({ profile: null, csrfToken: null });
+        setSessionError(
+          error instanceof Error ? error.message : "Unable to load session.",
+        );
+        return false;
+      } finally {
+        if (version === loadVersion.current) setReady(true);
+      }
+    },
+    [runtime],
+  );
   useEffect(() => {
     // Session hydration begins asynchronously after mount, never during SSR.
     let active = true;

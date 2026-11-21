@@ -1,6 +1,7 @@
 import "server-only";
 import type { PrismaClient, Prisma } from "@/generated/prisma/client";
 import type { RentalReadRepository } from "./repositories";
+import { allocations } from "./stock";
 
 export const orderRelations = {
   reviews: { include: { media: true } },
@@ -33,37 +34,13 @@ export function createRentalReadRepository(
         orderBy: { createdAt: "desc" },
       }),
     async allocations(productIds, dates) {
-      const overlapping = {
-        pickupDate: { lte: dates.returnDate },
-        returnDate: { gte: dates.pickupDate },
-      };
-      const [lines, blocks] = await Promise.all([
-        db.orderLine.findMany({
-          where: {
-            productId: { in: [...productIds] },
-            order: { status: { in: ["confirmed", "renting"] }, ...overlapping },
-          },
-          include: {
-            order: { select: { pickupDate: true, returnDate: true } },
-          },
-        }),
-        db.inventoryBlock.findMany({
-          where: { productId: { in: [...productIds] }, ...overlapping },
-        }),
-      ]);
-      return [
-        ...lines.map((line) => ({
-          productId: line.productId,
-          quantity: line.quantity,
-          ...line.order,
-        })),
-        ...blocks.map((block) => ({
-          productId: block.productId,
-          quantity: block.quantity,
-          pickupDate: block.pickupDate,
-          returnDate: block.returnDate,
-        })),
-      ];
+      const held = await allocations(db, productIds, dates);
+      return held.map(({ productId, quantity, pickupDate, returnDate }) => ({
+        productId,
+        quantity,
+        pickupDate,
+        returnDate,
+      }));
     },
   };
 }

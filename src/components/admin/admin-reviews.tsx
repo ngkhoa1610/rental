@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useState } from "react";
 import type { CustomerReview } from "@/lib/api/contracts";
 import {
   useApiAction,
@@ -9,17 +10,42 @@ import {
 import { useLanguage } from "@/components/store/language-provider";
 import { Button } from "@/components/ui/button";
 import { AdminData } from "./admin-data";
+const moderationLabels = {
+  pending: "Chờ duyệt",
+  approved: "Đã duyệt",
+  rejected: "Đã từ chối",
+} as const;
 export function AdminReviews() {
-  const { t } = useLanguage();
+  const [status, setStatus] = useState("");
   return (
     <AdminData operation="admin.reviews.list">
       {(reviews, reload) => (
-        <div className="admin-grid">
-          {reviews.map((review) => (
-            <ReviewEditor key={review.id} review={review} reload={reload} />
-          ))}
-          {!reviews.length && <p>{t("No reviews to moderate.")}</p>}
-        </div>
+        <>
+          <label className="admin-form">
+            Trạng thái duyệt
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              <option value="">Tất cả</option>
+              {Object.entries(moderationLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="admin-grid">
+            {reviews
+              .filter((review) => !status || review.moderation === status)
+              .map((review) => (
+                <ReviewEditor key={review.id} review={review} reload={reload} />
+              ))}
+            {!reviews.some(
+              (review) => !status || review.moderation === status,
+            ) && <p>Không có feedback phù hợp.</p>}
+          </div>
+        </>
       )}
     </AdminData>
   );
@@ -32,11 +58,11 @@ function ReviewEditor({
   reload: (notice?: string) => void;
 }) {
   const { t } = useLanguage();
-  const { api } = useRentalApi();
+  const { api, demo } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const key = useRequestKey();
   return (
-    <section className="admin-panel">
+    <section className="admin-surface">
       <h2>
         {review.orderId} · {review.rating}/5
       </h2>
@@ -53,12 +79,11 @@ function ReviewEditor({
         />
       ))}
       <p>
-        {t(
-          review.consentToPublish
-            ? "Publication consent received"
-            : "No publication consent",
-        )}{" "}
-        · {t(review.moderation)}
+        {review.consentToPublish
+          ? "Khách đồng ý công khai"
+          : "Khách chưa đồng ý công khai"}
+        {" · "}
+        {moderationLabels[review.moderation]}
       </p>
       <form
         className="admin-form"
@@ -76,21 +101,28 @@ function ReviewEditor({
               ...input,
               idempotencyKey: key(input),
             });
-            reload("Changes saved in this tab.");
+            reload(
+              demo
+                ? "Đã lưu quyết định mẫu trong tab này."
+                : "Đã lưu quyết định.",
+            );
           });
         }}
       >
         <label>
-          {t("Decision")}
-          <select name="decision">
-            <option value="rejected">{t("Reject")}</option>
+          Quyết định
+          <select name="decision" required defaultValue="">
+            <option value="" disabled>
+              Chọn quyết định
+            </option>
+            <option value="rejected">Từ chối</option>
             <option value="approved" disabled={!review.consentToPublish}>
-              {t("Approve")}
+              Duyệt
             </option>
           </select>
         </label>
         <label>
-          {t("Reason")}
+          Lý do
           <textarea
             name="note"
             required
@@ -98,7 +130,7 @@ function ReviewEditor({
             defaultValue={review.moderationNote}
           />
         </label>
-        <Button disabled={busy}>{t("Save decision")}</Button>
+        <Button disabled={busy}>Lưu quyết định</Button>
         {error && <p role="alert">{t(error)}</p>}
       </form>
     </section>

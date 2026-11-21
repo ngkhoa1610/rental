@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash, randomBytes } from "node:crypto";
 import { test, before, after } from "node:test";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client";
@@ -6,6 +7,8 @@ import { createServiceApi } from "../../src/server/rental/service";
 import { handleRentalRequest } from "../../src/server/http/handler";
 import { sessionContext, tokenCookie } from "../../src/server/http/security";
 import { principalFromUser } from "../../src/server/auth/policy";
+import { handleAuth } from "../../src/server/auth/handler";
+import { hashPassword } from "../../src/server/auth/password";
 import { uploadMedia, readMedia } from "../../src/server/http/media";
 import sharp from "sharp";
 import { ApiError, type RentalOrder } from "../../src/lib/api/contracts";
@@ -24,6 +27,7 @@ const db = new PrismaClient({
 let customer: ServiceContext, admin: ServiceContext, other: ServiceContext;
 const range = { pickupDate: "2030-06-01", returnDate: "2030-06-02" };
 const key = () => crypto.randomUUID();
+const customerSessionToken = randomBytes(32).toString("base64url");
 const rejects = (code: string) => (e: unknown) =>
   e instanceof ApiError && e.code === code;
 before(async () => {
@@ -93,6 +97,104 @@ before(async () => {
   admin = await context("owner", "admin");
 });
 after(() => db.$disconnect());
+
+test("credential registration, login and logout preserve admin/customer boundaries", async () => {
+  const origin = process.env.APP_ORIGIN ?? "";
+  const password = randomBytes(20).toString("base64url");
+  const email = "new-customer@test.invalid";
+  const call = (
+    scope: "customer" | "admin",
+    action: "login" | "register",
+    body: Record<string, unknown>,
+    site = origin,
+  ) => {
+    const prefix = scope === "admin" ? "/api/admin/auth/" : "/api/auth/";
+    return handleAuth(
+      scope,
+      new Request(origin + prefix + action, {
+        method: "POST",
+        headers: { origin: site, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+      db,
+    );
+  };
+  const account = { name: "Fixture Customer", email, password };
+  assert.equal(
+    (await call("customer", "register", account, "https://other.test")).status,
+    403,
+  );
+  const registered = await call("customer", "register", {
+    ...account,
+    email: email.toUpperCase(),
+  });
+  assert.ok(registered.ok, await registered.clone().text());
+  const user = await db.user.findUniqueOrThrow({
+    where: { email },
+    include: { staff: true, sessions: true },
+  });
+  assert.equal(user.staff, null);
+  assert.ok(user.passwordHash && user.passwordHash !== password);
+  const cookieHeader = registered.headers.get("set-cookie");
+  assert.match(cookieHeader ?? "", /; HttpOnly(?:;|$)/i);
+  assert.match(cookieHeader ?? "", /; SameSite=Lax(?:;|$)/i);
+  const cookie = cookieHeader?.split(";")[0] ?? "";
+  const token = cookie.slice(cookie.indexOf("=") + 1);
+  assert.ok(token);
+  assert.equal(
+    user.sessions[0]?.sessionToken,
+    createHash("sha256").update(token).digest("hex"),
+  );
+  assert.equal(user.sessions[0]?.scope, "customer");
+  assert.equal((await call("customer", "register", account)).status, 409);
+  assert.equal(
+    (await call("customer", "login", { email, password: password + "bad" }))
+      .status,
+    401,
+  );
+  assert.equal((await call("admin", "login", { email, password })).status, 401);
+
+  const session = await handleRentalRequest(
+    new Request(origin + "/api/v1/session", { headers: { cookie } }),
+    ["session"],
+    db,
+  );
+  const { data } = await session.json();
+  assert.equal(data.profile.id, user.id);
+  const logout = await handleRentalRequest(
+    new Request(origin + "/api/v1/session/logout", {
+      method: "POST",
+      headers: {
+        cookie,
+        origin,
+        "x-csrf-token": data.csrfToken,
+        "content-type": "application/json",
+      },
+      body: "{}",
+    }),
+    ["session", "logout"],
+    db,
+  );
+  assert.equal(logout.status, 204);
+  assert.equal(await db.session.count({ where: { userId: user.id } }), 0);
+  assert.ok((await call("customer", "login", { email, password })).ok);
+
+  await db.user.update({
+    where: { id: "owner" },
+    data: { passwordHash: await hashPassword(password) },
+  });
+  const staffLogin = await call("admin", "login", {
+    email: "owner@test.invalid",
+    password,
+  });
+  assert.ok(staffLogin.ok, await staffLogin.clone().text());
+  assert.ok(
+    staffLogin.headers
+      .get("set-cookie")
+      ?.startsWith(tokenCookie("admin") + "="),
+  );
+});
+
 async function book(ctx = customer, slug = "p", dates = range) {
   const api = createServiceApi(db, ctx);
   const q = await api.call("availability.quote", {
@@ -295,14 +397,16 @@ test("HTTP validates sessions/CSRF/origin/method and rate-limits without leaking
   await db.session.create({
     data: {
       id: "cs",
-      sessionToken: "customer-fixture-token",
+      sessionToken: createHash("sha256")
+        .update(customerSessionToken)
+        .digest("hex"),
       userId: "c",
       scope: "customer",
       expires: new Date(Date.now() + 3600000),
     },
   });
   const origin = process.env.APP_ORIGIN ?? "";
-  const cookie = `${tokenCookie("customer")}=customer-fixture-token`;
+  const cookie = `${tokenCookie("customer")}=${customerSessionToken}`;
   const get = new Request(origin + "/api/v1/session", { headers: { cookie } });
   const session = await handleRentalRequest(get, ["session"], db);
   assert.equal(session.status, 200);
@@ -374,7 +478,7 @@ test("review photos stay private until completed owner review, consent and moder
   ] as const)
     order = await transition(order, status);
   const origin = process.env.APP_ORIGIN ?? "";
-  const cookie = `${tokenCookie("customer")}=customer-fixture-token`;
+  const cookie = `${tokenCookie("customer")}=${customerSessionToken}`;
   const session = await handleRentalRequest(
     new Request(origin + "/api/v1/session", { headers: { cookie } }),
     ["session"],

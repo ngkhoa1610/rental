@@ -18,6 +18,7 @@ export const operationPermission: Partial<Record<OperationName, Permission>> = {
   "admin.products.list": "catalog:manage",
   "admin.products.save": "catalog:manage",
   "admin.availability.list": "availability:manage",
+  "admin.availability.stock": "availability:manage",
   "admin.availability.save": "availability:manage",
   "admin.availability.remove": "availability:manage",
   "admin.customers.list": "customers:read",

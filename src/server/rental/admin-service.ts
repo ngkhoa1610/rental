@@ -33,11 +33,20 @@ export function adminServices(
     "admin.products.save": (input, ctx) =>
       mutation(db, "admin.products.save", input, ctx, async (tx, actor) => {
         const value = input.product;
+        const photos = [
+          { url: value.image, alt: value.imageAlt },
+          ...(value.additionalPhotos ?? []),
+        ];
+        const urls = new Set(photos.map(({ url }) => url));
+        const mediaIds = [...urls]
+          .filter((url) => url.startsWith("/media/"))
+          .map((url) => url.slice(7));
         if (
-          value.image.startsWith("/media/") &&
-          !(await tx.mediaAsset.findFirst({
-            where: { id: value.image.slice(7), purpose: "product" },
-          }))
+          urls.size !== photos.length ||
+          (mediaIds.length &&
+            (await tx.mediaAsset.count({
+              where: { id: { in: mediaIds }, purpose: "product" },
+            })) !== mediaIds.length)
         )
           throw new ApiError(
             "VALIDATION",
@@ -75,16 +84,18 @@ export function adminServices(
               include: { images: true },
             })
           : await tx.product.create({ data, include: { images: true } });
-        await tx.productImage.upsert({
-          where: { productId_position: { productId: product.id, position: 0 } },
-          create: {
-            productId: product.id,
-            position: 0,
-            url: value.image,
-            alt: value.imageAlt,
-          },
-          update: { url: value.image, alt: value.imageAlt },
-        });
+        for (const [position, photo] of photos.entries()) {
+          await tx.productImage.upsert({
+            where: { productId_position: { productId: product.id, position } },
+            create: { productId: product.id, position, ...photo },
+            update: photo,
+          });
+        }
+        if (value.additionalPhotos !== undefined) {
+          await tx.productImage.deleteMany({
+            where: { productId: product.id, position: { gte: photos.length } },
+          });
+        }
         await audit(
           tx,
           actor,
