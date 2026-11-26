@@ -14,7 +14,6 @@
 /coverage
 
 # next.js
-/.next/
 /out/
 
 # production
@@ -116,7 +115,7 @@ web_modules/
 .parcel-cache
 
 # Next.js build output
-.next
+.next/
 out
 
 # Nuxt.js build / generate output
@@ -191,7 +190,9 @@ vite.config.ts.timestamp-*
 # Generated QA artifacts
 artifacts/
 
-# Local agent message/evidence scratch (not source artifacts)
+# Local AI and agent artifacts
+.ai/
+.agent/
 .agent-work/
 
 # Local credentials, signing keys and source snapshots
