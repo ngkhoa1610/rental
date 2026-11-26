@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Mở `http://localhost:3000`. Mặc định là `mock`, dữ liệu ví dụ không phải kho/giá của cửa hàng. Muốn dùng PostgreSQL và đăng nhập thật, đọc `docs/setup.md`; chế độ `http` cần build lại với `NEXT_PUBLIC_RENTAL_API_MODE=http`, database, cấu hình đăng nhập và chính sách giá đã được shop xác nhận.
+Mở `http://localhost:3000/layout-preview` để xem bố cục từ dữ liệu JSON. Để chạy luồng nghiệp vụ, cấu hình PostgreSQL, xác thực và chính sách giá theo [Setup](docs/setup.md), rồi mở trang chủ.
 
 Các lệnh kiểm tra: `npm run db:validate`, `npm run format:check`, `npm run lint`, `npm test`, `npm run test:server`, `npm run build`, `npm run test:smoke`. `npm run check` thêm dependency audit; browser QA và rà soát bảo mật cần làm riêng. Đơn gửi online chỉ chờ duyệt, thanh toán và cọc được xác nhận offline.
 

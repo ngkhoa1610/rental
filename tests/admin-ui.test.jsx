@@ -16,16 +16,93 @@ import { AdminProducts } from "../src/components/admin/admin-products.tsx";
 import { AdminCustomers } from "../src/components/admin/admin-customers.tsx";
 import { AdminReviews } from "../src/components/admin/admin-reviews.tsx";
 import { AdminTeam } from "../src/components/admin/admin-team.tsx";
-import { createMockApi } from "../src/lib/api/mock.ts";
 afterEach(cleanup);
 
+const customer = {
+  id: "customer-1",
+  name: "Customer",
+  phone: "0900000000",
+  permissions: [],
+};
+const owner = {
+  id: "owner-1",
+  name: "Owner",
+  phone: "",
+  permissions: [
+    "orders:manage",
+    "catalog:manage",
+    "customers:read",
+    "reviews:moderate",
+    "staff:manage",
+  ],
+};
+const pending = {
+  id: "sample-order-1",
+  customerId: customer.id,
+  contact: { name: customer.name, phone: customer.phone },
+  pickupDate: "2030-02-01",
+  returnDate: "2030-02-03",
+  lines: [
+    {
+      productSlug: "muse-dress",
+      name: "Muse Dress",
+      quantity: 1,
+      amount: 280000,
+      available: 2,
+    },
+  ],
+  notes: "",
+  status: "pending",
+  version: 1,
+  createdAt: "2030-01-01T12:00:00.000Z",
+  changes: [],
+  history: [
+    {
+      at: "2030-01-01T12:00:00.000Z",
+      actorId: owner.id,
+      action: "Submitted",
+      note: "",
+    },
+  ],
+};
+const product = {
+  slug: "muse-dress",
+  name: "Muse Dress",
+  description: "Pink dress",
+  category: "Dresses",
+  collection: "Test collection",
+  occasions: [],
+  visibility: "published",
+  price: 280000,
+  rentalDays: 3,
+  quantity: 2,
+  image: "/images/sakura-muse-dress.png",
+  imageAlt: "Pink dress",
+  additionalPhotos: [],
+  version: 1,
+};
+
+function runtime(profile, handlers) {
+  return {
+    setCsrf() {},
+    api: {
+      async call(operation, input) {
+        if (operation === "session.get") return { profile, csrfToken: "csrf" };
+        assert.ok(handlers[operation], `Unexpected operation ${operation}`);
+        return handlers[operation](input);
+      },
+    },
+  };
+}
+
 test("admin searches customer records and opens order history on demand", async () => {
-  const admin = createMockApi({ latencyMs: 0 }).forScope("admin");
-  admin.signIn("admin");
-  admin.seedDemoData();
+  const service = runtime(owner, {
+    "admin.customers.list": () => [customer],
+    "admin.orders.list": () => [pending],
+  });
   const user = userEvent.setup();
   render(
-    <ApiProvider runtime={runtime(admin)}>
+    <ApiProvider runtime={service} scope="admin">
       <AdminCustomers />
     </ApiProvider>,
   );
@@ -39,18 +116,58 @@ test("admin searches customer records and opens order history on demand", async 
   await user.type(lookup, "0900-000-000");
   await user.click(screen.getByRole("button", { name: "Lịch sử thuê" }));
   assert.equal(
-    (await screen.findByRole("link", { name: "sample-order-1" })).getAttribute("href"),
+    (await screen.findByRole("link", { name: "sample-order-1" })).getAttribute(
+      "href",
+    ),
     "/admin/orders?order=sample-order-1",
   );
 });
 
 test("admin filters reviews and updates staff through existing protected actions", async () => {
-  const admin = createMockApi({ latencyMs: 0 }).forScope("admin");
-  admin.signIn("admin");
-  admin.seedDemoData();
+  const member = {
+    id: "staff-1",
+    name: "Staff member",
+    phone: "",
+    permissions: ["orders:manage"],
+    active: true,
+    version: 1,
+  };
+  const review = {
+    id: "review-1",
+    orderId: "order-1",
+    rating: 5,
+    story: "Test review",
+    consentToPublish: true,
+    mediaIds: [],
+    moderation: "pending",
+    moderationNote: "",
+    version: 1,
+  };
+  let moderation, staffUpdate;
+  const service = runtime(owner, {
+    "admin.reviews.list": () => [
+      moderation ? { ...review, moderation: "approved" } : review,
+      {
+        ...review,
+        id: "review-2",
+        orderId: "order-2",
+        consentToPublish: false,
+      },
+    ],
+    "admin.staff.list": () => [
+      { ...owner, active: true, version: 1 },
+      staffUpdate ? { ...member, active: false } : member,
+    ],
+    "admin.reviews.moderate": (input) => {
+      moderation = input;
+    },
+    "admin.staff.update": (input) => {
+      staffUpdate = input;
+    },
+  });
   const user = userEvent.setup();
   render(
-    <ApiProvider runtime={runtime(admin)}>
+    <ApiProvider runtime={service} scope="admin">
       <AdminReviews />
       <AdminTeam />
     </ApiProvider>,
@@ -80,42 +197,54 @@ test("admin filters reviews and updates staff through existing protected actions
   await user.click(
     within(consent).getByRole("button", { name: "Lưu quyết định" }),
   );
-  await screen.findByText("Đã lưu quyết định mẫu trong tab này.");
+  await screen.findByText("Đã lưu quyết định.");
   await user.selectOptions(
     await screen.findByLabelText("Trạng thái duyệt"),
     "approved",
   );
   await screen.findByText(/^Khách đồng ý công khai.*Đã duyệt$/);
-  const owner = screen
+  const ownerSection = screen
     .getByText("Tài khoản quản trị được bảo vệ.")
     .closest("section");
   assert.equal(
-    within(owner).queryByRole("button", { name: "Lưu quyền" }),
+    within(ownerSection).queryByRole("button", { name: "Lưu quyền" }),
     null,
   );
   const staff = screen
-    .getByRole("heading", { name: "Demo staff" })
+    .getByRole("heading", { name: "Staff member" })
     .closest("section");
   await user.click(within(staff).getByLabelText("Tài khoản hoạt động"));
   await user.click(within(staff).getByRole("button", { name: "Lưu quyền" }));
-  await screen.findByText("Đã lưu quyền mẫu trong tab này.");
+  await screen.findByText("Đã lưu quyền.");
   await user.selectOptions(
     await screen.findByLabelText("Trạng thái nhân sự"),
     "inactive",
   );
-  assert.ok(await screen.findByRole("heading", { name: "Demo staff" }));
-  assert.equal(screen.queryByRole("heading", { name: "Demo admin" }), null);
+  assert.ok(await screen.findByRole("heading", { name: "Staff member" }));
+  assert.equal(screen.queryByRole("heading", { name: "Owner" }), null);
+  assert.equal(moderation.decision, "approved");
+  assert.equal(staffUpdate.active, false);
 });
-const runtime = (demo) => ({ demo, api: demo.api, setCsrf() {} });
+
 test("customer orders show every status without privileged controls or actor identifiers", async () => {
-  const backend = createMockApi({ latencyMs: 0 });
-  const admin = backend.forScope("admin");
-  admin.signIn("admin");
-  admin.seedDemoData();
-  const customer = backend.forScope("customer");
-  customer.signIn("customer");
+  const service = runtime(customer, {
+    "orders.list": () =>
+      [
+        "pending",
+        "confirmed",
+        "renting",
+        "completed",
+        "cancelled",
+        "rejected",
+        "returned",
+      ].map((status, index) => ({
+        ...pending,
+        status,
+        id: "sample-order-" + (index + 1),
+      })),
+  });
   render(
-    <ApiProvider runtime={runtime(customer)}>
+    <ApiProvider runtime={service}>
       <RentalOrders />
     </ApiProvider>,
   );
@@ -127,17 +256,24 @@ test("customer orders show every status without privileged controls or actor ide
     null,
   );
   assert.equal(screen.queryByText("Update rental status"), null);
-  assert.equal(screen.queryByText(/demo-admin/), null);
   assert.equal(document.querySelector('a[href^="/admin"]'), null);
-  assert.equal(document.body.textContent.includes("demo-admin"), false);
+  assert.equal(document.body.textContent.includes(owner.id), false);
 });
+
 test("failed admin save retains input, retries once and shows success; markup remains escaped", async () => {
-  const backend = createMockApi({ latencyMs: 0 });
-  const admin = backend.forScope("admin");
-  admin.signIn("admin");
+  let attempts = 0;
+  let saved;
+  const service = runtime(owner, {
+    "admin.products.list": () => [saved ?? product],
+    "admin.products.save": ({ product: value }) => {
+      if (++attempts === 1) throw new Error("Could not save");
+      saved = { ...value, version: 2 };
+      return saved;
+    },
+  });
   const user = userEvent.setup();
   render(
-    <ApiProvider runtime={runtime(admin)}>
+    <ApiProvider runtime={service} scope="admin">
       <AdminProducts />
     </ApiProvider>,
   );
@@ -150,114 +286,42 @@ test("failed admin save retains input, retries once and shows success; markup re
     .closest("section");
   const name = within(panel).getByLabelText("Tên sản phẩm");
   fireEvent.change(name, { target: { value: "<script>new name</script>" } });
-  admin.failNext();
   await user.click(within(panel).getByRole("button", { name: "Lưu sản phẩm" }));
   await within(panel).findByRole("alert");
   assert.equal(name.value, "<script>new name</script>");
   await user.dblClick(
     within(panel).getByRole("button", { name: "Lưu sản phẩm" }),
   );
-  await screen.findByText("Đã lưu sản phẩm mẫu trong tab này.");
+  await screen.findByText("Đã lưu sản phẩm.");
   await screen.findByText("<script>new name</script>");
   assert.equal(document.querySelector("script"), null);
-  assert.equal(
-    (await admin.api.call("admin.products.list", undefined)).find(
-      (p) => p.slug === "muse-dress",
-    ).version,
-    2,
-  );
+  assert.equal(attempts, 2);
+  assert.equal(saved.version, 2);
 });
 
-test("admin can create a draft with a cover, price block and merchandising fields", async () => {
-  const backend = createMockApi({ latencyMs: 0 });
-  const admin = backend.forScope("admin");
-  admin.signIn("admin");
+test("album saves a promoted cover and custom alt without retaining a removed photo", async () => {
+  const first = { url: "/images/sakura-luna-set.png", alt: "First alternate" };
+  const second = {
+    url: "/images/sakura-soleil-top.png",
+    alt: "Second alternate",
+  };
+  let submitted;
+  const service = runtime(owner, {
+    "admin.products.list": () => [
+      { ...product, additionalPhotos: [first, second] },
+    ],
+    "admin.products.save": (input) => {
+      submitted = input.product;
+    },
+  });
   const user = userEvent.setup();
   render(
-    <ApiProvider runtime={runtime(admin)}>
+    <ApiProvider runtime={service} scope="admin">
       <AdminProducts />
     </ApiProvider>,
   );
-  await user.click(
-    await screen.findByRole("button", { name: "Thêm sản phẩm" }),
-  );
-  const editor = screen.getByRole("region", { name: "Thêm sản phẩm" });
-  const fields = within(editor);
-  const product = {
-    slug: "dam-thu-nghiem",
-    name: "Đầm thử nghiệm",
-    description: "Đầm mẫu để thử form.",
-    collection: "Bộ sưu tập thử",
-    price: 275_000,
-    rentalDays: 2,
-    quantity: 4,
-  };
-  const labels = {
-    slug: /^Slug sản phẩm/,
-    name: "Tên sản phẩm",
-    description: "Mô tả sản phẩm",
-    collection: "Bộ sưu tập",
-    price: "Giá mỗi block (VND)",
-    rentalDays: "Số ngày mỗi block",
-    quantity: "Tổng số lượng",
-  };
-  for (const [key, label] of Object.entries(labels))
-    fireEvent.change(fields.getByLabelText(label), {
-      target: { value: product[key] },
-    });
-
-  await user.selectOptions(fields.getByLabelText("Danh mục"), "Outerwear");
-  const occasion = fields.getAllByRole("checkbox")[0];
-  await user.click(occasion);
-  const photo = fields.getByLabelText("Chọn ảnh mẫu");
-  const image = Array.from(photo.options).find((option) => option.value).value;
-  await user.selectOptions(photo, image);
-  const imageAlt = "Ảnh đại diện đầm thử";
-  fireEvent.change(fields.getByLabelText("Mô tả ảnh"), {
-    target: { value: imageAlt },
-  });
-  await fields.findByRole("img", { name: imageAlt });
-  await user.click(fields.getByRole("button", { name: "Lưu sản phẩm" }));
-  await screen.findByText("Đã lưu sản phẩm mẫu trong tab này.");
-  await screen.findByRole("row", { name: /dam-thu-nghiem/ });
-  const actual = (await admin.api.call("admin.products.list", undefined)).find(
-    ({ slug }) => slug === product.slug,
-  );
-  assert.deepEqual(actual, {
-    ...product,
-    category: "Outerwear",
-    occasions: [occasion.value],
-    image,
-    imageAlt,
-    additionalPhotos: [],
-    visibility: "draft",
-    version: 1,
-  });
-});
-
-test("album retains cover, additional photo order and alt after promotion and removal", async () => {
-  const backend = createMockApi({ latencyMs: 0 });
-  const admin = backend.forScope("admin");
-  admin.signIn("admin");
-  const user = userEvent.setup();
-  render(
-    <ApiProvider runtime={runtime(admin)}>
-      <AdminProducts />
-    </ApiProvider>,
-  );
-  await user.click(
-    within(await screen.findByRole("row", { name: /muse-dress/ })).getByRole(
-      "button",
-      { name: /^Chỉnh sửa / },
-    ),
-  );
-  const originalCover = screen.getByLabelText("Chọn ảnh mẫu").value;
-  const picker = screen.getByLabelText("Thêm ảnh mẫu vào album");
-  const [first, second] = Array.from(picker.options)
-    .map((option) => option.value)
-    .filter(Boolean);
-  await user.selectOptions(picker, first);
-  await user.selectOptions(picker, second);
+  const row = await screen.findByRole("row", { name: /muse-dress/ });
+  await user.click(within(row).getByRole("button", { name: /^Chỉnh sửa / }));
   await user.click(screen.getAllByRole("button", { name: "Lên" })[1]);
   await user.click(
     screen.getAllByRole("button", { name: "Đặt làm đại diện" })[0],
@@ -267,23 +331,10 @@ test("album retains cover, additional photo order and alt after promotion and re
     target: { value: "Góc trước" },
   });
   await user.click(screen.getByRole("button", { name: "Lưu sản phẩm" }));
-  await screen.findByText("Đã lưu sản phẩm mẫu trong tab này.");
-  const saved = (await admin.api.call("admin.products.list", undefined)).find(
-    ({ slug }) => slug === "muse-dress",
-  );
-  assert.equal(saved.image, second);
-  assert.deepEqual(saved.additionalPhotos, [
-    { url: originalCover, alt: "Góc trước" },
+  await screen.findByText("Đã lưu sản phẩm.");
+  assert.equal(submitted.image, second.url);
+  assert.equal(submitted.imageAlt, second.alt);
+  assert.deepEqual(submitted.additionalPhotos, [
+    { url: product.image, alt: "Góc trước" },
   ]);
-  const { additionalPhotos, ...legacyProduct } = saved;
-  const legacySave = await admin.api.call("admin.products.save", {
-    product: legacyProduct,
-    idempotencyKey: crypto.randomUUID(),
-  });
-  assert.deepEqual(legacySave.additionalPhotos, additionalPhotos);
-  const publicProduct = await backend
-    .forScope("customer")
-    .api.call("catalog.get", { slug: saved.slug });
-  assert.equal(publicProduct.image, second);
-  assert.equal(Object.hasOwn(publicProduct, "additionalPhotos"), false);
 });

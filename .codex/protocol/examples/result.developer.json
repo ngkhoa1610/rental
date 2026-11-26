@@ -1,0 +1,26 @@
+{
+  "protocol_version": "1.0",
+  "message_type": "result",
+  "task_id": "auth-refactor-001",
+  "parent_task_id": "refactor-001",
+  "role": "developer",
+  "action": "implement",
+  "status": "BLOCKED",
+  "summary": "Example only: implementation has not run; no code has been changed.",
+  "changed_files": [],
+  "checks": [
+    {
+      "command": "npm run lint",
+      "outcome": "not_run",
+      "exit_code": null,
+      "note": "Illustrative message; no execution"
+    }
+  ],
+  "findings": [],
+  "evidence_refs": [],
+  "risks": [
+    "Requires a real delegated implementation task"
+  ],
+  "requested_context": [],
+  "next_owner": "orchestrator"
+}

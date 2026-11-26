@@ -132,7 +132,6 @@ try {
       env: {
         ...process.env,
         RENTAL_BUILD_DIR: ".next-http",
-        NEXT_PUBLIC_RENTAL_API_MODE: "http",
       },
       stdio: ["ignore", "pipe", "pipe"],
     },

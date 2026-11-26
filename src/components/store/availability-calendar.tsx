@@ -17,7 +17,7 @@ export function AvailabilityCalendar({
   dates: RentalDates;
   onChange: (value: RentalDates) => void;
 }) {
-  const { api, demo } = useRentalApi();
+  const { api } = useRentalApi();
   const { t } = useLanguage();
   const id = useId();
   const initialMonth = useRef(dates.pickupDate.slice(0, 7));
@@ -207,6 +207,12 @@ export function AvailabilityCalendar({
               data-state={
                 disabled ? "disabled" : selected ? "selected" : "available"
               }
+              data-endpoint={
+                selected &&
+                (date === dates.pickupDate || date === dates.returnDate)
+                  ? true
+                  : undefined
+              }
               onClick={() => select(date)}
               onKeyDown={(event) => {
                 const offset: Record<string, number> = {
@@ -252,8 +258,9 @@ export function AvailabilityCalendar({
         <p className="store-calendar-legend">
           <span>{t("Available")}</span>
           <span>{t("Unavailable")}</span>
+          <span>Ngày đã chọn</span>
           <small>
-            {t(demo ? "Sample calendar · checked at" : "Checked at")}{" "}
+            {t("Checked at")}{" "}
             {new Date(data.checkedAt).toLocaleTimeString("vi-VN", {
               hour: "2-digit",
               minute: "2-digit",

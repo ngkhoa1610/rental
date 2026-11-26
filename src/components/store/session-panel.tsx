@@ -6,20 +6,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApiAction, useRentalApi } from "./api-provider";
 
-export function SessionPanel({ compact = false }: { compact?: boolean }) {
+export function SessionPanel() {
   const { t } = useLanguage();
-  const { api, demo, session, ready, sessionError, refreshSession, notify } =
+  const { api, session, ready, sessionError, refreshSession, notify } =
     useRentalApi();
   const { busy, error, run } = useApiAction();
   const profile = session.profile;
   const [notice, setNotice] = useState("");
   return (
     <section className="store-api-panel" aria-label={t("Account session")}>
-      {demo && (
-        <p className="store-api-badge">
-          <T>{"Interactive demo · resets on reload"}</T>
-        </p>
-      )}
       {!ready && (
         <p role="status">
           <T>{"Loading account…"}</T>
@@ -49,47 +44,7 @@ export function SessionPanel({ compact = false }: { compact?: boolean }) {
               {"Your contact details will be used for your rental request."}
             </T>
           </p>
-          {demo ? (
-            <div className="store-api-actions">
-              <Button
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    setNotice("");
-                    notify("");
-                    demo.signIn("customer");
-                    if (await refreshSession()) {
-                      notify("Signed in successfully.");
-                      setNotice("Signed in successfully.");
-                    }
-                  })
-                }
-              >
-                <T>{"Try customer account"}</T>
-              </Button>
-              {!compact && (
-                <Button
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      setNotice("");
-                      notify("");
-                      demo.signIn("other-customer");
-                      if (await refreshSession()) {
-                        notify("Signed in successfully.");
-                        setNotice("Signed in successfully.");
-                      }
-                    })
-                  }
-                >
-                  <T>{"Try another customer"}</T>
-                </Button>
-              )}
-            </div>
-          ) : (
-            <AuthSignIn scope="customer" />
-          )}
+          <AuthSignIn scope="customer" />
         </>
       )}
       {profile && (

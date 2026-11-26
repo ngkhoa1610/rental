@@ -9,13 +9,11 @@ export function ActionNotice({
   message,
   sequence,
   scope,
-  demo,
   onDismiss,
 }: {
   message: string;
   sequence: number;
   scope: ApiScope;
-  demo: boolean;
   onDismiss: () => void;
 }) {
   const { t } = useLanguage();
@@ -34,11 +32,6 @@ export function ActionNotice({
         <p key={sequence} role="status" aria-live="polite" aria-atomic="true">
           {t(message)}
         </p>
-        {demo && (
-          <small>
-            {t("Demo changes stay in this tab and reset on reload.")}
-          </small>
-        )}
       </div>
       <Button
         type="button"

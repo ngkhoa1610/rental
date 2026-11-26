@@ -52,7 +52,7 @@ function MemberEditor({
   reload: (notice?: string) => void;
 }) {
   const { t } = useLanguage();
-  const { api, session, demo } = useRentalApi();
+  const { api, session } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const key = useRequestKey();
   const owner =
@@ -81,9 +81,7 @@ function MemberEditor({
                 ...input,
                 idempotencyKey: key(input),
               });
-              reload(
-                demo ? "Đã lưu quyền mẫu trong tab này." : "Đã lưu quyền.",
-              );
+              reload("Đã lưu quyền.");
             });
           }}
         >

@@ -1,0 +1,121 @@
+{
+  "accounts": {
+    "customer": {
+      "email": "customer@preview.invalid",
+      "password": "demo-khach-2026"
+    },
+    "admin": {
+      "email": "admin@preview.invalid",
+      "password": "demo-admin-2026"
+    }
+  },
+  "products": [
+    {
+      "slug": "muse-dress",
+      "name": "Đầm midi hồng sakura",
+      "category": "Dresses",
+      "collection": "Trang phục dự tiệc",
+      "occasions": ["Date night", "Wedding guest", "Party"],
+      "price": 280000,
+      "rentalDays": 3,
+      "image": "/images/sakura-muse-dress.png",
+      "imageAlt": "Đầm midi tông hồng giữa hoa anh đào",
+      "description": "Mẫu đầm minh họa cho bố cục trang phục dự tiệc."
+    },
+    {
+      "slug": "luna-set",
+      "name": "Bộ phối Luna",
+      "category": "Sets",
+      "collection": "Trang phục cuối tuần",
+      "occasions": ["Weekend", "Vacation"],
+      "price": 220000,
+      "rentalDays": 3,
+      "image": "/images/sakura-luna-set.png",
+      "imageAlt": "Bộ áo khoác và quần dài màu hồng phấn",
+      "description": "Mẫu bộ phối minh họa cho bố cục trang phục cuối tuần."
+    },
+    {
+      "slug": "soleil-top",
+      "name": "Áo Soleil",
+      "category": "Tops",
+      "collection": "Trang phục thường ngày",
+      "occasions": ["Date night", "Weekend"],
+      "price": 160000,
+      "rentalDays": 3,
+      "image": "/images/sakura-soleil-top.png",
+      "imageAlt": "Áo kiểu màu hồng nhạt phối với quần sáng",
+      "description": "Mẫu áo minh họa cho bố cục trang phục thường ngày."
+    }
+  ],
+  "availability": [
+    { "date": "2026-11-24", "label": "Còn 2 món" },
+    { "date": "2026-11-25", "label": "Còn 1 món" },
+    { "date": "2026-11-26", "label": "Đã kín lịch" }
+  ],
+  "orders": [
+    {
+      "id": "QA-001",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-24",
+      "returnDate": "2026-11-24",
+      "status": "pending"
+    },
+    {
+      "id": "QA-002",
+      "contact": {
+        "name": "Khách thử nghiệm có tên hiển thị dài để kiểm tra xuống dòng",
+        "phone": ""
+      },
+      "pickupDate": "2026-11-24",
+      "returnDate": "2026-11-25",
+      "status": "confirmed"
+    },
+    {
+      "id": "QA-003",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-25",
+      "returnDate": "2026-11-26",
+      "status": "renting"
+    },
+    {
+      "id": "QA-004",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-25",
+      "returnDate": "2026-11-26",
+      "status": "cancelled"
+    },
+    {
+      "id": "QA-005",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-22",
+      "returnDate": "2026-11-23",
+      "status": "returned"
+    },
+    {
+      "id": "QA-006",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-21",
+      "returnDate": "2026-11-22",
+      "status": "completed"
+    },
+    {
+      "id": "QA-007",
+      "contact": { "name": "Khách thử nghiệm", "phone": "" },
+      "pickupDate": "2026-11-25",
+      "returnDate": "2026-11-26",
+      "status": "rejected"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "QA-REVIEW-001",
+      "rating": 5,
+      "story": "Phản hồi minh họa về cách phối đầm hồng cho một buổi chụp ảnh."
+    },
+    {
+      "id": "QA-REVIEW-002",
+      "rating": 4,
+      "story": "Phản hồi minh họa về bộ phối cho dịp cuối tuần."
+    }
+  ]
+}

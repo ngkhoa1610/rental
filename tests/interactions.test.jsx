@@ -3,6 +3,7 @@ import React from "react";
 import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -15,6 +16,14 @@ import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared
 import { PathnameContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime.js";
 import { SelectionProvider } from "../src/components/store/selection-provider.tsx";
 import { ApiProvider } from "../src/components/store/api-provider.tsx";
+import { CatalogDataProvider } from "../src/components/store/catalog-data.tsx";
+import { translate as t } from "../src/lib/language.ts";
+import {
+  catalogViewRuntime,
+  dress,
+  set,
+  top,
+} from "./catalog-view-fixture.mjs";
 import {
   WishlistButton,
   AddToBagButton,
@@ -27,6 +36,7 @@ import { Catalog } from "../src/components/store/catalog.tsx";
 import { SiteHeader } from "../src/components/layout/site-header.tsx";
 import { SectionButton } from "../src/components/ui/section-button.tsx";
 
+const runtime = catalogViewRuntime();
 const routerCalls = [];
 const router = {
   push: (...args) => routerCalls.push(args),
@@ -40,8 +50,10 @@ function App({ children, pathname = "/products" }) {
   return (
     <AppRouterContext.Provider value={router}>
       <PathnameContext.Provider value={pathname}>
-        <ApiProvider>
-          <SelectionProvider>{children}</SelectionProvider>
+        <ApiProvider runtime={runtime}>
+          <CatalogDataProvider>
+            <SelectionProvider>{children}</SelectionProvider>
+          </CatalogDataProvider>
         </ApiProvider>
       </PathnameContext.Provider>
     </AppRouterContext.Provider>
@@ -57,22 +69,28 @@ test("save and add stay in context, persist, and announce the action", async () 
   const user = userEvent.setup();
   render(
     <App>
-      <WishlistButton slug="muse-dress" name="Muse Dress" />
-      <AddToBagButton slug="muse-dress" name="Muse Dress" />
+      <WishlistButton slug="muse-dress" name={dress.name} />
+      <AddToBagButton slug="muse-dress" name={dress.name} />
     </App>,
   );
   await user.click(
-    screen.getByRole("button", { name: "Save Muse Dress to wishlist" }),
+    await screen.findByRole("button", {
+      name: t("Save {name} to wishlist", { name: dress.name }),
+    }),
   );
   assert.equal(
     screen
-      .getByRole("button", { name: "Remove Muse Dress from wishlist" })
+      .getByRole("button", {
+        name: t("Remove {name} from wishlist", { name: dress.name }),
+      })
       .getAttribute("aria-pressed"),
     "true",
   );
-  await user.click(screen.getByRole("button", { name: "Add to rental bag" }));
+  await user.click(
+    await screen.findByRole("button", { name: t("Add to rental bag") }),
+  );
   assert.ok(
-    screen.getByRole("button", { name: "In your rental bag" }).disabled,
+    screen.getByRole("button", { name: t("In your rental bag") }).disabled,
   );
   assert.deepEqual(
     JSON.parse(localStorage.getItem("rental-store.selection.v1")).bag,
@@ -80,11 +98,11 @@ test("save and add stay in context, persist, and announce the action", async () 
   );
   assert.match(
     screen.getByRole("status").textContent,
-    /added to your rental bag/,
+    new RegExp(t("{name} added to your rental bag.", { name: dress.name })),
   );
   assert.equal(routerCalls.length, 0);
   await user.click(
-    screen.getByRole("button", { name: "Dismiss notification" }),
+    screen.getByRole("button", { name: t("Dismiss notification") }),
   );
   assert.equal(screen.getByRole("status").textContent, "");
 });
@@ -105,21 +123,23 @@ test("restored bag supports cancel then confirm clear without losing wishlist", 
     </App>,
   );
   await user.click(
-    screen.getByRole("button", { name: "Clear bag", exact: true }),
+    await screen.findByRole("button", { name: t("Clear bag"), exact: true }),
   );
-  assert.ok(screen.getByRole("dialog", { name: "Clear your rental bag?" }));
-  await user.click(screen.getByRole("button", { name: "Keep my looks" }));
+  assert.ok(screen.getByRole("dialog", { name: t("Clear your rental bag?") }));
+  await user.click(screen.getByRole("button", { name: t("Keep my looks") }));
   assert.equal(screen.queryByRole("dialog"), null);
   assert.equal(
     JSON.parse(localStorage.getItem("rental-store.selection.v1")).bag.length,
     2,
   );
   await user.click(
-    screen.getByRole("button", { name: "Clear bag", exact: true }),
+    await screen.findByRole("button", { name: t("Clear bag"), exact: true }),
   );
-  await user.click(screen.getByRole("button", { name: "Yes, clear bag" }));
+  await user.click(screen.getByRole("button", { name: t("Yes, clear bag") }));
   assert.ok(
-    screen.getByRole("heading", { name: "A little room for your next look." }),
+    screen.getByRole("heading", {
+      name: t("A little room for your next look."),
+    }),
   );
   const saved = JSON.parse(localStorage.getItem("rental-store.selection.v1"));
   assert.deepEqual(saved.bag, []);
@@ -127,7 +147,7 @@ test("restored bag supports cancel then confirm clear without losing wishlist", 
   await waitFor(() =>
     assert.equal(
       document.activeElement?.getAttribute("aria-label"),
-      "Rental bag contents",
+      t("Rental bag contents"),
     ),
   );
   assert.equal(routerCalls.length, 0);
@@ -145,13 +165,17 @@ test("removing the last favourite shows empty state and restores usable focus", 
     </App>,
   );
   await user.click(
-    screen.getByRole("button", { name: "Remove Muse Dress from wishlist" }),
+    await screen.findByRole("button", {
+      name: t("Remove {name} from wishlist", { name: dress.name }),
+    }),
   );
-  assert.ok(screen.getByRole("heading", { name: "Keep the looks you love." }));
+  assert.ok(
+    screen.getByRole("heading", { name: t("Keep the looks you love.") }),
+  );
   await waitFor(() =>
     assert.equal(
       document.activeElement?.getAttribute("aria-label"),
-      "Saved looks",
+      t("Saved looks"),
     ),
   );
   assert.equal(routerCalls.length, 0);
@@ -164,15 +188,15 @@ test("gallery opens in place; Escape closes and returns focus", async () => {
       <ProductGallery
         image="/images/sakura-muse-dress.png"
         alt="Sample dress"
-        name="Muse Dress"
+        name={dress.name}
       />
     </App>,
   );
   const trigger = screen.getByRole("button", {
-    name: "View full image of Muse Dress",
+    name: t("View full image of {name}", { name: dress.name }),
   });
   await user.click(trigger);
-  assert.ok(screen.getByRole("dialog", { name: "Muse Dress" }));
+  assert.ok(screen.getByRole("dialog", { name: dress.name }));
   await user.keyboard("{Escape}");
   assert.equal(screen.queryByRole("dialog"), null);
   await waitFor(() => assert.equal(document.activeElement, trigger));
@@ -190,7 +214,9 @@ test("image failure has an accessible fallback; changing source retries", () => 
   );
   fireEvent.error(screen.getByRole("img", { name: "Sample dress" }));
   assert.ok(
-    screen.getByRole("img", { name: "Sample dress. Image unavailable." }),
+    screen.getByRole("img", {
+      name: "Sample dress. " + t("Image unavailable") + ".",
+    }),
   );
   view.rerender(
     <FashionImage
@@ -212,24 +238,34 @@ test("catalog applies combined local filters and chips without URL or history ch
       <Catalog />
     </App>,
   );
-  await user.type(screen.getByRole("searchbox"), "  wedding guest  ");
-  await user.click(screen.getByText("Filters & sort"));
-  await user.selectOptions(screen.getByLabelText("Category"), "Dresses");
-  assert.ok(screen.getByRole("heading", { name: "Luna Set" }));
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
-  assert.ok(screen.getByRole("heading", { name: "Muse Dress" }));
-  assert.equal(screen.queryByRole("heading", { name: "Luna Set" }), null);
+  await user.type(await screen.findByRole("searchbox"), "  wedding guest  ");
+  await user.click(await screen.findByText(t("Filters & sort")));
+  await user.selectOptions(screen.getByLabelText(t("Category")), "Dresses");
+  assert.ok(screen.getByRole("heading", { name: set.name }));
   await user.click(
-    screen.getByRole("button", { name: "Remove Search: wedding guest" }),
+    await screen.findByRole("button", { name: t("Apply filters") }),
   );
-  assert.equal(screen.getByLabelText("Category").value, "Dresses");
+  assert.ok(screen.getByRole("heading", { name: dress.name }));
+  assert.equal(screen.queryByRole("heading", { name: set.name }), null);
+  await user.click(
+    screen.getByRole("button", {
+      name: t("Remove {label}: {value}", {
+        label: t("Search"),
+        value: "wedding guest",
+      }),
+    }),
+  );
+  assert.equal(screen.getByLabelText(t("Category")).value, "Dresses");
   assert.equal(
     document.activeElement,
-    screen.getByRole("button", { name: "Apply filters" }),
+    screen.getByRole("button", { name: t("Apply filters") }),
   );
-  await user.click(screen.getByRole("button", { name: "Clear filters" }));
-  assert.ok(screen.getByRole("heading", { name: "Luna Set" }));
-  assert.equal(screen.queryByRole("button", { name: "Clear filters" }), null);
+  await user.click(screen.getByRole("button", { name: t("Clear filters") }));
+  assert.ok(screen.getByRole("heading", { name: set.name }));
+  assert.equal(
+    screen.queryByRole("button", { name: t("Clear filters") }),
+    null,
+  );
   assert.equal(document.activeElement, screen.getByRole("searchbox"));
   assert.equal(routerCalls.length, 0);
   assert.equal(window.location.href, initialUrl);
@@ -243,17 +279,27 @@ test("catalog handles no matches and treats hostile input as text", async () => 
       <Catalog />
     </App>,
   );
-  await user.type(screen.getByRole("searchbox"), "<script>alert(1)</script>");
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
-  assert.ok(screen.getByRole("heading", { name: "No looks match just yet." }));
+  await user.type(
+    await screen.findByRole("searchbox"),
+    "<script>alert(1)</script>",
+  );
+  await user.click(
+    await screen.findByRole("button", { name: t("Apply filters") }),
+  );
+  assert.ok(
+    screen.getByRole("heading", { name: t("No looks match just yet.") }),
+  );
   assert.ok(
     screen.getByRole("button", {
-      name: "Remove Search: <script>alert(1)</script>",
+      name: t("Remove {label}: {value}", {
+        label: t("Search"),
+        value: "<script>alert(1)</script>",
+      }),
     }),
   );
   assert.equal(container.querySelector("script"), null);
   assert.equal(
-    screen.getAllByRole("button", { name: "Clear filters" }).length,
+    screen.getAllByRole("button", { name: t("Clear filters") }).length,
     1,
   );
   assert.equal(routerCalls.length, 0);
@@ -266,14 +312,16 @@ test("local sort reorders results and remount starts with the default catalog", 
       <Catalog />
     </App>,
   );
-  await user.click(screen.getByText("Filters & sort"));
-  await user.selectOptions(screen.getByLabelText("Sort by"), "price-asc");
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  await user.click(await screen.findByText(t("Filters & sort")));
+  await user.selectOptions(screen.getByLabelText(t("Sort by")), "price-asc");
+  await user.click(
+    await screen.findByRole("button", { name: t("Apply filters") }),
+  );
   assert.deepEqual(
     screen
       .getAllByRole("heading", { level: 2 })
       .map((item) => item.textContent),
-    ["Soleil Top", "Luna Set", "Muse Dress"],
+    [top.name, set.name, dress.name],
   );
   view.unmount();
   render(
@@ -281,31 +329,36 @@ test("local sort reorders results and remount starts with the default catalog", 
       <Catalog />
     </App>,
   );
+  await screen.findByRole("heading", { name: dress.name });
   assert.deepEqual(
     screen
       .getAllByRole("heading", { level: 2 })
       .map((item) => item.textContent),
-    ["Muse Dress", "Luna Set", "Soleil Top"],
+    [dress.name, set.name, top.name],
   );
   assert.equal(routerCalls.length, 0);
 });
 
-test("header marks the product business route active and exposes no feature URLs", () => {
-  render(
-    <App pathname="/products/muse-dress">
-      <SiteHeader />
-    </App>,
-  );
-  const mainNav = screen.getByRole("navigation", { name: "Main navigation" });
+test("header marks the product business route active and exposes no feature URLs", async () => {
+  await act(async () => {
+    render(
+      <App pathname="/products/muse-dress">
+        <SiteHeader />
+      </App>,
+    );
+  });
+  const mainNav = screen.getByRole("navigation", {
+    name: t("Main navigation"),
+  });
   assert.equal(
     within(mainNav)
-      .getByRole("link", { name: "Rent clothing" })
+      .getByRole("link", { name: t("Rent clothing") })
       .getAttribute("aria-current"),
     "page",
   );
   assert.equal(
     within(mainNav)
-      .getByRole("link", { name: "Rent accessories" })
+      .getByRole("link", { name: t("Rent accessories") })
       .getAttribute("aria-current"),
     null,
   );
@@ -320,11 +373,13 @@ test("mobile menu has one clothing link and Escape returns focus", async () => {
       <SiteHeader />
     </App>,
   );
-  const trigger = screen.getByRole("button", { name: "Open navigation menu" });
+  const trigger = screen.getByRole("button", {
+    name: t("Open navigation menu"),
+  });
   await user.click(trigger);
-  const menu = screen.getByRole("navigation", { name: "More navigation" });
+  const menu = screen.getByRole("navigation", { name: t("More navigation") });
   assert.equal(
-    within(menu).getAllByRole("link", { name: "Rent clothing" }).length,
+    within(menu).getAllByRole("link", { name: t("Rent clothing") }).length,
     1,
   );
   await user.keyboard("{Escape}");
@@ -339,8 +394,12 @@ test("reapplying the same catalog state does not create redundant navigation", a
       <Catalog />
     </App>,
   );
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
-  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  await user.click(
+    await screen.findByRole("button", { name: t("Apply filters") }),
+  );
+  await user.click(
+    await screen.findByRole("button", { name: t("Apply filters") }),
+  );
   assert.equal(routerCalls.length, 0);
 });
 
@@ -372,15 +431,21 @@ test("blocked storage preserves the action and clearly discloses its lifetime", 
   const user = userEvent.setup();
   render(
     <App>
-      <AddToBagButton slug="muse-dress" name="Muse Dress" />
+      <AddToBagButton slug="muse-dress" name={dress.name} />
     </App>,
   );
-  await user.click(screen.getByRole("button", { name: "Add to rental bag" }));
+  await user.click(
+    await screen.findByRole("button", { name: t("Add to rental bag") }),
+  );
   assert.ok(
-    screen.getByRole("button", { name: "In your rental bag" }).disabled,
+    screen.getByRole("button", { name: t("In your rental bag") }).disabled,
   );
   assert.match(
     screen.getByRole("status").textContent,
-    /changes last for this visit only/,
+    new RegExp(
+      t(
+        " Device storage is unavailable; changes last for this visit only.",
+      ).trim(),
+    ),
   );
 });

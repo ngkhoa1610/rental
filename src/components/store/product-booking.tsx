@@ -18,6 +18,19 @@ export function ProductBooking({ product }: { product: Product }) {
     : "";
   return (
     <div className="store-product-booking">
+      <AvailabilityCalendar
+        slug={product.slug}
+        dates={draft}
+        onChange={(dates) =>
+          setDraft((previous) => ({ ...previous, ...dates }))
+        }
+      />
+      <RentalDateFields
+        dates={draft}
+        onChange={(dates) =>
+          setDraft((previous) => ({ ...previous, ...dates }))
+        }
+      />
       <fieldset className="store-size-advice">
         <legend>{t("Your usual size")}</legend>
         <div>
@@ -41,19 +54,6 @@ export function ProductBooking({ product }: { product: Product }) {
           {t("Size & rental guide")}
         </Link>
       </fieldset>
-      <AvailabilityCalendar
-        slug={product.slug}
-        dates={draft}
-        onChange={(dates) =>
-          setDraft((previous) => ({ ...previous, ...dates }))
-        }
-      />
-      <RentalDateFields
-        dates={draft}
-        onChange={(dates) =>
-          setDraft((previous) => ({ ...previous, ...dates }))
-        }
-      />
       <BookingDrawer slugs={[product.slug]} advice={advice} />
       <ContactOptions
         label="Ask about sizing on Zalo"

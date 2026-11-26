@@ -17,23 +17,13 @@ import {
   type Session,
 } from "@/lib/api/contracts";
 import { createHttpApi } from "@/lib/api/http";
-import { createMockApi } from "@/lib/api/mock";
 import { actionSuccess } from "@/lib/action-feedback";
 import { ActionNotice } from "./action-notice";
 
-function createRuntime(
-  scope: "customer" | "admin",
-  backend?: ReturnType<typeof createMockApi>,
-) {
+function createRuntime(scope: "customer" | "admin") {
   let csrfToken: string | null = null;
-  const mode = process.env.NEXT_PUBLIC_RENTAL_API_MODE ?? "mock";
-  if (mode !== "mock" && mode !== "http")
-    throw new Error("Use mock or http for NEXT_PUBLIC_RENTAL_API_MODE.");
-  const demo =
-    mode === "mock" ? (backend ?? createMockApi()).forScope(scope) : null;
   return {
-    demo,
-    api: demo?.api ?? createHttpApi({ scope, getCsrfToken: () => csrfToken }),
+    api: createHttpApi({ scope, getCsrfToken: () => csrfToken }),
     setCsrf: (value: string | null) => {
       csrfToken = value;
     },
@@ -42,7 +32,6 @@ function createRuntime(
 type Runtime = ReturnType<typeof createRuntime>;
 interface ApiContextValue {
   api: RentalApi;
-  demo: Runtime["demo"];
   session: Session;
   ready: boolean;
   sessionError: string;
@@ -52,17 +41,6 @@ interface ApiContextValue {
   setDraft: React.Dispatch<React.SetStateAction<ApiContextValue["draft"]>>;
 }
 const ApiContext = createContext<ApiContextValue | null>(null);
-const BackendContext = createContext<
-  ReturnType<typeof createMockApi> | undefined
->(undefined);
-export function ApiBackendProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [backend] = useState(() => createMockApi());
-  return <BackendContext value={backend}>{children}</BackendContext>;
-}
 export function ApiProvider({
   children,
   runtime: supplied,
@@ -72,8 +50,7 @@ export function ApiProvider({
   runtime?: Runtime;
   scope?: "customer" | "admin";
 }) {
-  const backend = useContext(BackendContext);
-  const [runtime] = useState(() => supplied ?? createRuntime(scope, backend));
+  const [runtime] = useState(() => supplied ?? createRuntime(scope));
   const [notice, setNotice] = useState({ message: "", sequence: 0 });
   const notify = useCallback(
     (message: string) =>
@@ -159,7 +136,6 @@ export function ApiProvider({
     <ApiContext
       value={{
         api,
-        demo: runtime.demo,
         session,
         ready,
         sessionError,
@@ -174,7 +150,6 @@ export function ApiProvider({
         message={notice.message}
         sequence={notice.sequence}
         scope={scope}
-        demo={Boolean(runtime.demo)}
         onDismiss={() =>
           setNotice((previous) => ({ ...previous, message: "" }))
         }

@@ -5,10 +5,6 @@
   align-items: center;
   padding-block: 8px 36px;
 }
-.store-hero-copy .store-overline {
-  font-size: 10px;
-  letter-spacing: 0.18em;
-}
 .store-hero-copy h1 {
   margin: 22px 0;
   font-size: clamp(40px, 4.7vw, 66px);
@@ -29,20 +25,6 @@
   font-size: 15px;
   line-height: 1.9;
 }
-.store-hero-note {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-  padding-top: 38px;
-  margin-top: 28px;
-  border-top: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--muted-foreground);
-}
-.store-hero-note span {
-  letter-spacing: 0.12em;
-  color: var(--primary);
-}
 .store-hero-image {
   position: relative;
   aspect-ratio: 1/0.98;
@@ -54,53 +36,6 @@
 .store-hero-image > img {
   object-fit: cover;
   object-position: center 35%;
-}
-.store-hero-image > figcaption {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  font-size: 9px;
-  color: #fff;
-  background: #392c3280;
-  border-radius: 30px;
-  padding: 4px 9px;
-}
-.store-hero-image-note {
-  position: absolute;
-  inset: auto 20px 20px;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 14px 18px;
-  background: #ffffffed;
-  border: 1px solid #ffffff80;
-  border-radius: 16px;
-}
-.store-hero-image-note > svg {
-  width: 24px;
-  color: var(--primary);
-}
-.store-hero-image-note > div {
-  display: grid;
-  gap: 2px;
-  flex: 1;
-}
-.store-hero-image-note span {
-  font-size: 8px;
-  letter-spacing: 0.15em;
-  color: var(--muted-foreground);
-}
-.store-hero-image-note strong {
-  font-size: 16px;
-  font-weight: 600;
-}
-.store-hero-image-note a {
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
 }
 .store-trust-strip {
   display: flex;
@@ -352,9 +287,6 @@
   .store-hero-copy h1 {
     font-size: clamp(37px, 7vw, 52px);
     margin-block: 17px;
-  }
-  .store-hero-note {
-    display: none;
   }
   .store-hero-image {
     aspect-ratio: 1.2;

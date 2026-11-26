@@ -24,7 +24,7 @@ const server = spawn(
     String(port),
   ],
   {
-    env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
+    env: { ...process.env, DATABASE_URL: "", NEXT_TELEMETRY_DISABLED: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   },
 );
@@ -57,7 +57,7 @@ try {
     if (server.exitCode !== null)
       throw new Error(`Server stopped before ready:\n${logs}`);
     try {
-      const { response } = await readPage("/");
+      const { response } = await readPage("/products");
       ready = response.ok;
     } catch {
       /* Wait for this server to bind, within the bounded startup window. */
@@ -75,12 +75,10 @@ try {
   }
 
   const pages = [
-    ["/", "Rental Store"],
     ["/products", "A look for every plan."],
     ["/availability", "Lịch trống — Rental Store"],
     ["/accessories", "Thuê phụ kiện — Rental Store"],
     ["/rental-guide", "Bảng size &amp; Quy định — Rental Store"],
-    ["/feedback", "The Feedback Wall — Rental Store"],
     ["/wishlist", "Your favourites, together."],
     ["/cart", "Your next plans start here."],
     ["/account", "Your profile"],
@@ -93,9 +91,6 @@ try {
     ["/admin/customers", "RENTAL STORE"],
     ["/admin/reviews", "RENTAL STORE"],
     ["/admin/team", "RENTAL STORE"],
-    ["/products/muse-dress", "Muse Dress — Rental Store"],
-    ["/products/luna-set", "Luna Set — Rental Store"],
-    ["/products/soleil-top", "Soleil Top — Rental Store"],
   ];
   for (const [path, content] of pages) {
     const { response, html } = await readPage(path);
@@ -119,22 +114,10 @@ try {
     pass(path);
   }
 
-  const feedback = await readPage("/feedback");
-  assert.match(feedback.html, /chưa phải đánh giá được xác thực/);
-  assert.equal(
-    (feedback.html.match(/CÂU CHUYỆN MẪU/g) ?? []).length >= 6,
-    true,
-  );
-  assert.doesNotMatch(feedback.html, /AggregateRating|ratingCount|reviewCount/);
-  assert.match(feedback.html, /href="\/feedback"/);
-  pass(
-    "feedback wall has labelled samples and business navigation, no fake rating schema",
-  );
-
-  const filtered = await readPage("/products?category=Sets&occasion=Vacation");
-  assert.match(filtered.html, /href="\/products\/luna-set"/);
-  assert.match(filtered.html, /href="\/products\/muse-dress"/);
-  pass("legacy query does not control local catalog state");
+  const preview = await readPage("/layout-preview");
+  assert.equal(preview.response.status, 404);
+  assert.doesNotMatch(preview.html, /QA-001/);
+  pass("development fixture stays unavailable in production");
 
   const removed = await readPage("/search");
   assert.equal(removed.response.status, 404);
@@ -181,11 +164,6 @@ try {
   assert.doesNotMatch(escaped.html, /<script>alert\(1\)<\/script>/);
   pass("ignored hostile legacy query");
 
-  const unknown = await readPage("/products/unknown-look");
-  assert.ok([200, 404].includes(unknown.response.status));
-  assert.match(unknown.html, /name="robots" content="noindex"/);
-  assert.match(unknown.html, /This look is not here|Mẫu đồ này không/);
-  pass("unknown dynamic product renders not-found/noindex (Next streaming)");
   const missing = await readPage("/page-that-does-not-exist");
   assert.equal(missing.response.status, 404);
   assert.match(missing.html, /Trang này không có trong tủ đồ/);

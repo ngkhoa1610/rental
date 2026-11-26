@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Layout for product detail (.store-pdp) and products listing (.store-cat)
+   Structure only. Every colour/radius is a token from src/app/globals.css.
+   ========================================================================== */
+
+.store-pdp,
+.store-cat {
+  --pdp-ink: var(--foreground);
+  --pdp-paper: var(--background);
+  --pdp-muted: var(--muted-foreground);
+  --pdp-line: var(--border);
+  --pdp-tint: var(--muted);
+  --pdp-radius: var(--radius-lg);
+  --pdp-gap: clamp(1.25rem, 3vw, 3rem);
+  --pdp-section: clamp(3rem, 7vw, 6rem);
+  /* .home-header is sticky and wraps on small screens; tune if the header height changes */
+  --pdp-sticky-top: 7.5rem;
+}
+
+/* ───────────── Product detail ───────────── */
+
+/* Zone 1 — image (7) | buy panel (5), panel stays in view while scrolling */
+.store-pdp-hero {
+  display: grid;
+  gap: var(--pdp-gap);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.store-pdp-buy {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .store-pdp-hero {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+  .store-pdp-buy {
+    position: sticky;
+    top: var(--pdp-sticky-top);
+  }
+}
+
+/* Header: name + wishlist on one line, price directly under */
+.store-pdp-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 1rem;
+  align-items: start;
+}
+.store-pdp-collection {
+  grid-column: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--pdp-muted);
+}
+.store-pdp-head h1 {
+  grid-column: 1;
+  margin: 0;
+  font-size: clamp(1.75rem, 3.2vw, 2.6rem);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.store-pdp-wish {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.store-pdp-price {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.store-pdp-price span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--pdp-muted);
+}
+
+/* Booking panel = the one framed block, so the eye lands on it */
+.store-pdp-booking {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border: 1px solid var(--pdp-line);
+  border-radius: var(--pdp-radius);
+  background: var(--pdp-tint);
+  scroll-margin-top: var(--pdp-sticky-top);
+}
+.store-pdp-bag > * {
+  width: 100%;
+}
+.store-pdp-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--pdp-muted);
+}
+
+.store-pdp-desc {
+  margin: 0;
+  max-width: 60ch;
+  line-height: 1.65;
+}
+
+.store-pdp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.store-pdp-chips span {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--pdp-line);
+  border-radius: 999px;
+  font-size: 0.875rem;
+}
+.store-pdp-chips .is-category span {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Zone 2 — details (7) | ask the store (5), aligned to the hero grid */
+.store-pdp-info {
+  display: grid;
+  gap: var(--pdp-gap);
+  margin-top: var(--pdp-section);
+  padding-top: var(--pdp-gap);
+  border-top: 1px solid var(--pdp-line);
+}
+@media (min-width: 960px) {
+  .store-pdp-info {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+}
+
+.store-pdp-acc {
+  border-bottom: 1px solid var(--pdp-line);
+}
+.store-pdp-acc:first-child {
+  border-top: 1px solid var(--pdp-line);
+}
+.store-pdp-acc summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 0;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+.store-pdp-acc summary::-webkit-details-marker {
+  display: none;
+}
+.store-pdp-acc summary::after {
+  content: "+";
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.store-pdp-acc[open] summary::after {
+  content: "–";
+}
+.store-pdp-acc > div {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 62ch;
+  padding-bottom: 1.25rem;
+  line-height: 1.65;
+}
+.store-pdp-acc p {
+  margin: 0;
+}
+.store-pdp-muted {
+  color: var(--pdp-muted);
+}
+
+.store-pdp-help {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1.5rem;
+  border-radius: var(--pdp-radius);
+  background: var(--pdp-tint);
+}
+.store-pdp-help h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+.store-pdp-help p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--pdp-muted);
+}
+
+/* Zone 3 */
+.store-pdp-related {
+  margin-top: var(--pdp-section);
+}
+.store-pdp-related h2 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+/* Mobile sticky bar: price + jump to booking */
+.store-pdp-bar {
+  display: none;
+}
+@media (max-width: 959px) {
+  .store-pdp {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  .store-pdp-bar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--pdp-paper) 96%, transparent);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--pdp-line);
+  }
+  .store-pdp-bar-price {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .store-pdp-bar-price span {
+    margin-left: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--pdp-muted);
+  }
+  .store-pdp-bar-cta {
+    flex: none;
+    white-space: nowrap;
+  }
+}
+
+.store-pdp-bar-cta:focus-visible,
+.store-pdp-acc summary:focus-visible,
+.store-cat-dates summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* ───────────── Products listing ───────────── */
+
+.store-cat-top {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+}
+@media (min-width: 960px) {
+  .store-cat-top {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+  }
+}
+
+.store-cat-dates {
+  border: 1px solid var(--pdp-line);
+  border-radius: var(--pdp-radius);
+  background: var(--pdp-tint);
+}
+.store-cat-dates summary {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+.store-cat-dates summary::-webkit-details-marker {
+  display: none;
+}
+.store-cat-dates summary svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+.store-cat-dates-body {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.store-cat-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.store-pdp-help-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+.store-pdp-help-links a {
+  color: inherit;
+  text-underline-offset: 0.25em;
+}

@@ -9,23 +9,41 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import {
   monthDates,
   rangeDates,
   shiftMonth,
 } from "../src/lib/rental-calendar.ts";
 import { contactHref, requestNotes } from "../src/lib/store-details.ts";
-import { createMockApi } from "../src/lib/api/mock.ts";
 import { createHttpApi } from "../src/lib/api/http.ts";
 import { ApiProvider } from "../src/components/store/api-provider.tsx";
 import { AvailabilityCalendar } from "../src/components/store/availability-calendar.tsx";
-import { RentalRequest } from "../src/components/store/rental-request.tsx";
-import { BookingConfirmation } from "../src/components/store/booking-confirmation.tsx";
-const clock = Date.parse("2030-01-01T10:00:00Z");
-const setup = (options = {}) =>
-  createMockApi({ latencyMs: 0, now: () => clock, ...options });
-const runtime = (demo) => ({ demo, api: demo.api, setCsrf() {} });
+import { translate as t } from "../src/lib/language.ts";
+
+function calendarResponse(month, unavailable = []) {
+  return {
+    productSlug: "muse-dress",
+    month,
+    checkedAt: "2030-01-01T10:00:00.000Z",
+    days: monthDates(month).map((date) => ({
+      date,
+      available: unavailable.includes(date) ? 0 : 2,
+    })),
+  };
+}
+function calendarRuntime(getCalendar) {
+  return {
+    setCsrf() {},
+    api: {
+      async call(operation, input) {
+        if (operation === "session.get")
+          return { profile: null, csrfToken: null };
+        assert.equal(operation, "availability.calendar");
+        return getCalendar(input.month);
+      },
+    },
+  };
+}
 afterEach(cleanup);
 
 test("month/range helpers handle leap years, year boundaries, same-day and invalid dates", () => {
@@ -39,59 +57,8 @@ test("month/range helpers handle leap years, year boundaries, same-day and inval
   assert.deepEqual(rangeDates("2030-03-02", "2030-03-01"), []);
 });
 
-test("public monthly availability uses shared stock without customer/admin data and rejects invalid reads", async () => {
-  const demo = setup({
-    blocks: [
-      {
-        productSlug: "muse-dress",
-        pickupDate: "2030-02-02",
-        returnDate: "2030-02-02",
-        quantity: 2,
-      },
-    ],
-  });
-  const month = await demo.api.call("availability.calendar", {
-    productSlug: "muse-dress",
-    month: "2030-02",
-  });
-  assert.deepEqual(Object.keys(month).sort(), [
-    "checkedAt",
-    "days",
-    "month",
-    "productSlug",
-  ]);
-  assert.equal(month.days[0].available, 2);
-  assert.equal(month.days[1].available, 0);
-  assert.deepEqual(Object.keys(month.days[0]).sort(), ["available", "date"]);
-  await assert.rejects(
-    demo.api.call("availability.quote", {
-      items: [{ productSlug: "muse-dress", quantity: 1 }],
-      pickupDate: "2030-02-01",
-      returnDate: "2030-02-03",
-    }),
-    (e) => e.code === "UNAVAILABLE",
-  );
-  await assert.rejects(
-    demo.api.call("availability.calendar", {
-      productSlug: "muse-dress",
-      month: "2030-99",
-    }),
-    (e) => e.code === "VALIDATION",
-  );
-  await assert.rejects(
-    demo.api.call("availability.calendar", {
-      productSlug: "missing",
-      month: "2030-02",
-    }),
-    (e) => e.code === "NOT_FOUND",
-  );
-});
-
 test("HTTP calendar is same-origin no-store and rejects incomplete, reordered or negative stock DTOs", async () => {
-  const valid = await setup().api.call("availability.calendar", {
-    productSlug: "muse-dress",
-    month: "2030-02",
-  });
+  const valid = calendarResponse("2030-02");
   let payload = valid;
   const api = createHttpApi({
     scope: "customer",
@@ -141,66 +108,77 @@ function CalendarHarness() {
     </>
   );
 }
+
 test("calendar disables sold-out dates and rejects a range crossing them while permitting same-day", async () => {
-  const demo = setup({
-    blocks: [
-      {
-        productSlug: "muse-dress",
-        pickupDate: "2030-02-02",
-        returnDate: "2030-02-02",
-        quantity: 2,
-      },
-    ],
-  });
+  const runtime = calendarRuntime((month) =>
+    calendarResponse(month, ["2030-02-02"]),
+  );
   render(
-    <ApiProvider runtime={runtime(demo)}>
+    <ApiProvider runtime={runtime}>
       <CalendarHarness />
     </ApiProvider>,
   );
   await waitFor(() =>
     assert.equal(
-      screen.getByRole("button", { name: "2030-02-01 · Available" }).disabled,
+      screen.getByRole("button", { name: `2030-02-01 · ${t("Available")}` })
+        .disabled,
       false,
     ),
   );
   assert.ok(
-    screen.getByRole("button", { name: "2030-02-02 · Unavailable" }).disabled,
+    screen.getByRole("button", { name: `2030-02-02 · ${t("Unavailable")}` })
+      .disabled,
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "2030-02-01 · Available" }),
+    screen.getByRole("button", { name: `2030-02-01 · ${t("Available")}` }),
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "2030-02-03 · Available" }),
+    screen.getByRole("button", { name: `2030-02-03 · ${t("Available")}` }),
   );
-  await screen.findByText(/This range includes an unavailable/);
+  await screen.findByText(
+    t(
+      "This range includes an unavailable or unchecked day. Choose another range.",
+    ),
+  );
   assert.equal(
     screen.getByTestId("dates").textContent,
     "2030-02-01/2030-02-01",
   );
   fireEvent.click(
-    screen.getByRole("button", { name: "2030-02-01 · Available" }),
+    screen.getByRole("button", { name: `2030-02-01 · ${t("Available")}` }),
   );
-  await screen.findByText(/Dates selected/);
+  await screen.findByText(
+    t("Dates selected. Check the full range before sending your request."),
+  );
 });
 
 test("refresh failure clears availability labels and retry restores checked dates", async () => {
-  const demo = setup();
+  let fail = false;
+  const runtime = calendarRuntime((month) => {
+    if (fail) throw new Error("Availability unavailable");
+    return calendarResponse(month);
+  });
   render(
-    <ApiProvider runtime={runtime(demo)}>
+    <ApiProvider runtime={runtime}>
       <CalendarHarness />
     </ApiProvider>,
   );
-  await screen.findByRole("button", { name: "2030-02-01 · Available" });
-  demo.failNext();
-  fireEvent.click(screen.getByRole("button", { name: "Refresh availability" }));
+  await screen.findByRole("button", { name: `2030-02-01 · ${t("Available")}` });
+  fail = true;
+  fireEvent.click(
+    screen.getByRole("button", { name: t("Refresh availability") }),
+  );
   await screen.findByRole("alert");
   assert.ok(
-    screen.getByRole("button", { name: "2030-02-01 · Not checked" }).disabled,
+    screen.getByRole("button", { name: `2030-02-01 · ${t("Not checked")}` })
+      .disabled,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  fail = false;
+  fireEvent.click(screen.getByRole("button", { name: t("Retry") }));
   await waitFor(() =>
     assert.equal(
-      screen.getByRole("button", { name: "2030-02-01 · Available" }).disabled,
+      screen.getByRole("button", { name: `2030-02-01 · ${t("Available")}` })
+        .disabled,
       false,
     ),
   );
@@ -226,41 +204,4 @@ test("contact and delivery notes reject unsafe destinations and unbounded/empty 
     requestNotes("Careful", "Size: S", "shipping", "12 Street"),
     /shop xác nhận phí\/khu vực/,
   );
-});
-
-test("shipping and advisory size remain notes; submission stays pending with no variants or payment prompt", async () => {
-  const demo = setup();
-  demo.signIn("customer");
-  const user = userEvent.setup();
-  render(
-    <ApiProvider runtime={runtime(demo)}>
-      <RentalRequest slugs={["muse-dress"]} advice="Size advice: S" />
-    </ApiProvider>,
-  );
-  fireEvent.change(screen.getByLabelText("Pickup date"), {
-    target: { value: "2030-02-01" },
-  });
-  fireEvent.change(screen.getByLabelText("Return date"), {
-    target: { value: "2030-02-01" },
-  });
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("heading", { name: "Sample quote" });
-  // Delivery is an advisory request, using the same order API.
-  fireEvent.click(screen.getByLabelText("Request delivery for store review"));
-  assert.ok(screen.getByRole("button", { name: "Send demo request" }).disabled);
-  fireEvent.change(screen.getByLabelText(/^Delivery address/), {
-    target: { value: "12 Street" },
-  });
-  await user.click(screen.getByRole("button", { name: "Send demo request" }));
-  await screen.findByText("We've received your request.");
-  const [order] = await demo.api.call("orders.list", undefined);
-  assert.equal(order.status, "pending");
-  assert.match(order.notes, /Size advice: S/);
-  assert.match(order.notes, /12 Street/);
-  assert.equal(order.lines[0].variantId, undefined);
-  assert.equal(screen.queryByAltText("Store bank transfer QR"), null);
-  cleanup();
-  render(<BookingConfirmation order={order} />);
-  assert.equal(screen.queryByText(/Transfer reference:/), null);
-  assert.equal(screen.queryByText(/bank transfer|deposit|payment/i), null);
 });

@@ -18,7 +18,7 @@ export function AdminData<K extends ListOperation>({
   children: (data: Output<K>, reload: (notice?: string) => void) => ReactNode;
   showRefresh?: boolean;
 }) {
-  const { api, demo } = useRentalApi();
+  const { api } = useRentalApi();
   const { t } = useLanguage();
   const [state, setState] = useState<{
     data?: Output<K>;
@@ -28,11 +28,7 @@ export function AdminData<K extends ListOperation>({
   const [notice, setNotice] = useState("");
   const [revision, setRevision] = useState(0);
   const reload = (message = "") => {
-    setNotice(
-      !demo && message === "Changes saved in this tab."
-        ? "Changes saved."
-        : message,
-    );
+    setNotice(message);
     setState({ loading: true });
     setRevision((x) => x + 1);
   };

@@ -7,12 +7,7 @@ import {
   type ManagedProduct,
   type ProductPhoto,
 } from "@/lib/api/contracts";
-import {
-  categories,
-  formatPrice,
-  occasions,
-  products as sampleProducts,
-} from "@/lib/catalog";
+import { categories, formatPrice, occasions } from "@/lib/catalog";
 import { uploadImage } from "@/lib/api/upload-image";
 import {
   useApiAction,
@@ -41,9 +36,6 @@ const emptyProduct: ManagedProduct = {
 };
 
 const visibilityLabels = { draft: "Bản nháp", published: "Công khai" };
-const sampleImages = Array.from(
-  new Map(sampleProducts.map((product) => [product.image, product])).values(),
-);
 
 export function AdminProducts() {
   return (
@@ -254,12 +246,12 @@ function ProductEditor({
   onSaved: (notice: string) => void;
 }) {
   const { t } = useLanguage();
-  const { api, demo, session } = useRentalApi();
+  const { api, session } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const requestKey = useRequestKey();
   const heading = useRef<HTMLHeadingElement>(null);
   const existing = product.version > 0;
-  const [sampleImage, setSampleImage] = useState(product.image);
+  const [coverImage, setCoverImage] = useState(product.image);
   const [imageAlt, setImageAlt] = useState(product.imageAlt);
   const [additionalPhotos, setAdditionalPhotos] = useState(
     product.additionalPhotos ?? [],
@@ -275,10 +267,10 @@ function ProductEditor({
     if (localPreview) return () => URL.revokeObjectURL(localPreview);
   }, [localPreview]);
 
-  const preview = localPreview || sampleImage;
+  const preview = localPreview || coverImage;
   const addPhoto = (photo: ProductPhoto) => {
     if (
-      photo.url === sampleImage ||
+      photo.url === coverImage ||
       additionalPhotos.some(({ url }) => url === photo.url)
     ) {
       throw new Error("Ảnh này đã có trong album.");
@@ -336,8 +328,8 @@ function ProductEditor({
                 "Nhập tên, mô tả, bộ sưu tập và mô tả ảnh trước khi lưu.",
               );
 
-            let image = sampleImage;
-            if (!demo && file?.size) {
+            let image = coverImage;
+            if (file?.size) {
               if (uploaded.current?.file !== file)
                 uploaded.current = {
                   file,
@@ -374,9 +366,7 @@ function ProductEditor({
               product: value,
               idempotencyKey: requestKey(value),
             });
-            onSaved(
-              demo ? "Đã lưu sản phẩm mẫu trong tab này." : "Đã lưu sản phẩm.",
-            );
+            onSaved("Đã lưu sản phẩm.");
           });
         }}
       >
@@ -511,66 +501,26 @@ function ProductEditor({
               )}
             </div>
             <div className="admin-product-image-fields">
-              {demo ? (
-                <label>
-                  Chọn ảnh mẫu
-                  <select
-                    value={sampleImage}
-                    required
-                    onChange={(event) => {
-                      const image = event.target.value;
-                      const sample = sampleImages.find(
-                        (item) => item.image === image,
-                      );
-                      setSampleImage(image);
-                      if (
-                        sample &&
-                        (!imageAlt.trim() ||
-                          imageAlt ===
-                            sampleImages.find(
-                              (item) => item.image === sampleImage,
-                            )?.imageAlt)
-                      )
-                        setImageAlt(sample.imageAlt);
-                    }}
-                  >
-                    <option value="" disabled>
-                      Chọn ảnh
-                    </option>
-                    {sampleImages
-                      .filter(
-                        ({ image }) =>
-                          image === sampleImage ||
-                          !additionalPhotos.some(({ url }) => url === image),
-                      )
-                      .map((sample) => (
-                        <option key={sample.slug} value={sample.image}>
-                          {t(sample.name)}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              ) : (
-                <label>
-                  {existing ? "Thay ảnh đại diện" : "Tải ảnh đại diện"}
-                  <input
-                    name="image"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    required={!sampleImage}
-                    disabled={busy}
-                    aria-describedby="admin-product-photo-hint"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      uploaded.current = null;
-                      setLocalPreview(file ? URL.createObjectURL(file) : "");
-                    }}
-                  />
-                  <small id="admin-product-photo-hint">
-                    JPEG, PNG hoặc WebP, tối đa 4 MB.
-                  </small>
-                </label>
-              )}
+              <label>
+                {existing ? "Thay ảnh đại diện" : "Tải ảnh đại diện"}
+                <input
+                  name="image"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  required={!coverImage}
+                  disabled={busy}
+                  aria-describedby="admin-product-photo-hint"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    uploaded.current = null;
+                    setLocalPreview(file ? URL.createObjectURL(file) : "");
+                  }}
+                />
+                <small id="admin-product-photo-hint">
+                  JPEG, PNG hoặc WebP, tối đa 4 MB.
+                </small>
+              </label>
+
               <label>
                 Mô tả ảnh
                 <input
@@ -620,13 +570,13 @@ function ProductEditor({
                     setAdditionalPhotos(
                       additionalPhotos.flatMap((item, i) =>
                         i === index
-                          ? sampleImage
-                            ? [{ url: sampleImage, alt: imageAlt }]
+                          ? coverImage
+                            ? [{ url: coverImage, alt: imageAlt }]
                             : []
                           : [item],
                       ),
                     );
-                    setSampleImage(photo.url);
+                    setCoverImage(photo.url);
                     setImageAlt(photo.alt);
                   }}
                 >
@@ -662,56 +612,24 @@ function ProductEditor({
               </div>
             </div>
           ))}
-          {additionalPhotos.length < maxProductPhotos - 1 &&
-            (demo ? (
-              <label>
-                Thêm ảnh mẫu vào album
-                <select
-                  value=""
-                  onChange={(event) => {
-                    const sample = sampleImages.find(
-                      (item) => item.image === event.target.value,
-                    );
-                    if (sample)
-                      void run(async () =>
-                        addPhoto({ url: sample.image, alt: sample.imageAlt }),
-                      );
-                  }}
-                >
-                  <option value="">Chọn ảnh mẫu</option>
-                  {sampleImages
-                    .filter(
-                      (item) =>
-                        item.image !== sampleImage &&
-                        !additionalPhotos.some(
-                          (photo) => photo.url === item.image,
-                        ),
-                    )
-                    .map((sample) => (
-                      <option key={sample.slug} value={sample.image}>
-                        {t(sample.name)}
-                      </option>
-                    ))}
-                </select>
-              </label>
-            ) : (
-              <label>
-                Tải thêm ảnh JPEG, PNG hoặc WebP
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    event.target.value = "";
-                    if (file)
-                      void run(async () => {
-                        const id = await uploadImage(file, session.csrfToken);
-                        addPhoto({ url: "/media/" + id, alt: "" });
-                      });
-                  }}
-                />
-              </label>
-            ))}
+          {additionalPhotos.length < maxProductPhotos - 1 && (
+            <label>
+              Tải thêm ảnh JPEG, PNG hoặc WebP
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file)
+                    void run(async () => {
+                      const id = await uploadImage(file, session.csrfToken);
+                      addPhoto({ url: "/media/" + id, alt: "" });
+                    });
+                }}
+              />
+            </label>
+          )}
         </fieldset>
         {error && <p role="alert">{t(error)}</p>}
         <div className="admin-page-actions">

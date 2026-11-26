@@ -7,7 +7,7 @@ import {
   useCallback,
 } from "react";
 import { usePathname } from "next/navigation";
-import { products as samples, type Product } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog";
 import { useRentalApi } from "./api-provider";
 import { useLanguage } from "./language-provider";
 import { Button } from "@/components/ui/button";
@@ -15,23 +15,22 @@ const CatalogData = createContext<{
   products: readonly Product[];
   ready: boolean;
   error: string;
-}>({ products: samples, ready: true, error: "" });
+}>({ products: [], ready: false, error: "" });
 export function CatalogDataProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { api, demo } = useRentalApi(),
+  const { api } = useRentalApi(),
     path = usePathname(),
     { t } = useLanguage();
   const [value, setValue] = useState({
-    products: (demo ? samples : []) as readonly Product[],
-    ready: Boolean(demo),
+    products: [] as readonly Product[],
+    ready: false,
     error: "",
   });
   const load = useCallback(
     async (signal?: AbortSignal) => {
-      if (demo) return;
       try {
         const products = await api.call("catalog.list", {}, { signal });
         if (!signal?.aborted) setValue({ products, ready: true, error: "" });
@@ -44,7 +43,7 @@ export function CatalogDataProvider({
           }));
       }
     },
-    [api, demo],
+    [api],
   );
   useEffect(() => {
     const controller = new AbortController(),

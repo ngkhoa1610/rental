@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent TaskEnvelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "message_type",
+    "task_id",
+    "parent_task_id",
+    "role",
+    "action",
+    "goal",
+    "acceptance_criteria",
+    "constraints",
+    "allowed_paths",
+    "context_refs",
+    "requested_checks",
+    "priority"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "message_type": {
+      "enum": [
+        "task",
+        "result"
+      ]
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$"
+    },
+    "parent_task_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "role": {
+      "enum": [
+        "orchestrator",
+        "developer",
+        "tester",
+        "reviewer",
+        "debugger",
+        "designer"
+      ]
+    },
+    "action": {
+      "enum": [
+        "coordinate",
+        "implement",
+        "test",
+        "review",
+        "diagnose",
+        "design"
+      ]
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 220
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 350
+      },
+      "maxItems": 8
+    },
+    "allowed_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 180
+      },
+      "maxItems": 12,
+      "uniqueItems": true
+    },
+    "context_refs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "why"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "why": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 150
+          },
+          "lines": {
+            "type": "string",
+            "maxLength": 40
+          }
+        }
+      }
+    },
+    "requested_checks": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      }
+    },
+    "handoff_from": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "priority": {
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ]
+    }
+  }
+}

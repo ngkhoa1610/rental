@@ -12,7 +12,7 @@ export function ReviewForm({
   order: RentalOrder;
   onUpdated: (o: RentalOrder) => void;
 }) {
-  const { api, demo, session } = useRentalApi(),
+  const { api, session } = useRentalApi(),
     { t } = useLanguage(),
     { busy, error, run } = useApiAction(),
     key = useRequestKey();
@@ -72,18 +72,16 @@ export function ReviewForm({
           {t("Your rental experience")}
           <textarea name="story" required maxLength={2000} disabled={busy} />
         </label>
-        {!demo && (
-          <label>
-            {t("Photos (optional, up to 3)")}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              disabled={busy}
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-            />
-          </label>
-        )}
+        <label>
+          {t("Photos (optional, up to 3)")}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            disabled={busy}
+            onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+          />
+        </label>
         {invalid && (
           <p role="alert">{t("Choose at most 3 photos, up to 4 MB each.")}</p>
         )}

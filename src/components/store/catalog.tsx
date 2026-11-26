@@ -111,28 +111,23 @@ export function Catalog() {
           applyFilters(normalizeCatalogFilters(draft));
         }}
       >
-        <div className="store-search-row">
-          <div className="store-search-field">
-            <label htmlFor="catalog-query">
-              <T>{"Search looks"}</T>
-            </label>
-            <div>
-              <Search aria-hidden="true" />
-              <input
-                ref={searchInput}
-                id="catalog-query"
-                type="search"
-                value={draft.query}
-                onChange={(event) => updateDraft("query", event.target.value)}
-                maxLength={120}
-                placeholder={t("Try Muse or wedding guest")}
-                autoComplete="off"
-              />
-            </div>
+        <div className="store-search-field">
+          <label htmlFor="catalog-query">
+            <T>{"Search looks"}</T>
+          </label>
+          <div>
+            <Search aria-hidden="true" />
+            <input
+              ref={searchInput}
+              id="catalog-query"
+              type="search"
+              value={draft.query}
+              onChange={(event) => updateDraft("query", event.target.value)}
+              maxLength={120}
+              placeholder={t("Try Muse or wedding guest")}
+              autoComplete="off"
+            />
           </div>
-          <Button ref={applyButton} type="submit" className="home-cta">
-            <T>{"Apply filters"}</T>
-          </Button>
         </div>
         <details className="store-filter-disclosure">
           <summary>
@@ -183,12 +178,11 @@ export function Catalog() {
             </label>
           </div>
         </details>
+        <Button ref={applyButton} type="submit" className="home-cta-ghost">
+          <T>{"Apply filters"}</T>
+        </Button>
         <p className="store-filter-hint" role="status" aria-live="polite">
-          <T>
-            {edited
-              ? "Filters changed. Apply to update your results."
-              : "Find a look by name, collection or occasion."}
-          </T>
+          {edited && <T>{"Filters changed. Apply to update your results."}</T>}
         </p>
       </form>
       {activeFilters.length > 0 && (
@@ -237,13 +231,6 @@ export function Catalog() {
             ? t(" for “{query}”", { query: filters.query })
             : t(" to explore")}
         </p>
-        <span>
-          <T>
-            {process.env.NEXT_PUBLIC_RENTAL_API_MODE === "http"
-              ? "Published wardrobe · check dates"
-              : "Sample wardrobe · indicative prices"}
-          </T>
-        </span>
       </div>
       {results.length ? (
         <>
@@ -279,12 +266,23 @@ export function Catalog() {
           )}
         </>
       ) : (
-        <EmptyState title={t("No looks match just yet.")} showAction={false}>
-          <T>
-            {
-              "Try another word or remove an applied filter above to explore the collection."
-            }
-          </T>
+        <EmptyState
+          title={
+            activeFilters.length > 0
+              ? t("No looks match just yet.")
+              : "Chưa có trang phục trong danh mục"
+          }
+          showAction={false}
+        >
+          {activeFilters.length > 0 ? (
+            <T>
+              {
+                "Try another word or remove an applied filter above to explore the collection."
+              }
+            </T>
+          ) : (
+            "Bạn có thể quay lại sau."
+          )}
         </EmptyState>
       )}
     </>

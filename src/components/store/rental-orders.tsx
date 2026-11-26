@@ -173,7 +173,6 @@ function OrderCard({
   onUpdated: (order: RentalOrder) => void;
 }) {
   const { t } = useLanguage();
-  const { demo } = useRentalApi();
   const dateLabel = (value: string) =>
     new Intl.DateTimeFormat("vi-VN", {
       day: "2-digit",
@@ -200,11 +199,6 @@ function OrderCard({
           </span>
         </div>
         <p className="store-receipt-number">#{order.id}</p>
-        {demo && (
-          <p className="store-api-hint">
-            <T>{"Demo receipt · not a tax invoice"}</T>
-          </p>
-        )}
       </header>
       <dl className="store-receipt-details">
         <div>

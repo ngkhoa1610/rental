@@ -5,7 +5,7 @@ import { resolve, dirname, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const validActions = { orchestrator: 'coordinate', developer: 'implement', tester: 'test', reviewer: 'review', debugger: 'diagnose' };
+const validActions = { orchestrator: 'coordinate', developer: 'implement', tester: 'test', reviewer: 'review', debugger: 'diagnose', designer: 'design' };
 
 function safePath(p) {
   if (typeof p !== 'string' || !p || p.includes('\\') || p.includes('\0') || isAbsolute(p) || /(^|\/)\.\.(\/|$)/.test(p) || p.startsWith('./') || p.includes('//') || /^([a-z]+):\/\//i.test(p)) return false;

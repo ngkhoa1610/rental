@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 export function PageHeading({
   title,
   description,
-  eyebrow = "The rental wardrobe",
+  eyebrow,
 }: {
   title: string;
   description: string;
@@ -13,9 +13,11 @@ export function PageHeading({
 }) {
   return (
     <header className="store-page-heading">
-      <p className="store-overline">
-        <T>{eyebrow}</T>
-      </p>
+      {eyebrow && (
+        <p className="store-overline">
+          <T>{eyebrow}</T>
+        </p>
+      )}
       <h1>
         <T>{title}</T>
       </h1>

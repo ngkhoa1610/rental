@@ -1,7 +1,6 @@
 "use client";
 import { useCatalogData } from "./catalog-data";
 import { useRef, useState } from "react";
-import { CalendarDays, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories, type Product } from "@/lib/catalog";
 import { rentalDateError } from "@/lib/rental-dates";
@@ -16,10 +15,14 @@ type Result = {
   product: Product;
   status: "available" | "unavailable" | "error";
 };
-export function QuickBooking() {
+export function QuickBooking({
+  showHeading = true,
+}: {
+  showHeading?: boolean;
+}) {
   const { t } = useLanguage();
   const { products } = useCatalogData();
-  const { api, draft, setDraft, demo } = useRentalApi();
+  const { api, draft, setDraft } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const [category, setCategory] = useState("");
   const [checked, setChecked] = useState<{
@@ -32,16 +35,10 @@ export function QuickBooking() {
     !busy && !error && checked?.key === key ? checked.results : null;
   return (
     <div className="store-quick-booking" id="quick-booking" tabIndex={-1}>
-      <div className="store-quick-heading">
-        <span>
-          <CalendarDays aria-hidden="true" />
-        </span>
-        <div>
-          <h2>{t("When do you need your look?")}</h2>
-          <p>{t("Pick your dates. Find your possibilities.")}</p>
-        </div>
-      </div>
+      {showHeading && <h2 className="store-quick-heading">Tra lịch thuê</h2>}
       <form
+        aria-label="Tra lịch thuê"
+        aria-busy={busy}
         onSubmit={(e) => {
           e.preventDefault();
           void run(async () => {
@@ -103,10 +100,14 @@ export function QuickBooking() {
           </select>
         </label>
         <Button type="submit" className="home-cta" disabled={busy}>
-          {t(busy ? "Checking dates…" : "Find available looks")}
-          <ArrowRight aria-hidden="true" />
+          {t("Check availability")}
         </Button>
       </form>
+      {busy && (
+        <p role="status" className="store-api-hint">
+          {t("Checking dates…")}
+        </p>
+      )}
       {error && (
         <p role="alert" className="store-api-error">
           {t(error)}
@@ -117,8 +118,7 @@ export function QuickBooking() {
           <p role="status">
             {t("{count} looks available for your dates", {
               count: result.filter((r) => r.status === "available").length,
-            })}{" "}
-            {demo && <span>· {t("Sample availability")}</span>}
+            })}
           </p>
           {result.some((r) => r.status === "error") && (
             <p role="alert">

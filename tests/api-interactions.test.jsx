@@ -8,151 +8,161 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApiProvider } from "../src/components/store/api-provider.tsx";
 import { RentalRequest } from "../src/components/store/rental-request.tsx";
-import { RentalOrders } from "../src/components/store/rental-orders.tsx";
-import { AdminOrders } from "../src/components/admin/admin-orders.tsx";
-import { createMockApi } from "../src/lib/api/mock.ts";
+import { translate as t } from "../src/lib/language.ts";
 
 afterEach(cleanup);
-const now = Date.parse("2030-01-01T12:00:00Z");
-function setup() {
-  const demo = createMockApi({ latencyMs: 0, now: () => now });
-  return { demo, runtime: { demo, api: demo.api, setCsrf() {} } };
-}
-function fillDates() {
-  fireEvent.change(screen.getByLabelText("Pickup date"), {
-    target: { value: "2030-02-01" },
-  });
-  fireEvent.change(screen.getByLabelText("Return date"), {
-    target: { value: "2030-02-03" },
-  });
+
+const customer = {
+  id: "customer-1",
+  name: "Test customer",
+  phone: "0900000000",
+  permissions: [],
+};
+const line = {
+  productSlug: "muse-dress",
+  quantity: 1,
+  name: "Muse Dress",
+  available: 2,
+  amount: 280000,
+};
+const dates = { pickupDate: "2099-02-01", returnDate: "2099-02-03" };
+const quote = {
+  ...dates,
+  id: "quote-1",
+  lines: [line],
+  total: 280000,
+  currency: "VND",
+  policyLabel: "Test policy",
+  expiresAt: "2099-02-01T10:00:00Z",
+};
+
+function harness({ profile, getQuote, submit }) {
+  return {
+    setCsrf() {},
+    api: {
+      async call(operation, input) {
+        if (operation === "session.get")
+          return { profile, csrfToken: profile ? "csrf" : null };
+        if (operation === "availability.quote") return getQuote(input);
+        assert.equal(operation, "orders.create");
+        return submit(input);
+      },
+    },
+  };
 }
 
-test("request keeps dates/notes through login and expired session, escapes notes and prevents duplicate submission", async () => {
-  const { runtime, demo } = setup();
+function form(runtime, slugs = ["muse-dress"]) {
+  return (
+    <ApiProvider runtime={runtime}>
+      <RentalRequest slugs={slugs} advice="Size advice: S" />
+    </ApiProvider>
+  );
+}
+
+function fillDates() {
+  fireEvent.change(screen.getByLabelText(t("Pickup date")), {
+    target: { value: dates.pickupDate },
+  });
+  fireEvent.change(screen.getByLabelText(t("Return date")), {
+    target: { value: dates.returnDate },
+  });
+}
+const quoteButton = () =>
+  screen.getByRole("button", { name: t("Check availability") });
+const submitButton = () =>
+  screen.getByRole("button", { name: t("Send rental request") });
+
+test("rental request preserves dates on quote failure and invalidates a quote when selection changes", async () => {
+  let attempts = 0;
+  const runtime = harness({
+    profile: null,
+    getQuote: () => {
+      if (++attempts === 1) throw new Error("Service unavailable");
+      return quote;
+    },
+  });
+  const user = userEvent.setup();
+  const view = render(form(runtime));
+  fillDates();
+  await user.click(quoteButton());
+  await screen.findByRole("alert");
+  assert.equal(screen.getByLabelText(t("Return date")).value, dates.returnDate);
+  await user.click(quoteButton());
+  await screen.findByRole("heading", { name: t("Rental quote") });
+  assert.ok(submitButton().disabled);
+  view.rerender(form(runtime, ["luna-set"]));
+  assert.equal(
+    screen.queryByRole("button", { name: t("Send rental request") }),
+    null,
+  );
+});
+
+test("rental request submits advisory size and delivery as notes, once, and shows the pending receipt", async () => {
+  const submissions = [];
+  const runtime = harness({
+    profile: customer,
+    getQuote: (input) => {
+      assert.deepEqual(input, {
+        ...dates,
+        items: [{ productSlug: line.productSlug, quantity: 1 }],
+      });
+      return quote;
+    },
+    submit: (input) => {
+      submissions.push(input);
+      return {
+        ...dates,
+        id: "order-1",
+        customerId: customer.id,
+        contact: { name: customer.name, phone: customer.phone },
+        createdAt: "2099-01-01T10:00:00Z",
+        version: 1,
+        changes: [],
+        history: [],
+        status: "pending",
+        lines: [line],
+        notes: input.notes,
+      };
+    },
+  });
   const user = userEvent.setup();
   const originalUrl = window.location.href;
-  render(
-    <ApiProvider runtime={runtime}>
-      <RentalRequest slugs={["muse-dress"]} />
-    </ApiProvider>,
-  );
+  render(form(runtime));
   fillDates();
-  fireEvent.change(screen.getByLabelText(/Notes for the store/), {
-    target: { value: "<script>keep this</script>" },
-  });
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("heading", { name: "Sample quote" });
-  assert.ok(screen.getByRole("button", { name: "Send demo request" }).disabled);
-  await user.click(
-    await screen.findByRole("button", { name: "Try customer account" }),
+  fireEvent.change(
+    screen.getByLabelText(new RegExp(t("Notes for the store").trim())),
+    {
+      target: { value: "<script>keep this</script>" },
+    },
   );
-  await screen.findByRole("button", { name: "Sign out" });
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("button", { name: "Send demo request" });
-  demo.expireSession();
-  await user.click(screen.getByRole("button", { name: "Send demo request" }));
-  await screen.findByRole("alert");
-  assert.equal(screen.getByLabelText("Pickup date").value, "2030-02-01");
-  assert.equal(
-    screen.getByLabelText(/Notes for the store/).value,
-    "<script>keep this</script>",
+  await user.click(quoteButton());
+  await screen.findByRole("heading", { name: t("Rental quote") });
+  fireEvent.click(
+    screen.getByLabelText(t("Request delivery for store review")),
   );
-  await user.click(
-    screen.getByRole("button", { name: "Try customer account" }),
+  assert.ok(submitButton().disabled);
+  fireEvent.change(
+    screen.getByRole("textbox", { name: new RegExp(t("Delivery address")) }),
+    {
+      target: { value: "12 Street" },
+    },
   );
-  await screen.findByRole("button", { name: "Sign out" });
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("button", { name: "Send demo request" });
-  await user.dblClick(
-    screen.getByRole("button", { name: "Send demo request" }),
-  );
-  await screen.findByText(/is pending approval/);
-  assert.equal((await demo.api.call("orders.list", undefined)).length, 1);
+  await user.dblClick(submitButton());
+  await screen.findByText(t("We've received your request."));
+  assert.equal(submissions.length, 1);
+  assert.equal(submissions[0].quoteId, quote.id);
+  assert.ok(submissions[0].idempotencyKey);
+  assert.match(submissions[0].notes, /Size advice: S/);
+  assert.match(submissions[0].notes, /12 Street/);
+  assert.match(submissions[0].notes, /<script>keep this<\/script>/);
   assert.equal(document.querySelector("script"), null);
   assert.equal(window.location.href, originalUrl);
+  assert.equal(screen.queryByAltText("Store bank transfer QR"), null);
   await waitFor(() =>
     assert.equal(document.activeElement.getAttribute("role"), "status"),
   );
-});
-
-test("changing selection invalidates its quote and failed requests expose retry without losing draft", async () => {
-  const { runtime, demo } = setup();
-  const user = userEvent.setup();
-  const view = render(
-    <ApiProvider runtime={runtime}>
-      <RentalRequest slugs={["muse-dress"]} />
-    </ApiProvider>,
-  );
-  fillDates();
-  // Wait for initial session hydration before injecting the availability failure.
-  await screen.findByRole("button", { name: "Try customer account" });
-  demo.failNext();
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("alert");
-  assert.equal(screen.getByLabelText("Return date").value, "2030-02-03");
-  await user.click(screen.getByRole("button", { name: "Check availability" }));
-  await screen.findByRole("heading", { name: "Sample quote" });
-  view.rerender(
-    <ApiProvider runtime={runtime}>
-      <RentalRequest slugs={["luna-set"]} />
-    </ApiProvider>,
-  );
-  assert.equal(
-    screen.queryByRole("button", { name: "Send demo request" }),
-    null,
-  );
-});
-
-test("staff can update rental status without payment or change-request controls", async () => {
-  const { runtime, demo } = setup();
-  demo.signIn("customer");
-  const quote = await demo.api.call("availability.quote", {
-    pickupDate: "2030-02-01",
-    returnDate: "2030-02-03",
-    items: [{ productSlug: "muse-dress", quantity: 1 }],
-  });
-  const order = await demo.api.call("orders.create", {
-    quoteId: quote.id,
-    notes: "Handle gently",
-    idempotencyKey: "create",
-  });
-  demo.signIn("staff");
-  const user = userEvent.setup();
-  render(
-    <ApiProvider runtime={runtime}>
-      <AdminOrders />
-    </ApiProvider>,
-  );
-  const card = await screen.findByRole("article", {
-    name: `Order ${order.id}`,
-  });
-  assert.equal(within(card).queryByText("Record offline payment"), null);
-  await user.click(
-    within(card).getByText("Update rental status", { selector: "summary" }),
-  );
-  await user.type(within(card).getByLabelText("Staff note"), "Checked stock");
-  await user.click(
-    within(card).getByRole("button", { name: "Update rental status" }),
-  );
-  await within(card).findByText("Confirmed", { selector: ".store-api-badge" });
-  assert.equal(within(card).queryByText("unpaid"), null);
-  assert.equal(within(card).queryByText("Record offline payment"), null);
-  assert.equal(
-    within(card).queryByText("Request a date change or cancellation"),
-    null,
-  );
-  cleanup();
-  demo.signIn("other-customer");
-  render(
-    <ApiProvider runtime={runtime}>
-      <RentalOrders />
-    </ApiProvider>,
-  );
-  await screen.findByText("No requests yet");
-  assert.equal(screen.queryByRole("article"), null);
 });

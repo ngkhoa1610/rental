@@ -11,9 +11,8 @@ import { EmptyState } from "@/components/store/page-heading";
 import { WishlistButton } from "@/components/store/selection-actions";
 import { useSelection } from "@/components/store/selection-provider";
 import { formatPrice } from "@/lib/catalog";
-import { sampleSubtotal, selectedProducts } from "@/lib/rental-selection";
+import { listedSubtotal, selectedProducts } from "@/lib/rental-selection";
 import { RentalRequest } from "./rental-request";
-import { useRentalApi } from "./api-provider";
 
 import {
   Sheet,
@@ -27,7 +26,6 @@ import {
 
 export function RentalBag() {
   const { t } = useLanguage();
-  const { demo } = useRentalApi();
   const { products } = useCatalogData();
   const { selection, dispatch, ready } = useSelection();
   const region = useRef<HTMLDivElement>(null);
@@ -109,7 +107,7 @@ export function RentalBag() {
                       {formatPrice(product.price)}{" "}
                       <span>
                         / {product.rentalDays}
-                        <T>{demo ? " days · sample" : " days"}</T>
+                        <T>{" days"}</T>
                       </span>
                     </p>
                     <div className="store-bag-item-actions">
@@ -151,18 +149,16 @@ export function RentalBag() {
             <dl>
               <div>
                 <dt>
-                  <T>
-                    {demo ? "Sample price subtotal" : "Listed block subtotal"}
-                  </T>
+                  <T>{"Listed block subtotal"}</T>
                 </dt>
-                <dd>{formatPrice(sampleSubtotal(items))}</dd>
+                <dd>{formatPrice(listedSubtotal(items))}</dd>
               </div>
             </dl>
             <p>
               <T>
-                {demo
-                  ? "Catalog amounts are illustrative. Check your dates below to see the available rental quote."
-                  : "Listed prices are per rental block. Check your dates below for the final quote."}
+                {
+                  "Listed prices are per rental block. Check your dates below for the final quote."
+                }
               </T>
             </p>
             <RentalRequest slugs={selection.bag} />

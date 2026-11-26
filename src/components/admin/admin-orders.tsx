@@ -390,50 +390,7 @@ function OrderWorkspace({
         <p role="alert">Ngày kết thúc phải từ ngày bắt đầu trở đi.</p>
       )}
       {filtered.length ? (
-        <div className="admin-table-wrap">
-          <table className="admin-table admin-orders-table">
-            <thead>
-              <tr>
-                <th scope="col">Mã đơn</th>
-                <th scope="col">Khách thuê</th>
-                <th scope="col">Ngày nhận</th>
-                <th scope="col">Ngày trả</th>
-                <th scope="col">Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((order) => (
-                <tr key={order.id}>
-                  <th scope="row">
-                    <button
-                      className="admin-text-action"
-                      type="button"
-                      onClick={() => setSelectedId(order.id)}
-                      aria-label={"Mở đơn " + order.id}
-                    >
-                      {order.id}{" "}
-                      <ChevronRight aria-hidden="true" width={16} height={16} />
-                    </button>
-                  </th>
-                  <td data-label="Khách thuê">
-                    <strong>{order.contact.name}</strong>
-                    <br />
-                    {order.contact.phone}
-                  </td>
-                  <td data-label="Ngày nhận">
-                    {formatOrderDate(order.pickupDate)}
-                  </td>
-                  <td data-label="Ngày trả">
-                    {formatOrderDate(order.returnDate)}
-                  </td>
-                  <td data-label="Trạng thái">
-                    <OrderBadge status={order.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminOrdersTable orders={filtered} onSelect={setSelectedId} />
       ) : (
         <p>
           {orders.length
@@ -442,6 +399,66 @@ function OrderWorkspace({
         </p>
       )}
     </section>
+  );
+}
+
+export function AdminOrdersTable({
+  orders,
+  onSelect,
+}: {
+  orders: readonly Pick<
+    RentalOrder,
+    "id" | "contact" | "pickupDate" | "returnDate" | "status"
+  >[];
+  onSelect?: (id: string) => void;
+}) {
+  return (
+    <div className="admin-table-wrap">
+      <table className="admin-table admin-orders-table">
+        <thead>
+          <tr>
+            <th scope="col">Mã đơn</th>
+            <th scope="col">Khách thuê</th>
+            <th scope="col">Ngày nhận</th>
+            <th scope="col">Ngày trả</th>
+            <th scope="col">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id}>
+              <th scope="row">
+                {onSelect ? (
+                  <button
+                    className="admin-text-action"
+                    type="button"
+                    onClick={() => onSelect(order.id)}
+                    aria-label={"Mở đơn " + order.id}
+                  >
+                    {order.id}{" "}
+                    <ChevronRight aria-hidden="true" width={16} height={16} />
+                  </button>
+                ) : (
+                  order.id
+                )}
+              </th>
+              <td data-label="Khách thuê">
+                <strong>{order.contact.name}</strong>
+                <br />
+                {order.contact.phone}
+              </td>
+              <td data-label="Ngày nhận">
+                {formatOrderDate(order.pickupDate)}
+              </td>
+              <td data-label="Ngày trả">{formatOrderDate(order.returnDate)}</td>
+              <td data-label="Trạng thái">
+                <OrderBadge status={order.status} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

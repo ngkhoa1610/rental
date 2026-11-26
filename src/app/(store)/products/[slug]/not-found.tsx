@@ -6,12 +6,10 @@ export default function ProductNotFound() {
     <>
       <PageHeading
         title="This look is not here."
-        description="The link may be incorrect or the sample look may have changed."
+        description="Liên kết có thể đã thay đổi hoặc trang phục hiện không còn được công khai."
       />
       <EmptyState title="Find something else worth wearing.">
-        <T>
-          {"Return to the collection to explore the available sample looks."}
-        </T>
+        <T>{"Quay về danh mục để xem các trang phục đang được công khai."}</T>
       </EmptyState>
     </>
   );

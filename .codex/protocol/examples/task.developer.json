@@ -1,0 +1,31 @@
+{
+  "protocol_version": "1.0",
+  "message_type": "task",
+  "task_id": "auth-refactor-001",
+  "parent_task_id": "refactor-001",
+  "role": "developer",
+  "action": "implement",
+  "goal": "Add a bounded email/password form contract without changing admin routes in this task.",
+  "acceptance_criteria": [
+    "Form validates malformed email input",
+    "No credentials are logged"
+  ],
+  "constraints": [
+    "Do not change database schema",
+    "Do not modify admin files"
+  ],
+  "allowed_paths": [
+    "src/app/(store)/account/page.tsx",
+    "tests/auth-form.test.mjs"
+  ],
+  "context_refs": [
+    {
+      "path": "src/app/(store)/account/page.tsx",
+      "why": "Target account page"
+    }
+  ],
+  "requested_checks": [
+    "npm run lint"
+  ],
+  "priority": "normal"
+}

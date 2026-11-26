@@ -11,7 +11,7 @@ export default function WishlistPage() {
       <PageHeading
         title="Your favourites, together."
         eyebrow="Wishlist"
-        description="A little inspiration to come back to. Keep your favourite sample looks together."
+        description="Lưu các trang phục yêu thích để dễ tìm lại khi cần."
       />
       <SelectionNotice />
       <SavedLooks />

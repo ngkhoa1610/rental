@@ -5,7 +5,7 @@ import { PrismaClient } from "@/generated/prisma/client";
 const database = globalThis as typeof globalThis & {
   rentalDatabase?: PrismaClient;
 };
-/** Lazy: the mock UI/build never opens a database connection. */
+/** Open a database connection only when a server operation needs it. */
 export function getDatabase(): PrismaClient {
   if (database.rentalDatabase) return database.rentalDatabase;
   const connectionString = process.env.DATABASE_URL;

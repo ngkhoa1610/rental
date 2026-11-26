@@ -1,13 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { connection } from "next/server";
-import { products, type Product } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog";
 import { getDatabase } from "@/server/db/client";
 import { mapCatalogProduct, mapContent } from "./mappers";
-export const isLiveStore = () =>
-  process.env.NEXT_PUBLIC_RENTAL_API_MODE === "http";
 export const storeProducts = cache(async (): Promise<readonly Product[]> => {
-  if (!isLiveStore()) return products;
   await connection();
   return (
     await getDatabase().product.findMany({

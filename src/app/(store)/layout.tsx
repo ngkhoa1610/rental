@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import "./store.css";
 import "./home.css";
 import "./booking.css";
+import "./theme.css";
 
 export default function StoreLayout({
   children,
@@ -11,7 +12,7 @@ export default function StoreLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="landing-page">
+    <div className="landing-page store-theme">
       <a className="home-skip" href="#store-main">
         <T>{"Skip to content"}</T>
       </a>

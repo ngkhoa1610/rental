@@ -45,9 +45,7 @@ export function ProductGallery({
             <T>{"View full image"}</T>
           </Button>
         </SheetTrigger>
-        <figcaption>
-          <T>{"Styling inspiration · 1 temporary image"}</T>
-        </figcaption>
+        <figcaption>Ảnh trang phục</figcaption>
       </figure>
       <SheetContent
         side="bottom"
@@ -56,11 +54,7 @@ export function ProductGallery({
       >
         <SheetHeader className="pr-16">
           <SheetTitle>{name}</SheetTitle>
-          <SheetDescription>
-            <T>
-              {"Editorial inspiration, not confirmed inventory photography."}
-            </T>
-          </SheetDescription>
+          <SheetDescription>Xem chi tiết ảnh của trang phục.</SheetDescription>
         </SheetHeader>
         <SheetClose asChild>
           <Button

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -44,6 +45,12 @@ const steps = [
   },
 ];
 export default async function HomePage() {
+  if (
+    process.env.NODE_ENV === "development" &&
+    !process.env.DATABASE_URL?.trim()
+  )
+    redirect("/layout-preview");
+
   const products = await storeProducts();
   if (!products.length)
     return (
@@ -57,7 +64,6 @@ export default async function HomePage() {
     <div className="store-home">
       <section className="store-home-hero" aria-labelledby="hero-title">
         <div className="store-hero-copy">
-          <p className="store-overline">THE SAKURA WARDROBE · 2026</p>
           <h1 id="hero-title">
             <T>{"The right look."}</T>
             <em>
@@ -72,16 +78,13 @@ export default async function HomePage() {
             </T>
           </p>
           <div className="home-actions">
-            <SectionButton target="quick-booking" className="home-cta">
+            <Link href="/products" className="home-cta">
+              <T>{"Explore the wardrobe"}</T>
+            </Link>
+            <SectionButton target="quick-booking" className="home-cta-ghost">
               <CalendarDays />
               <T>{"Check outfit availability"}</T>
             </SectionButton>
-          </div>
-          <div className="store-hero-note">
-            <span>01 / 03</span>
-            <p>
-              <T>{"More moments. Less wardrobe."}</T>
-            </p>
           </div>
         </div>
         <figure className="store-hero-image">
@@ -92,22 +95,6 @@ export default async function HomePage() {
             preload
             sizes="(max-width:767px) 92vw, 550px"
           />
-          <div className="store-hero-image-note">
-            <Sparkles />
-            <div>
-              <span>THE OCCASION EDIT</span>
-              <strong>{products[0].name}</strong>
-            </div>
-            <Link
-              href={`/products/${products[0].slug}`}
-              aria-label={`View ${products[0].name}`}
-            >
-              <ArrowUpRight />
-            </Link>
-          </div>
-          <figcaption>
-            <T>{"Styling image · illustrative"}</T>
-          </figcaption>
         </figure>
       </section>
       <ul className="store-trust-strip">
@@ -122,16 +109,27 @@ export default async function HomePage() {
         ))}
       </ul>
       <QuickBooking />
+      <section className="store-home-section">
+        <div className="store-section-heading">
+          <div>
+            <h2>Danh mục trang phục</h2>
+          </div>
+          <Link href="/products" className="store-text-link">
+            <T>{"Explore the wardrobe"}</T>
+            <ArrowUpRight />
+          </Link>
+        </div>
+        <div className="store-product-grid">
+          {products.map((product) => (
+            <ProductCard product={product} key={product.slug} />
+          ))}
+        </div>
+      </section>
       <ScrollReveal>
         <section className="store-home-section" id="rental-process">
           <div className="store-section-heading">
             <div>
-              <p className="store-overline">
-                <T>{"A simple rental ritual"}</T>
-              </p>
-              <h2>
-                <T>{"Four steps. One good look."}</T>
-              </h2>
+              <h2>Cách thuê trang phục</h2>
             </div>
             <Link href="/rental-guide" className="store-text-link">
               <T>{"See the rental guide"}</T>
@@ -156,38 +154,9 @@ export default async function HomePage() {
           </ol>
         </section>
       </ScrollReveal>
-      <section className="store-home-section">
-        <div className="store-section-heading">
-          <div>
-            <p className="store-overline">
-              <T>{"Curated for your next plan"}</T>
-            </p>
-            <h2>
-              <T>{"A wardrobe. Many versions of you."}</T>
-            </h2>
-          </div>
-          <Link href="/products" className="store-text-link">
-            <T>{"Explore the wardrobe"}</T>
-            <ArrowUpRight />
-          </Link>
-        </div>
-        <div className="store-product-grid">
-          {products.map((product) => (
-            <ProductCard product={product} key={product.slug} />
-          ))}
-        </div>
-      </section>
       <section className="store-home-section store-home-faq">
         <div>
-          <p className="store-overline">
-            <T>{"Before you rent"}</T>
-          </p>
-          <h2>
-            <T>{"Good questions. Clear answers."}</T>
-          </h2>
-          <p>
-            <T>{"Your outfit should feel right. So should the rental."}</T>
-          </p>
+          <h2>Câu hỏi thường gặp</h2>
         </div>
         <RentalFaq />
       </section>

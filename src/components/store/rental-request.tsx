@@ -23,7 +23,7 @@ export function RentalRequest({
 }) {
   const { t } = useLanguage();
   const { products } = useCatalogData();
-  const { api, demo, session, draft, setDraft } = useRentalApi();
+  const { api, session, draft, setDraft } = useRentalApi();
   const { busy, error, run, clearError } = useApiAction();
   const requestKey = useRequestKey();
   const [quoted, setQuoted] = useState<{
@@ -69,15 +69,14 @@ export function RentalRequest({
               <li key={slug}>
                 <strong>{product.name}</strong>
                 <span>
-                  {formatPrice(product.price)} ·
-                  {t(demo ? "Sample price" : "Listed rental price")}
+                  {formatPrice(product.price)} ·{t("Listed rental price")}
                 </span>
               </li>
             ) : null;
           })}
         </ul>
       </div>
-      <SessionPanel compact />
+      <SessionPanel />
       {advice && <p className="store-advice-note">{advice}</p>}
       <h2>
         <T>{"Plan your rental"}</T>
@@ -89,15 +88,6 @@ export function RentalRequest({
           }
         </T>
       </p>
-      {demo && (
-        <p className="store-api-hint">
-          <T>
-            {
-              "Demo: choose 1–3 calendar days. The displayed amount is illustrative, not a confirmed daily rate."
-            }
-          </T>
-        </p>
-      )}
       <form
         className="store-api-form"
         onSubmit={(event) => {
@@ -187,7 +177,7 @@ export function RentalRequest({
       {quote && !submitted && (
         <div className="store-api-panel">
           <h3>
-            <T>{demo ? "Sample quote" : "Rental quote"}</T>
+            <T>{"Rental quote"}</T>
           </h3>
           <ul>
             {quote.lines.map((line) => (
@@ -257,7 +247,7 @@ export function RentalRequest({
               })
             }
           >
-            <T>{demo ? "Send demo request" : "Send rental request"}</T>
+            <T>{"Send rental request"}</T>
           </Button>
         </div>
       )}
@@ -284,7 +274,7 @@ export function RentalRequest({
           className="store-api-panel"
         >
           <p className="store-api-hint">
-            <T>{demo ? "Demo request" : "Request"}</T> {submitted.id}
+            <T>{"Request"}</T> {submitted.id}
             <T>{" is pending approval."}</T>
           </p>
           <BookingConfirmation order={submitted} />

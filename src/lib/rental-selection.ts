@@ -48,8 +48,8 @@ export function selectedProducts(
   return items.filter((product) => slugs.includes(product.slug));
 }
 
-/** Sum the displayed sample prices only, never a checkout total or quote. */
-export function sampleSubtotal(items: readonly Product[]): number {
+/** Sum listed product prices for the bag estimate. */
+export function listedSubtotal(items: readonly Product[]): number {
   return items.reduce((total, item) => total + item.price, 0);
 }
 

@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { validateEnvelope } from '../scripts/validate-agent-message.mjs';
 
 const repo = process.cwd();
-const roles = ['orchestrator', 'developer', 'tester', 'reviewer', 'debugger'];
+const roles = ['orchestrator', 'developer', 'tester', 'reviewer', 'debugger', 'designer'];
 const text = (file) => readFileSync(resolve(repo, file), 'utf8');
 
-test('project config registers exactly the five intended custom roles', () => {
+test('project config registers exactly the six intended custom roles', () => {
   const config = text('.codex/config.toml');
-  assert.match(config, /max_concurrent_threads_per_session\s*=\s*3/);
+  assert.match(config, /max_threads\s*=\s*3/);
   const registered = [...config.matchAll(/^\[agents\.([a-z]+)\]$/gm)].map((x) => x[1]);
   assert.deepEqual(registered.sort(), [...roles].sort());
   for (const role of roles) {
@@ -46,4 +47,18 @@ test('validator, docs, protocol and sample files use Codex project paths', () =>
     assert.ok(existsSync(resolve(repo, `.codex/protocol/${file}`)));
   }
   assert.match(text('AGENTS.md'), /\.codex\/agents/);
+});
+
+test('designer uses the design action in task and result handoffs', () => {
+  const taskExample = JSON.parse(text('.codex/protocol/examples/task.developer.json'));
+  const resultExample = JSON.parse(text('.codex/protocol/examples/result.developer.json'));
+  const task = { ...taskExample, role: 'designer', action: 'design' };
+  const result = { ...resultExample, role: 'designer', action: 'design', changed_files: [] };
+
+  assert.deepEqual(validateEnvelope('task', task), []);
+  assert.deepEqual(validateEnvelope('result', result, { task }), []);
+  assert.match(
+    validateEnvelope('task', { ...task, action: 'implement' }).join(' '),
+    /action does not match agent role/,
+  );
 });

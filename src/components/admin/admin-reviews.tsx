@@ -58,7 +58,7 @@ function ReviewEditor({
   reload: (notice?: string) => void;
 }) {
   const { t } = useLanguage();
-  const { api, demo } = useRentalApi();
+  const { api } = useRentalApi();
   const { busy, error, run } = useApiAction();
   const key = useRequestKey();
   return (
@@ -101,11 +101,7 @@ function ReviewEditor({
               ...input,
               idempotencyKey: key(input),
             });
-            reload(
-              demo
-                ? "Đã lưu quyết định mẫu trong tab này."
-                : "Đã lưu quyết định.",
-            );
+            reload("Đã lưu quyết định.");
           });
         }}
       >

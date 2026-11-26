@@ -1,0 +1,120 @@
+:root {
+  --store-paper-background: #fdfaf6;
+}
+
+/* Customer sheets are portalled to the body. Use their existing surface names
+   so the palette reaches them without changing the shared sheet or Admin. */
+:where(
+  .store-theme,
+  .store-theme-preview .home-skip,
+  .store-theme-preview .store-main > :not(.admin-panel),
+  [data-slot="sheet-content"]:is(
+    .home-mobile-sheet,
+    .store-booking-drawer,
+    .store-contact-sheet,
+    .store-image-sheet,
+    .store-confirm-sheet
+  )
+) {
+  --background: var(--store-paper-background);
+  --foreground: #39251e;
+  --surface: #fffcf8;
+  --surface-foreground: var(--foreground);
+  --card: #fffefb;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: #660000;
+  --primary-foreground: #fffaf0;
+  --accent: #edd8d4;
+  --accent-foreground: #660000;
+  --secondary: #f6efe7;
+  --secondary-foreground: #53362a;
+  --muted: #f8f3ed;
+  --muted-foreground: #65534a;
+  --border: #dccfc3;
+  --input: #9b7d68;
+  --ring: #861d2b;
+  --blossom: #d7aaa6;
+  --blossom-soft: #f3e4d5;
+  --cta: var(--primary);
+  --home-accent: var(--primary);
+  --home-accent-hover: #4c0000;
+  --home-ink: var(--foreground);
+  --home-muted: var(--muted-foreground);
+  --home-blush: var(--blossom-soft);
+  --home-paper: var(--card);
+  --home-line: var(--border);
+
+  color: var(--foreground);
+}
+
+.store-theme,
+.store-theme-preview {
+  background-color: var(--store-paper-background);
+}
+
+.store-theme :is(.home-header, .home-mobile-nav) {
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+}
+
+.store-theme .home-footer {
+  background: var(--secondary);
+}
+
+:where(.store-theme, .store-theme-preview, .store-booking-drawer)
+  .home-cta:hover {
+  background: var(--home-accent-hover);
+}
+
+:where(.store-theme) :is(.store-hero-copy, .store-detail-copy) h1,
+:where(.store-theme, .store-theme-preview) .store-page-heading h1 {
+  color: var(--primary);
+}
+
+:where(
+    .store-theme,
+    .store-theme-preview .store-main > :not(.admin-panel),
+    .store-booking-drawer
+  )
+  :is(
+    .store-search-field input,
+    .store-filter-grid select,
+    .store-quick-form input,
+    .store-quick-form select,
+    .store-product-booking input,
+    .store-copy-message textarea,
+    .store-date-picker input,
+    .store-api-form input,
+    .store-api-form select,
+    .store-api-form textarea
+  ) {
+  border-color: var(--input);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+:where(.store-theme, .store-theme-preview .store-main > :not(.admin-panel))
+  .store-detail-photo
+  figcaption {
+  background: color-mix(in srgb, var(--secondary) 94%, transparent);
+}
+
+:where(.store-theme, .store-theme-preview .store-main > :not(.admin-panel))
+  .store-order-card {
+  border-top-color: var(--primary);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 14px 36px -22px var(--primary);
+
+  &::after {
+    background:
+      linear-gradient(135deg, var(--card) 5px, transparent 0) 0 0 / 10px 10px,
+      linear-gradient(225deg, var(--card) 5px, transparent 0) 0 0 / 10px 10px;
+  }
+}
+
+:where(.store-theme, .store-theme-preview .store-main > :not(.admin-panel))
+  .store-receipt-brand {
+  color: var(--primary);
+}

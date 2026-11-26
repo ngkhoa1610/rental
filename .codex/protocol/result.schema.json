@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent ResultEnvelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "message_type",
+    "task_id",
+    "parent_task_id",
+    "role",
+    "action",
+    "status",
+    "summary",
+    "changed_files",
+    "checks",
+    "findings",
+    "evidence_refs",
+    "risks",
+    "requested_context",
+    "next_owner"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "message_type": {
+      "enum": [
+        "task",
+        "result"
+      ]
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$"
+    },
+    "parent_task_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "role": {
+      "enum": [
+        "orchestrator",
+        "developer",
+        "tester",
+        "reviewer",
+        "debugger",
+        "designer"
+      ]
+    },
+    "action": {
+      "enum": [
+        "coordinate",
+        "implement",
+        "test",
+        "review",
+        "diagnose",
+        "design"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "NEEDS_CONTEXT",
+        "INVALID_INPUT"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 700
+    },
+    "changed_files": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "change_type"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "change_type": {
+            "enum": [
+              "added",
+              "modified",
+              "deleted",
+              "renamed"
+            ]
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "command",
+          "outcome",
+          "exit_code"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "outcome": {
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not_run"
+            ]
+          },
+          "exit_code": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 255
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 240
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "path",
+          "issue",
+          "recommendation"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "blocker",
+              "major",
+              "minor"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "issue": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          },
+          "recommendation": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 240
+          }
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      }
+    },
+    "risks": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 220
+      }
+    },
+    "requested_context": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "maxLength": 180
+      }
+    },
+    "next_owner": {
+      "enum": [
+        "orchestrator",
+        "developer",
+        "tester",
+        "reviewer",
+        "debugger",
+        "designer",
+        "none"
+      ]
+    }
+  }
+}

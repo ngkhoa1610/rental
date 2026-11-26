@@ -23,7 +23,7 @@ Read `docs/structure.md`, `docs/feature.md`, and `docs/setup.md` before changes.
 - Stage explicit paths or hunks and review the staged file list and diff. Use `git add --chmod=+x -- .githooks/pre-commit` when staging the hook itself.
 - Run `node scripts/check-staged-secrets.mjs` against the exact staged changes. Use `git -c core.hooksPath=.githooks commit -m "<checkpoint>"` so the hook runs even without local setup. If the guard or Git write fails, leave the checkpoint uncommitted and report the blocker. Keep commits local unless the user authorizes a push.
 
-The main Codex thread owns scope, delegation, integration, and the final result. Delegate every project task to the appropriate agents, regardless of size or risk, including single-file edits, documentation, and read-only work. Assign implementation to `developer` or a reproducible defect to `debugger`, then assign independent verification to `tester` and actual-diff review to `reviewer`. For read-only work, assign the relevant verification or review role directly and record its evidence. Test and review may run in parallel against a stable patch if neither writes files under review. Use `orchestrator` for bounded planning and delegate directly from the main thread. Keep at most three active subagents and one writer per file.
+The main Codex thread owns scope, delegation, integration, and the final result. Delegate every project task to the appropriate agents, regardless of size or risk, including single-file edits, documentation, and read-only work. Assign visual design, theme, interaction and responsive work to `designer` first, including small changes. Assign implementation to `developer` or a reproducible defect to `debugger`. Designer may implement explicitly assigned presentation changes. Then assign independent verification to `tester` and actual-diff review to `reviewer`. For read-only work, assign the relevant verification or review role directly and record its evidence. Test and review may run in parallel against a stable patch if neither writes files under review. Use `orchestrator` for bounded planning and delegate directly from the main thread. Keep at most three active subagents and one writer per file.
 
 If the host lacks a required role or delegation is restricted, mark that stage BLOCKED, explain the runtime limitation, and continue the stages that can be delegated. Report only checks actually run. This policy supersedes any small-task exception in project-local role prompts or workflow documentation.
 
@@ -42,6 +42,7 @@ Read these rules before applying project-local role prompts or skills. The curre
 | `debugger` | Reproduce the assigned defect locally and report before/after evidence for the smallest approved fix. |
 | `tester` | Verify acceptance criteria independently. For authentication, test the credential endpoints and session scopes, expiry, CSRF and ownership as applicable. Edit only explicitly assigned tests. |
 | `reviewer` | Review the actual patch read-only. Check applicable Admin/customer boundaries, permissions, stock and data integrity. |
+| `designer` | Research references, audit UI, specify tokens and perform visual QA. Implement only explicitly assigned presentation or design-document paths. |
 
 Include the relevant project skill and prerequisite docs as context references when assigning work. Apply the UI/UX guidance to Admin as well as customer screens. For security-sensitive changes, apply the security guidance to defensive source review and authorized verification. If an agent needs an additional path, the main thread updates its task scope before it proceeds.
 
@@ -56,3 +57,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+<!-- Append to AGENTS.md. Keep short: it is read on every run. Does not repeat the delegation and checkpoint rules already there. -->
+
+## Environment
+- Windows + PowerShell: use `npm.cmd` and `node node_modules/<tool>/...`; do not assume `sed`/`grep` or a working Git shell inside the sandbox.
+
+## Store UI conventions
+- Details: `.agents/skills/ui-ux/SKILL.md`. Tokens come from `src/app/globals.css`; classes use the `store-` prefix; reuse `home-cta` and existing store components.
+- Every visible `<T>{"English"}</T>` phrase needs an entry in `src/lib/translations/vi.json`. Run `node scripts/check-translations.mjs` on changed `.tsx/.jsx` files before handoff.
+
+## Handoff conventions
+- One feature id per request: children use `parent_task_id` = that id and `task_id` = `<feature>-<nn>-<role>`.
+- Scratch and evidence go to `.agent-work/<task_id>/`. `evidence_refs` are file paths, never opaque tool ids. Delete a feature's scratch after acceptance.
+- Request scoped test commands (by file or `--test-name-pattern`). A requested check that fails keeps the task FAIL; the tester labels it `regression:` or `preexisting:` and the main thread re-tasks with a narrower command.
+- A `blocked` check carries the exact command to run outside the sandbox.

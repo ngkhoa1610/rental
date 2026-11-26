@@ -49,7 +49,6 @@ test("mutation notice waits for success, prevents duplicate submit, dismisses an
     reject,
     calls = 0;
   const runtime = {
-    demo: null,
     setCsrf() {},
     api: {
       call: async (operation) => {
@@ -71,23 +70,23 @@ test("mutation notice waits for success, prevents duplicate submit, dismisses an
   );
   await user.dblClick(screen.getByRole("button", { name: "Submit profile" }));
   assert.equal(calls, 1);
-  assert.equal(screen.queryByLabelText("Action result"), null);
+  assert.equal(screen.queryByLabelText("Kết quả thao tác"), null);
   await act(async () =>
     resolve({ id: "u", name: "Test", phone: "0900000000", permissions: [] }),
   );
-  const toast = await screen.findByLabelText("Action result");
+  const toast = await screen.findByLabelText("Kết quả thao tác");
   assert.equal(
     within(toast).getByRole("status").textContent,
-    "Contact details saved.",
+    "Đã lưu thông tin liên hệ.",
   );
   await user.click(
-    screen.getByRole("button", { name: "Dismiss action notification" }),
+    screen.getByRole("button", { name: "Đóng thông báo thao tác" }),
   );
-  assert.equal(screen.queryByLabelText("Action result"), null);
+  assert.equal(screen.queryByLabelText("Kết quả thao tác"), null);
   await user.click(screen.getByRole("button", { name: "Submit profile" }));
   await act(async () => reject(new Error("Connection failed")));
   assert.ok(await screen.findByRole("alert"));
-  assert.equal(screen.queryByLabelText("Action result"), null);
+  assert.equal(screen.queryByLabelText("Kết quả thao tác"), null);
 });
 test("all existing completed API writes have feedback; passive reads never generate success", () => {
   const expected = [
@@ -113,9 +112,8 @@ test("all existing completed API writes have feedback; passive reads never gener
   ])
     assert.equal(actionSuccess[read], undefined);
 });
-test("Vietnamese notification discloses mock lifetime without exposing submitted PII", async () => {
+test("Vietnamese notification reports success without exposing submitted PII", async () => {
   const runtime = {
-    demo: {},
     setCsrf() {},
     api: {
       call: async (operation) =>
@@ -143,6 +141,5 @@ test("Vietnamese notification discloses mock lifetime without exposing submitted
   await waitFor(() =>
     assert.match(toast.textContent, /Đã lưu thông tin liên hệ/),
   );
-  assert.match(toast.textContent, /Dữ liệu mẫu/);
   assert.doesNotMatch(toast.textContent, /0900000000|Private person/);
 });

@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { products } from "../src/lib/catalog.ts";
+import fixtures from "../src/components/layout-preview/fixtures.json" with { type: "json" };
 import {
   emptySelection,
   updateSelection,
   selectedProducts,
-  sampleSubtotal,
+  listedSubtotal,
 } from "../src/lib/rental-selection.ts";
 
+const { products } = fixtures;
 const slugs = products.map((item) => item.slug);
 const apply = (state, action) => updateSelection(state, action, slugs);
 
@@ -66,9 +67,9 @@ test("derived selections ignore invalid and duplicated IDs", () => {
     "muse-dress",
   ]);
   assert.equal(items.length, 1);
-  assert.equal(sampleSubtotal(items), 280000);
+  assert.equal(listedSubtotal(items), 280000);
 });
-test("subtotal is exactly the sample sum without invented fees", () => {
-  assert.equal(sampleSubtotal(products), 660000);
-  assert.equal(sampleSubtotal([]), 0);
+test("subtotal is exactly the listed sum without invented fees", () => {
+  assert.equal(listedSubtotal(products), 660000);
+  assert.equal(listedSubtotal([]), 0);
 });

@@ -61,7 +61,7 @@
   min-width: 0;
   max-width: 1500px;
   width: 100%;
-  margin: auto;
+  margin-inline: auto;
 }
 .admin-heading {
   border-bottom: 1px solid var(--border);
@@ -79,21 +79,6 @@
   margin: 8px 0 0;
   letter-spacing: -0.03em;
 }
-.admin-demo {
-  border: 1px dashed var(--border);
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  color: var(--muted-foreground);
-  font-size: 12px;
-}
-.admin-demo summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-.admin-demo p {
-  margin: 12px 0;
-}
 .admin-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -106,9 +91,8 @@
 .admin-panel {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   padding: clamp(16px, 3vw, 28px);
-  box-shadow: 0 4px 15px #634a5506;
 }
 .admin-panel h2 {
   font-size: 20px;
@@ -305,9 +289,6 @@
 }
 
 /* Admin operations surfaces */
-.admin-main {
-  margin: 0 auto;
-}
 .admin-sidebar {
   background: color-mix(in srgb, var(--secondary) 56%, var(--background));
 }
@@ -321,7 +302,7 @@
   padding: clamp(14px, 2.3vw, 26px);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
 }
 .admin-surface h2 {
   margin: 0 0 8px;
@@ -368,6 +349,7 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  font-variant-numeric: tabular-nums;
 }
 .admin-table th,
 .admin-table td {
@@ -380,6 +362,7 @@
   font-size: 0.79rem;
   font-weight: 650;
   color: var(--muted-foreground);
+  background: var(--muted);
 }
 .admin-table tbody tr:last-child td {
   border-bottom: 0;
