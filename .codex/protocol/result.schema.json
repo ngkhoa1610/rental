@@ -25,20 +25,14 @@
       "const": "1.0"
     },
     "message_type": {
-      "enum": [
-        "task",
-        "result"
-      ]
+      "enum": ["task", "result"]
     },
     "task_id": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$"
     },
     "parent_task_id": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "maxLength": 64
     },
     "role": {
@@ -62,13 +56,7 @@
       ]
     },
     "status": {
-      "enum": [
-        "PASS",
-        "FAIL",
-        "BLOCKED",
-        "NEEDS_CONTEXT",
-        "INVALID_INPUT"
-      ]
+      "enum": ["PASS", "FAIL", "BLOCKED", "NEEDS_CONTEXT", "INVALID_INPUT"]
     },
     "summary": {
       "type": "string",
@@ -81,22 +69,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "path",
-          "change_type"
-        ],
+        "required": ["path", "change_type"],
         "properties": {
           "path": {
             "type": "string",
             "maxLength": 180
           },
           "change_type": {
-            "enum": [
-              "added",
-              "modified",
-              "deleted",
-              "renamed"
-            ]
+            "enum": ["added", "modified", "deleted", "renamed"]
           }
         }
       }
@@ -107,29 +87,17 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "command",
-          "outcome",
-          "exit_code"
-        ],
+        "required": ["command", "outcome", "exit_code"],
         "properties": {
           "command": {
             "type": "string",
             "maxLength": 200
           },
           "outcome": {
-            "enum": [
-              "pass",
-              "fail",
-              "blocked",
-              "not_run"
-            ]
+            "enum": ["pass", "fail", "blocked", "not_run"]
           },
           "exit_code": {
-            "type": [
-              "integer",
-              "null"
-            ],
+            "type": ["integer", "null"],
             "minimum": 0,
             "maximum": 255
           },
@@ -146,19 +114,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "severity",
-          "path",
-          "issue",
-          "recommendation"
-        ],
+        "required": ["severity", "path", "issue", "recommendation"],
         "properties": {
           "severity": {
-            "enum": [
-              "blocker",
-              "major",
-              "minor"
-            ]
+            "enum": ["blocker", "major", "minor"]
           },
           "path": {
             "type": "string",

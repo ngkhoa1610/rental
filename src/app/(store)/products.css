@@ -251,6 +251,26 @@
   }
 }
 
+@media (max-width: 900px) {
+  .store-theme:has(.store-pdp-bar) {
+    /* The mobile navigation is 64px tall plus its top border and safe area. */
+    --pdp-nav-offset: calc(65px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .store-theme .store-pdp {
+    padding-bottom: 0;
+  }
+
+  .store-theme .store-pdp-bar {
+    bottom: var(--pdp-nav-offset);
+    padding-bottom: 0.75rem;
+  }
+
+  .store-theme:has(.store-pdp-bar) .home-footer {
+    padding-bottom: calc(27px + var(--pdp-nav-offset) + 5rem);
+  }
+}
+
 .store-pdp-bar-cta:focus-visible,
 .store-pdp-acc summary:focus-visible,
 .store-cat-dates summary:focus-visible {

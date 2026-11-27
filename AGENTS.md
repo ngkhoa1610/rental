@@ -10,7 +10,7 @@ Read `docs/structure.md`, `docs/feature.md`, and `docs/setup.md` before changes.
 - After code, format, lint, test, build, smoke, security source review and desktop/mobile browser QA for affected flows. `npm run check` additionally includes dependency audit. Report PASS/FAIL/BLOCKED accurately; historical results are not current evidence. Do not touch a production/shop DB for source-only work.
 - Update the three docs and versioned source checkpoint after implementation. Deliver only changed files relative to the last baseline, state the role of each, list deletions/renames, give reproduction steps and limitations. Full source is retained for continuation; do not attach full source unless requested.
 - For customer UI changes, follow [.agents/skills/ui-ux/SKILL.md](.agents/skills/ui-ux/SKILL.md): prioritize the browse → availability → request journey, retain the sakura identity, and verify responsive, keyboard, Vietnamese and reduced-motion behavior. Use faocamera.vn only as an interaction/layout reference; do not copy its branding or camera-rental claims.
-- For security-sensitive changes or a requested security review, follow [.agents/skills/security-pentest.md](.agents/skills/security-pentest.md). Keep assessments authorized and local/source-scoped unless a live target and rules of engagement are explicitly approved. Never run destructive tests or alter a live database.
+- For security-sensitive changes or a requested security review, follow [.agents/skills/security-review/SKILL.md](.agents/skills/security-review/SKILL.md). Use defensive source review and authorized verification on isolated local fixtures.
 - The app has separate customer/admin routes, auth scopes, permissions, API contracts, and rental business services. For cross-layer changes, map the route → contract → handler/service → persistence path and define invariants before editing; do not add a separate architecture skill unless the system boundary or deployment topology materially changes.
 
 
@@ -23,9 +23,9 @@ Read `docs/structure.md`, `docs/feature.md`, and `docs/setup.md` before changes.
 - Stage explicit paths or hunks and review the staged file list and diff. Use `git add --chmod=+x -- .githooks/pre-commit` when staging the hook itself.
 - Run `node scripts/check-staged-secrets.mjs` against the exact staged changes. Use `git -c core.hooksPath=.githooks commit -m "<checkpoint>"` so the hook runs even without local setup. If the guard or Git write fails, leave the checkpoint uncommitted and report the blocker. Keep commits local unless the user authorizes a push.
 
-The main Codex thread owns scope, delegation, integration, and the final result. Delegate every project task to the appropriate agents, regardless of size or risk, including single-file edits, documentation, and read-only work. Assign visual design, theme, interaction and responsive work to `designer` first, including small changes. Assign implementation to `developer` or a reproducible defect to `debugger`. Designer may implement explicitly assigned presentation changes. Then assign independent verification to `tester` and actual-diff review to `reviewer`. For read-only work, assign the relevant verification or review role directly and record its evidence. Test and review may run in parallel against a stable patch if neither writes files under review. Use `orchestrator` for bounded planning and delegate directly from the main thread. Keep at most three active subagents and one writer per file.
+The main Codex thread owns scope, delegation, integration and the final result. It delegates project work according to the role table, including single-file edits, documentation and read-only work. Assign visual work to `designer` first. Assign implementation to `developer` or a reproducible defect to `debugger`, then assign independent verification to `tester` and actual-diff review to `reviewer`. For read-only work, assign the relevant verification or review role directly. Test and review may run in parallel against a stable patch if neither writes files under review. The main thread may ask `orchestrator` for a plan when dependencies warrant one. Keep at most three active subagents and one writer per file.
 
-If the host lacks a required role or delegation is restricted, mark that stage BLOCKED, explain the runtime limitation, and continue the stages that can be delegated. Report only checks actually run. This policy supersedes any small-task exception in project-local role prompts or workflow documentation.
+These routing rules apply to the main thread. A child handles only its assigned work and returns to the parent. If the host lacks a role or restricts delegation, mark the affected stage BLOCKED and continue authorized work. Report only checks actually run.
 
 All delegated handoffs use a compact JSON TaskEnvelope / ResultEnvelope v1 (4 KiB / 6 KiB) validated with `node scripts/validate-agent-message.mjs`; both schema files and examples live under `.codex/protocol/`. Keep only path pointers and acceptance criteria, never large transcripts, raw logs or secrets. The parent must independently check the actual diff and tool exit codes before accepting a result. Roles and validation are NOT a runtime sandbox.
 
@@ -58,8 +58,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-<!-- Append to AGENTS.md. Keep short: it is read on every run. Does not repeat the delegation and checkpoint rules already there. -->
-
 ## Environment
 - Windows + PowerShell: use `npm.cmd` and `node node_modules/<tool>/...`; do not assume `sed`/`grep` or a working Git shell inside the sandbox.
 
@@ -70,5 +68,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Handoff conventions
 - One feature id per request: children use `parent_task_id` = that id and `task_id` = `<feature>-<nn>-<role>`.
 - Scratch and evidence go to `.agent-work/<task_id>/`. `evidence_refs` are file paths, never opaque tool ids. Delete a feature's scratch after acceptance.
-- Request scoped test commands (by file or `--test-name-pattern`). A requested check that fails keeps the task FAIL; the tester labels it `regression:` or `preexisting:` and the main thread re-tasks with a narrower command.
-- A `blocked` check carries the exact command to run outside the sandbox.
+- Request scoped test commands (by file or `--test-name-pattern`). A requested check that fails keeps the task FAIL. The tester labels it `regression:` or `preexisting:` when a baseline run establishes the classification, and states uncertainty otherwise.
+- A `blocked` check names the unmet prerequisite and the exact command to retry.

@@ -87,6 +87,8 @@ Trang chủ đặt thao tác xem danh mục và tra lịch cạnh nhau. `product
 
 `/products` ghép mục tra lịch `quick-booking.tsx` và danh mục `catalog.tsx` thành hai vùng độc lập. Tra lịch kiểm tra từng sản phẩm qua báo giá hiện có và hiển thị kết quả trong mục tra ngày. Danh mục dùng từ khóa, bộ lọc và sắp xếp cục bộ.
 
+`src/app/(store)/products/[slug]/page.tsx` nhận slug và đọc sản phẩm công khai qua `storefront.ts`. Hai tuyến danh mục và chi tiết cùng nhập `src/app/(store)/products.css` từ độ sâu tương ứng.
+
 `preview-sign-in.tsx` đọc hai tài khoản mẫu từ fixture và giữ vai trò đã chọn trong state của component. Vai trò chỉ quyết định khối đơn/phản hồi khách hoặc bảng Admin mẫu được hiển thị trên trang phát triển. Tải lại trang sẽ xóa state.
 
 `src/app/(store)/theme.css` giữ màu nhấn `#660000` đã xác minh và nền giấy CSS tạm thời của khu khách. Layout khách nhập file này sau CSS bố cục. Các portal khách nhận token theo lớp của từng sheet. Phần khách trong preview dùng bộ màu này. Bảng Admin dùng token gốc. Font tiêu đề và tiêu đề phụ tiếp tục lấy từ CSS hiện tại trong khi chờ thông số và tài nguyên font Canva dùng được trên web.

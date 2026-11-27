@@ -1,32 +1,4 @@
-# Codex project settings. Do not pin models or override user sandbox/approvals here.
-# Native subagents are available in supported Codex builds. Follow AGENTS.md routing.
-sandbox_mode = "workspace-write"
+# Custom roles are discovered from standalone files in .codex/agents/.
+# Model, sandbox and approval policy come from the parent session.
 [agents]
 max_concurrent_threads_per_session = 3
-
-[agents.orchestrator]
-description = "Optional bounded coordinator; parent Codex still owns the final decision."
-config_file = "agents/orchestrator.toml"
-
-[agents.developer]
-description = "Scoped code implementer; writes only assigned paths."
-config_file = "agents/developer.toml"
-
-[agents.tester]
-description = "Independent verification; writes only approved tests."
-config_file = "agents/tester.toml"
-
-[agents.reviewer]
-description = "Read-only independent reviewer; never edits."
-config_file = "agents/reviewer.toml"
-
-[agents.debugger]
-description = "Reproduce and minimally fix isolated defects."
-config_file = "agents/debugger.toml"
-
-[agents.designer]
-description = "Reference-led design, visual QA and explicitly assigned UI presentation changes."
-config_file = "agents/designer.toml"
-
-[sandbox_workspace_write]
-network_access = true

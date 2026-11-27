@@ -10,10 +10,7 @@
     "Form validates malformed email input",
     "No credentials are logged"
   ],
-  "constraints": [
-    "Do not change database schema",
-    "Do not modify admin files"
-  ],
+  "constraints": ["Do not change database schema", "Do not modify admin files"],
   "allowed_paths": [
     "src/app/(store)/account/page.tsx",
     "tests/auth-form.test.mjs"
@@ -24,8 +21,6 @@
       "why": "Target account page"
     }
   ],
-  "requested_checks": [
-    "npm run lint"
-  ],
+  "requested_checks": ["npm run lint"],
   "priority": "normal"
 }

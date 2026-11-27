@@ -195,6 +195,8 @@ Chạy `npm run test:server` để kiểm tra contract truy vấn và `npm run t
 
 ## Checkpoint Git theo mốc
 
+Kiểm tra handoff và vai trò bằng `node --test tests/agent-protocol.test.mjs tests/codex-config.test.mjs`. Với tuyến sản phẩm, kiểm tra hai trang bằng `node scripts/check-translations.mjs 'src/app/(store)/products/page.tsx' 'src/app/(store)/products/[slug]/page.tsx'`. Lệnh đọc cụm chữ tĩnh trong `<T>` và báo vị trí khóa còn thiếu.
+
 Với thay đổi workflow Codex, kiểm tra bằng `node --test tests/agent-protocol.test.mjs tests/codex-config.test.mjs`. UAT: cả sửa một file và thay đổi liên tầng đều được phân công triển khai, kiểm thử độc lập và review. Tác vụ chỉ đọc được giao trực tiếp cho vai trò kiểm tra hoặc review phù hợp. Khi host thiếu khả năng phân vai, ghi BLOCKED cho bước tương ứng và tiếp tục các bước còn phân công được.
 
 **Quy tắc giới hạn:** tạo commit cục bộ sau khi hoàn thành và kiểm tra một tính năng, bản sửa lỗi hoặc refactor có phạm vi rõ ràng. Chọn đúng file hoặc hunk của mốc. Kiểm tra dữ liệu staged để chặn file chứa credential và các mẫu secret nhận diện được.

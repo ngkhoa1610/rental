@@ -19,7 +19,7 @@ Trace each relevant path from route and attacker-controlled input through valida
 
 ## Rental Store security invariants
 
-- Customer and admin routes, sessions/cookies, OIDC configuration, CSRF protections, and permissions remain separate. Never infer staff permissions from OIDC claims or client input.
+- Customer and admin credential routes, sessions/cookies, CSRF protections, and task permissions remain separate. Resolve staff permissions from the current StaffProfile on the server.
 - Check ownership and staff task permission on the server for every protected read/write. Validate input at runtime; enforce Origin/CSRF, rate limits, and safe upload constraints where applicable.
 - Rental mutations preserve transaction, record version, idempotency, audit, and stock invariants. Pending requests do not reserve inventory; confirmed/renting do.
 - Public DTOs expose only approved fields. Do not leak customer/admin data through storefront pages, responses, logs, or media URLs.

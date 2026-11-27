@@ -1,6 +1,6 @@
 # Codex native agents — rental-store
 
-Six project-local custom roles include `orchestrator`, `developer`, `tester`, `reviewer`, `debugger` and `designer`. The **main Codex session is the true coordinator by default**; choose the optional orchestrator subagent for complex planning only. Roles live at `.codex/agents/*.toml` and are registered in `.codex/config.toml`.
+Six project-local custom roles include `orchestrator`, `developer`, `tester`, `reviewer`, `debugger` and `designer`. The **main Codex session is the true coordinator by default**; choose the optional orchestrator subagent for complex planning only. Roles live at `.codex/agents/*.toml` and are discovered from those standalone files. `.codex/config.toml` caps concurrent subagents at three.
 
 ## Usage
 
@@ -19,7 +19,7 @@ node --test tests/agent-protocol.test.mjs
 ## Isolation and efficiency
 
 - Use no more than three concurrent agents, and one active writer per file.
-- Custom TOML instructions cannot provide a security sandbox. Actual permission enforcement depends on root Codex sandbox/approvals, host tooling, filesystem ACLs/worktrees, and review of the real diff.
+- The reviewer role operates read-only by instruction. The parent session and host supply actual sandbox permissions and approvals. The parent inspects the real diff before acceptance.
 - Agents inherit root model unless explicitly configured otherwise. No speculative model names or provider overrides.
 - Protocol caps are handoff bytes, not actual model context or tool tokens.
 - Agents must never infer an unexecuted test PASS.
@@ -27,4 +27,4 @@ node --test tests/agent-protocol.test.mjs
 
 ## Reference
 
-Official: https://learn.chatgpt.com/docs/agent-configuration/subagents ; https://learn.chatgpt.com/docs/config-file/config-reference ; https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra
+Official: https://learn.chatgpt.com/docs/agent-configuration/subagents ; https://learn.chatgpt.com/docs/config-file/config-reference ; https://learn.chatgpt.com/docs/agent-configuration/agents-md

@@ -18,9 +18,7 @@
   ],
   "findings": [],
   "evidence_refs": [],
-  "risks": [
-    "Requires a real delegated implementation task"
-  ],
+  "risks": ["Requires a real delegated implementation task"],
   "requested_context": [],
   "next_owner": "orchestrator"
 }

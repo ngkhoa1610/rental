@@ -1,5 +1,11 @@
 # Feature — website làm được gì và dữ liệu đi đâu
 
+## Khôi phục tuyến sản phẩm và kiểm tra workflow Codex
+
+- **Quy tắc:** `/products` hiển thị danh mục cùng công cụ tra lịch. `/products/[slug]` hiển thị chi tiết sản phẩm công khai hoặc trang không tìm thấy. Giữ các quy tắc thuê hiện hành khi khôi phục hai điểm vào.
+- **UAT:** mở danh mục, tra lịch và lọc trên trang, sau đó mở một sản phẩm công khai để xem ảnh, giá và form thuê. Mở slug không tồn tại để kiểm tra trang lỗi. Với workflow Codex, kiểm tra sáu vai trò, gửi handoff mẫu và xác nhận validator từ chối các đường dẫn sai phạm vi.
+- **Điều hướng mobile:** thanh xem lịch trên trang chi tiết phải nằm trên thanh điều hướng dưới. Ở 390 và 768 px, bấm “Xem lịch trống” và xác nhận trang cuộn tới form thuê, đồng thời thanh điều hướng vẫn sử dụng được.
+
 Bảng ghi input, phản hồi và dữ liệu bền vững trong PostgreSQL. Tên bảng là model trong `prisma/schema.prisma`.
 
 ## Phạm vi đã chốt — tinh gọn luồng khách đặt thuê
