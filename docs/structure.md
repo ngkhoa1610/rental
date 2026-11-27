@@ -63,6 +63,8 @@ Quy tắc tạo checkpoint Git nằm trong `AGENTS.md`. Hook tại `.githooks/pr
 
 `AGENTS.md` xác định cách phân công Codex và các quyết định nghiệp vụ hiện hành. `.codex/agents/` chứa các vai trò chuyên trách, `.codex/protocol/` chứa hợp đồng bàn giao và `.agents/skills/` chứa hướng dẫn theo loại thay đổi.
 
+Main dùng bản đồ này để lần từ route qua contract, handler/service, dữ liệu và test cần thiết. TaskEnvelope chuyển đường dẫn và mục liên quan cho từng agent. Cập nhật bản đồ khi đường dẫn hoặc quyền sở hữu source thay đổi. [Bảng chọn kỹ năng ECC](../.codex/README.md#ecc-skill-selection) bổ sung cách phân công theo nhu cầu.
+
 ## Admin Mốc 1
 
 Đối chiếu trường vận hành với `prisma/schema.prisma`, sau đó kiểm tra trường đi qua biểu mẫu, contract và service trước khi ghi dữ liệu. Ma trận thao tác và UAT theo trường nằm ở `feature.md`. Tài liệu tham chiếu bố cục Mobbin và cách chạy kiểm tra nằm ở `setup.md`.

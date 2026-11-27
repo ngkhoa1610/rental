@@ -1,6 +1,6 @@
 # Rental Store — working rules
 
-Read `docs/structure.md`, `docs/feature.md`, and `docs/setup.md` before changes. They are the three current project documents; old phase reports remain in the earlier versioned source checkpoint. The user may authorize a new scope that supersedes historical phase limits.
+Before dispatching changes, the main thread reads `docs/structure.md`, `docs/feature.md`, and `docs/setup.md`. These are the three current project documents. Old phase reports remain in the earlier versioned source checkpoint. The user may authorize a new scope that supersedes historical phase limits.
 
 - Keep the approved business: customer scope is browsing products, checking dates/availability, and sending a rental request; staff review and update orders. No product variants; size is advice; dates follow Asia/Ho_Chi_Minh; same-day/next-day return is valid; pending order does not reserve inventory, confirmed/renting does. Payment is external and out of scope; do not build a payment ledger or imply online payment. Do not invent prices, deposits, shipping fees, contact details, or shop claims.
 - Customer and admin have separate routes, menus, auth cookies, sessions, CSRF and task permissions. Never expose admin navigation/data through customer UI or infer staff rights from user-provided credentials or profile data.
@@ -45,6 +45,8 @@ Read these rules before applying project-local role prompts or skills. The curre
 | `designer` | Research references, audit UI, specify tokens and perform visual QA. Implement only explicitly assigned presentation or design-document paths. |
 
 Include the relevant project skill and prerequisite docs as context references when assigning work. Apply the UI/UX guidance to Admin as well as customer screens. For security-sensitive changes, apply the security guidance to defensive source review and authorized verification. If an agent needs an additional path, the main thread updates its task scope before it proceeds.
+
+Use the [ECC skill selection](.codex/README.md#ecc-skill-selection) only for a concrete gap in an assigned task. Current user scope, project rules and project skills govern implementation, subject to runtime and security policies. The main thread converts approved Designer requirements into criteria for implementation, independent testing and review, then passes the same scoped spec to each role.
 
 **Current Admin decision:** retain the admin UI and API. Milestone 1 covers dashboard, orders, product cover, and inventory availability. Milestone 2 covers product albums, customer lookup, feedback moderation, and staff permissions. Authentication changes require separate scope. Prisma and PostgreSQL remain the persistence layer.
 

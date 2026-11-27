@@ -19,10 +19,9 @@ This is a **prompt + local validator** contract, not a running message bus. The 
 
 1. The main thread defines the scope and may ask the optional planner for a `coordinate` plan with exact child `allowed_paths` and `context_refs`.
 2. Check task JSON: `node scripts/validate-agent-message.mjs task path/to/task.json`.
-3. Host delegates task to named role. The agent reads only paths relevant to its task and emits **one** `result` JSON file/body.
-4. Validate result: `node scripts/validate-agent-message.mjs result path/to/result.json`. Validator checks schema, role-action match, size, path safety, forbidden path references, status logic and internally consistent check exit codes.
-5. The main thread also compares `changed_files` against the **original task `allowed_paths`** (use `--task path/to/task.json` with result validation); checks task identity and prevents scope creep. Tool permissions / filesystem controls still enforce actual write limits.
-6. The main thread routes corrections after `FAIL`, provides bounded context after `NEEDS_CONTEXT`, and records the missing prerequisite after `BLOCKED`. After implementation, it gathers independent tester and reviewer evidence before acceptance.
+3. The main thread delegates to the named role, including for single-file and read-only work. The agent reads the relevant paths and emits **one** `result` JSON file/body.
+4. Validate against the original task: `node scripts/validate-agent-message.mjs result path/to/result.json --task path/to/task.json`. The validator checks schema, role-action match, task identity, declared change scope, sizes, paths, statuses and check exit codes.
+5. The main thread checks actual changes and executed evidence. It routes corrections after `FAIL`, provides bounded context after `NEEDS_CONTEXT`, and records the missing prerequisite after `BLOCKED`. After implementation, it gathers independent tester and reviewer evidence against the stable diff before acceptance.
 
 ## Routing and ownership
 
@@ -35,14 +34,22 @@ This is a **prompt + local validator** contract, not a running message bus. The 
 | reviewer      | review     | No                                                                                 | Main thread                           |
 | designer      | design     | Approved presentation and design docs only when explicitly assigned implementation | Main thread                           |
 
-Orchestrator can create child envelopes; only the host starts/dispatches actual agent processes. `tester` and `reviewer` remain independent of implementer. For design work, the parent dispatches `designer/design` before implementation and links the approved references and affected frontend paths. Include in the goal whether the assignment is read-only or includes presentation edits. For read-only design return an empty `changed_files` array. Continue with `developer/implement` if integration is needed, then `tester/test` and `reviewer/review` for independent verification. Never run two writers on one file concurrently.
+The optional `orchestrator` can prepare envelopes for the main thread to dispatch. The `tester` and `reviewer` stay independent of the implementer. Keep one writer per file.
+
+### Design handoff
+
+1. The main thread assigns `designer/design` first for visual or interaction changes. Identify the design axis, relevant references, and affected frontend paths. State whether the task is a read-only spec or explicitly authorized presentation work.
+2. For design with downstream implementation, the designer writes `.agent-work/<designer-task-id>/design.md` and returns it in `evidence_refs`. Include observable requirements by affected path, expected states, and QA criteria. A read-only designer leaves `changed_files` empty.
+3. Before dispatching implementation, the main thread validates the designer result and confirms that the cited file exists in the assigned designer's scratch, contains observable requirements, and stays within the user and project scope. Resolve a missing or unapproved spec before dispatch. In each implementation and verification task, name the exact approved spec as a read-only artifact in `constraints` and copy its applicable requirements into `acceptance_criteria`. The validator reserves scratch paths for result evidence and rejects them in `allowed_paths` and `context_refs`. The main thread authorizes the exact scratch file for reading and checks that its content remains intact. The implementer follows the spec, Tester evaluates the specified behavior, and Reviewer compares the patch to the same spec.
+4. If the approved scratch spec becomes unavailable after dispatch, return `BLOCKED`, name the exact scratch path in `summary` or `risks`, and leave `requested_context` empty because it rejects scratch paths. Report conflicts or material revisions as concrete findings. The main thread resolves or updates the approved requirement before accepting affected work.
 
 ## Context hygiene
 
 - Send _objective, constraints, criteria, path pointers, evidence references_, not original conversation transcripts or full source files.
 - Use targeted `Read`/`Grep`/`Glob` and limit output. Prefer `src/server/http/security.ts:42-100` over a 1,000-line pasted file.
 - No `.env` or populated environment files, private keys, credentials, session cookies, personal user data, logs with secrets, `node_modules`, `.next`, generated Prisma client, dependency lockfiles as agent handoffs.
-- Read AGENTS.md, this protocol and the three current project docs as baseline context. The parent names relevant skills and source in allowed_paths. Return NEEDS_CONTEXT for other essential source.
+- The main thread reads the three current project docs before dispatching changes. Children read `AGENTS.md`, this protocol, the relevant skill and the documentation sections and source paths named in `context_refs`. Any `context_refs` pointer other than `AGENTS.md` or this protocol must also appear in `allowed_paths`. The exact read-only Designer spec named in `constraints` is an explicit exception to the normal read scope. Return `NEEDS_CONTEXT` for another essential repo path.
+- Use the [role and ECC skill mapping](../README.md#ecc-skill-selection) to name any selected supplemental skill and its task-specific purpose in `constraints`.
 - A `PASS` without execution evidence is invalid for tester. Reviewer `PASS` means review within supplied scope, not application-wide certification.
 - `.agent-work/` is ignored local scratch for envelopes and evidence summaries. Never store secrets; never commit scratch data.
 
@@ -58,7 +65,7 @@ See `examples/task.developer.json` and `examples/result.developer.json`. Validat
 
 ## Codex runtime
 
-Codex discovers standalone roles in `.codex/agents/*.toml`. The project config sets the concurrent subagent limit. The parent thread normally acts as orchestrator; `orchestrator` custom role is optional. Ask for subagents explicitly if your Codex client does not delegate automatically. These JSON envelopes are an **application-level convention**, not the native tool protocol: the parent must package and validate task/result JSON when using the contract. Subagents inherit parent sandbox/approvals and MCP settings; textual read/write restrictions are not filesystem security. Run `git diff --name-only` in the parent to audit actual writes.
+Codex discovers standalone roles in `.codex/agents/*.toml`. The project config sets the concurrent subagent limit. The main thread performs mandatory dispatch. If the host lacks a role or prevents delegation, record that stage as `BLOCKED`. The main thread packages and validates the JSON around native dispatch. Host permissions govern actual access. Inspect the real diff, including any new files, to audit actual writes.
 
 **Do not forward** large search output, test output, conversation transcripts, source contents, credentials, `.env` files or production records. Each task contains only criteria, constraints, authorized path pointers and exact checks. Keep large evidence in local tool outputs and reference file:line or command label.
 

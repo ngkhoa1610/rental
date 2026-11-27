@@ -199,6 +199,8 @@ Kiểm tra handoff và vai trò bằng `node --test tests/agent-protocol.test.mj
 
 Với thay đổi workflow Codex, kiểm tra bằng `node --test tests/agent-protocol.test.mjs tests/codex-config.test.mjs`. UAT: cả sửa một file và thay đổi liên tầng đều được phân công triển khai, kiểm thử độc lập và review. Tác vụ chỉ đọc được giao trực tiếp cho vai trò kiểm tra hoặc review phù hợp. Khi host thiếu khả năng phân vai, ghi BLOCKED cho bước tương ứng và tiếp tục các bước còn phân công được.
 
+Để kiểm tra tích hợp ECC, chạy `codex plugin list --json` và xác nhận `ecc@ecc` đang bật. Đối chiếu các khả năng của bản cài với [bảng tương thích](../.codex/README.md#codex-compatibility). Với UAT bàn giao thiết kế trong [feature.md](feature.md#tích-hợp-ecc-vào-workflow-codex), dùng fixture chứa đường dẫn đặc tả và các tiêu chí quan sát được. Kiểm tra cả ba task triển khai, kiểm thử và review bằng validator, rồi đối chiếu diff và kết quả độc lập. Với thay đổi chỉ thuộc workflow, chạy kiểm tra định dạng tài liệu thay đổi, protocol, cấu hình và phạm vi diff. Các kiểm tra browser, build và database áp dụng theo luồng ứng dụng bị ảnh hưởng.
+
 **Quy tắc giới hạn:** tạo commit cục bộ sau khi hoàn thành và kiểm tra một tính năng, bản sửa lỗi hoặc refactor có phạm vi rõ ràng. Chọn đúng file hoặc hunk của mốc. Kiểm tra dữ liệu staged để chặn file chứa credential và các mẫu secret nhận diện được.
 
 **UAT:** với repo Git thử nghiệm, commit thay đổi nguồn sạch thành công. Hook phải từ chối file credential bị force-add và secret nhận diện được trong blob staged, kể cả khi bản làm việc đã được sửa sạch. Thông báo chỉ nêu đường dẫn và loại vi phạm.

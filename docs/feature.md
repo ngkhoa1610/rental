@@ -1,5 +1,10 @@
 # Feature — website làm được gì và dữ liệu đi đâu
 
+## Tích hợp ECC vào workflow Codex
+
+- **Quy tắc:** Main Codex tiếp tục phân công theo sáu vai trò hiện có. ECC bổ trợ theo nhu cầu của từng nhiệm vụ. Đặc tả thiết kế được main duyệt trở thành tiêu chí nghiệm thu cho triển khai và kiểm tra độc lập. Phạm vi thay đổi là hướng dẫn và cấu hình agent của project.
+- **UAT cấu hình:** xác nhận Codex nhận diện ECC và sáu vai trò. Chạy kiểm tra protocol, rồi dùng fixture để chuyển `design.md` qua developer, tester và reviewer. Xác nhận validator từ chối tham chiếu ngoài phạm vi. Với tác vụ chỉ đọc, giao trực tiếp cho vai trò phù hợp. Đối chiếu diff để xác nhận phạm vi cấu hình.
+
 ## Khôi phục tuyến sản phẩm và kiểm tra workflow Codex
 
 - **Quy tắc:** `/products` hiển thị danh mục cùng công cụ tra lịch. `/products/[slug]` hiển thị chi tiết sản phẩm công khai hoặc trang không tìm thấy. Giữ các quy tắc thuê hiện hành khi khôi phục hai điểm vào.

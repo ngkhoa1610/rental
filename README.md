@@ -19,4 +19,4 @@ Các lệnh kiểm tra: `npm run db:validate`, `npm run format:check`, `npm run 
 
 ## Codex subagents
 
-Native Codex roles live under `.codex/agents/*.toml` (orchestrator, developer, tester, reviewer, debugger). See [setup and handoff rules](.codex/README.md). These are configurable role prompts and local validators, not running autonomous services.
+Native Codex roles live under `.codex/agents/*.toml` (orchestrator, developer, tester, reviewer, debugger, designer). The main session delegates work with validated handoffs. See the [agent workflow and ECC skill mapping](.codex/README.md).
